@@ -37,6 +37,16 @@ If a requirement is not clearly supported, say **gap** or **transferable skill**
 
 Human must review all outputs before applying — no auto-apply.
 
+## Job input (text, link, or LinkedIn)
+
+The user may provide a job in any of these forms:
+
+1. **Pasted text** — full job description in chat
+2. **URL** — e.g. The Hub, Greenhouse, company career page; fetch the page and extract the posting
+3. **LinkedIn job link** — try to fetch; if login/captcha blocks access, ask the user to paste the job text
+
+Always save the job to `data/jobs/{company}-{role}.md` with **Source URL** filled in when a link was provided.
+
 ## App vs agent workflow
 
 - **Web app** (`src/`): Analyzer, CV Generator, Cover Letter, Tracker — use `master-cv.json`; OpenAI not connected yet

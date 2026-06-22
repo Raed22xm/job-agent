@@ -10,7 +10,11 @@ Analyze the job description against the verified CV data in `data/cv/` and `data
 
 ## Input
 
-1. Job description (from `data/jobs/` or pasted text)
+1. Job description — any of:
+   - Pasted text (from chat)
+   - Saved file in `data/jobs/`
+   - **Job URL** (The Hub, Greenhouse, company site, etc.) — fetch and extract the full posting
+   - **LinkedIn job URL** — fetch if public; if blocked, ask user to paste the description
 2. Master CV (`data/cv/*.md` and `data/master-cv.json`)
 
 ## Output format

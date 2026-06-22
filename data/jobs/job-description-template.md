@@ -1,12 +1,12 @@
 # Job Title — Company Name
 
 **Location:**  
-**Source URL:**  
+**Source URL:** _(paste link if job came from The Hub, LinkedIn, Greenhouse, etc.)_  
 **Date saved:**
 
 ## Job description
 
-(paste full job posting here)
+(paste full job posting here — or note "fetched from URL above")
 
 ## Notes
 
