@@ -1,0 +1,252 @@
+import {
+  extractKnownTerms,
+  KNOWN_SKILLS,
+  KNOWN_TOOLS,
+  normalizeTerm,
+} from "@/lib/jobDictionaries";
+import type { ParsedJob } from "@/types";
+
+const SECTION_HEADINGS = {
+  responsibilities:
+    /^(responsibilities|what you('ll| will) do|what you'll do|role overview|key responsibilities)/i,
+  requirements:
+    /^(requirements|qualifications|what we('re| are) looking for|must have|required skills|minimum qualifications)/i,
+  skills: /^(skills|technical skills|core competencies)/i,
+};
+
+function splitLines(text: string): string[] {
+  return text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+}
+
+function isBulletLine(line: string): boolean {
+  return /^(\d+[.)]|[-•*–—])\s+/.test(line);
+}
+
+function cleanBullet(line: string): string {
+  return line.replace(/^(\d+[.)]|[-•*–—])\s+/, "").trim();
+}
+
+function extractSectionItems(
+  lines: string[],
+  heading: RegExp,
+  limit = 8
+): string[] {
+  const start = lines.findIndex((line) => heading.test(line));
+  if (start === -1) return [];
+
+  const items: string[] = [];
+
+  for (let i = start + 1; i < lines.length && items.length < limit; i++) {
+    const line = lines[i];
+
+    if (
+      Object.values(SECTION_HEADINGS).some(
+        (pattern) => pattern.test(line) && !heading.test(line)
+      )
+    ) {
+      break;
+    }
+
+    if (isBulletLine(line) || line.length > 20) {
+      items.push(cleanBullet(line));
+    } else if (items.length > 0) {
+      break;
+    }
+  }
+
+  return items.filter((item) => item.length > 10);
+}
+
+function extractResponsibilities(text: string, lines: string[]): string[] {
+  const fromSection = extractSectionItems(lines, SECTION_HEADINGS.responsibilities);
+  if (fromSection.length > 0) return fromSection;
+
+  const bullets = lines
+    .filter(isBulletLine)
+    .map(cleanBullet)
+    .filter((line) => line.length > 20)
+    .slice(0, 6);
+
+  return bullets;
+}
+
+function extractRequirements(text: string, lines: string[]): string[] {
+  const fromSection = extractSectionItems(lines, SECTION_HEADINGS.requirements);
+  if (fromSection.length > 0) return fromSection;
+
+  const requirementPatterns = [
+    /(\d+\+?\s*years?\s+(?:of\s+)?experience[^.\n]{0,80})/gi,
+    /(bachelor(?:'s)?\s+degree[^.\n]{0,60})/gi,
+    /(must have[^.\n]{0,80})/gi,
+    /(proficiency in[^.\n]{0,80})/gi,
+  ];
+
+  const matches: string[] = [];
+  for (const pattern of requirementPatterns) {
+    const found = text.match(pattern) ?? [];
+    matches.push(...found.map((m) => m.trim()));
+  }
+
+  return Array.from(new Set(matches)).slice(0, 6);
+}
+
+function extractTitle(lines: string[]): string {
+  const labeled = lines.find((line) =>
+    /^(job title|position|role)\s*[:]/i.test(line)
+  );
+  if (labeled) {
+    return labeled.replace(/^(job title|position|role)\s*[:]\s*/i, "").trim();
+  }
+
+  const firstLine = lines[0] ?? "";
+  const titleFromPipe = firstLine.match(/^(.+?)\s+[|–-]\s+/);
+  if (titleFromPipe?.[1] && titleFromPipe[1].length <= 70) {
+    return titleFromPipe[1].trim();
+  }
+
+  if (
+    firstLine.length > 0 &&
+    firstLine.length <= 70 &&
+    !firstLine.endsWith(".") &&
+    !/^(about|company|overview|description)/i.test(firstLine)
+  ) {
+    return firstLine;
+  }
+
+  const roleMatch = textMatchRole(lines.join("\n"));
+  return roleMatch ?? "Role title not detected";
+}
+
+function textMatchRole(text: string): string | null {
+  const match = text.match(
+    /\b((?:Senior|Staff|Lead|Principal|Junior|Mid)?\s*(?:Full[- ]Stack|Front[- ]End|Back[- ]End|Software|Web|Data|DevOps|Platform|Mobile)?\s*(?:Engineer|Developer|Architect|Manager|Designer))\b/i
+  );
+  return match?.[1]?.trim() ?? null;
+}
+
+function extractCompany(text: string, lines: string[], sourceUrl?: string): string {
+  const labeled = lines.find((line) =>
+    /^(company|employer|organization)\s*[:]/i.test(line)
+  );
+  if (labeled) {
+    return labeled.replace(/^(company|employer|organization)\s*[:]\s*/i, "").trim();
+  }
+
+  const joinMatch = text.match(/(?:join|at)\s+([A-Z][A-Za-z0-9&.\s'-]{2,45})(?:\.|,|\s+as\b|\s+team)/);
+  if (joinMatch?.[1]) return joinMatch[1].trim();
+
+  const atMatch = text.match(/\bat\s+([A-Z][A-Za-z0-9&.\s'-]{2,45})(?:\s+[,|]|\.|\s+we\b)/);
+  if (atMatch?.[1]) return atMatch[1].trim();
+
+  if (sourceUrl) {
+    try {
+      const hostname = new URL(sourceUrl).hostname.replace(/^www\./, "");
+      const segment = hostname.split(".")[0];
+      if (segment && segment !== "jobs" && segment !== "careers") {
+        return segment.charAt(0).toUpperCase() + segment.slice(1);
+      }
+    } catch {
+      // ignore invalid URL
+    }
+  }
+
+  return "Not detected";
+}
+
+function extractLocation(text: string): string {
+  const labeled = text.match(
+    /(?:location|based in|office location)\s*[:]\s*([A-Za-z0-9,\s-]{3,60})/i
+  );
+  if (labeled?.[1]) return labeled[1].trim().replace(/\.$/, "");
+
+  const cityState = text.match(
+    /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?,\s*[A-Z]{2})\b/
+  );
+  if (cityState?.[1]) return cityState[1];
+
+  if (/\bremote\b/i.test(text) && /\bhybrid\b/i.test(text)) return "Hybrid";
+  if (/\bremote\b/i.test(text)) return "Remote";
+  if (/\bhybrid\b/i.test(text)) return "Hybrid";
+  if (/\bon[- ]site\b/i.test(text)) return "On-site";
+
+  return "Not detected";
+}
+
+function buildAtsKeywords(
+  skills: string[],
+  tools: string[],
+  requirements: string[],
+  responsibilities: string[]
+): string[] {
+  const combined = [...skills, ...tools];
+  const contextText = [...requirements, ...responsibilities].join(" ");
+  const contextual = extractKnownTerms(contextText, [...KNOWN_SKILLS, ...KNOWN_TOOLS]);
+
+  return Array.from(
+    new Set(
+      [...combined, ...contextual].map((term) => normalizeTerm(term)).filter(Boolean)
+    )
+  ).map((term) => {
+    const original =
+      [...KNOWN_SKILLS, ...KNOWN_TOOLS].find(
+        (item) => normalizeTerm(item) === term
+      ) ?? term;
+    return original;
+  });
+}
+
+export class JobParseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "JobParseError";
+  }
+}
+
+/**
+ * Demo job parser — extracts structured fields from pasted text only.
+ * Does not invent missing fields; undetected values are labeled explicitly.
+ */
+export function parseJob(input: string, sourceUrl?: string): ParsedJob {
+  const rawText = input.trim();
+
+  if (!rawText) {
+    throw new JobParseError(
+      "Please paste a job description before analyzing."
+    );
+  }
+
+  if (rawText.length < 40) {
+    throw new JobParseError(
+      "Job description is too short. Paste the full posting for meaningful analysis."
+    );
+  }
+
+  const lines = splitLines(rawText);
+  const skills = extractKnownTerms(rawText, KNOWN_SKILLS);
+  const tools = extractKnownTerms(rawText, KNOWN_TOOLS);
+  const responsibilities = extractResponsibilities(rawText, lines);
+  const requirements = extractRequirements(rawText, lines);
+  const atsKeywords = buildAtsKeywords(skills, tools, requirements, responsibilities);
+
+  return {
+    title: extractTitle(lines),
+    company: extractCompany(rawText, lines, sourceUrl),
+    location: extractLocation(rawText),
+    responsibilities,
+    requirements,
+    tools,
+    skills,
+    atsKeywords,
+    rawText,
+    sourceUrl: sourceUrl?.trim() || undefined,
+  };
+}
+
+export function isLikelyUrl(value: string): boolean {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}

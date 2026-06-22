@@ -1,0 +1,140 @@
+"use client";
+
+import { useState } from "react";
+import AnalyzerEmptyState from "@/components/AnalyzerEmptyState";
+import CVFocusAreas from "@/components/CVFocusAreas";
+import JobDetailsCard from "@/components/JobDetailsCard";
+import JobInput from "@/components/JobInput";
+import KeywordList from "@/components/KeywordList";
+import MatchScoreCard from "@/components/MatchScoreCard";
+import { useJobAgent } from "@/context/JobAgentContext";
+
+export default function AnalyzerPage() {
+  const {
+    jobDescription,
+    parsedJob,
+    matchResult,
+    setJobDescription,
+    analyzeJob,
+    saveToTracker,
+  } = useJobAgent();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [hasAnalyzed, setHasAnalyzed] = useState(Boolean(parsedJob));
+
+  const handleAnalyze = () => {
+    setError(null);
+    setValidationError(null);
+    setSavedMessage(null);
+
+    if (!jobDescription.trim()) {
+      setValidationError("Please paste a job description before analyzing.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      analyzeJob();
+      setHasAnalyzed(true);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong during analysis.";
+      setError(message);
+      setValidationError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = () => {
+    const saved = saveToTracker();
+    if (saved) {
+      setSavedMessage(`Saved "${saved.job.title}" to Application Tracker.`);
+    }
+  };
+
+  const showResults = hasAnalyzed && parsedJob && matchResult;
+
+  return (
+    <div className="space-y-8">
+      <header>
+        <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
+          v0.2 · Local demo analysis
+        </p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+          Job Analyzer
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+          Paste a job description to extract structured fields, compare ATS keywords against{" "}
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">master-cv.json</code>,
+          and get honest focus recommendations — no invented experience.
+        </p>
+      </header>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_1fr]">
+        <JobInput
+          jobDescription={jobDescription}
+          onJobDescriptionChange={(value) => {
+            setJobDescription(value);
+            if (validationError) setValidationError(null);
+          }}
+          onAnalyze={handleAnalyze}
+          isLoading={isLoading}
+          validationError={validationError}
+        />
+
+        <div className="space-y-6">
+          {error && !showResults && (
+            <div
+              role="alert"
+              className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800"
+            >
+              <p className="font-semibold">Analysis failed</p>
+              <p className="mt-1">{error}</p>
+            </div>
+          )}
+
+          {!showResults && !error && <AnalyzerEmptyState />}
+
+          {showResults && (
+            <>
+              <JobDetailsCard
+                job={parsedJob}
+                onSave={handleSave}
+                savedMessage={savedMessage}
+              />
+
+              <MatchScoreCard
+                score={matchResult.score}
+                summary={matchResult.summary}
+                matchedCount={matchResult.matchedKeywords.length}
+                missingCount={matchResult.missingKeywords.length}
+              />
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <KeywordList
+                  title="Matching Keywords"
+                  keywords={matchResult.matchedKeywords}
+                  variant="matched"
+                  emptyMessage="No matching keywords found in your verified CV."
+                />
+                <KeywordList
+                  title="Missing Keywords"
+                  keywords={matchResult.missingKeywords}
+                  variant="missing"
+                  emptyMessage="No missing keywords — strong coverage from your CV."
+                />
+              </div>
+
+              <CVFocusAreas areas={matchResult.recommendedFocusAreas} />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

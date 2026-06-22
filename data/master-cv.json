@@ -1,0 +1,74 @@
+{
+  "personalInfo": {
+    "fullName": "Alex Morgan",
+    "email": "alex.morgan@email.com",
+    "phone": "+1 (555) 123-4567",
+    "location": "San Francisco, CA",
+    "linkedin": "linkedin.com/in/alexmorgan",
+    "portfolio": "alexmorgan.dev",
+    "summary": "Full-stack developer with 5+ years building web applications using React, TypeScript, and Node.js. Experienced in API design, performance optimization, and cross-functional collaboration."
+  },
+  "skills": [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "REST APIs",
+    "SQL",
+    "Git",
+    "Agile",
+    "Technical documentation"
+  ],
+  "tools": [
+    "VS Code",
+    "GitHub",
+    "PostgreSQL",
+    "Docker",
+    "Figma",
+    "Jest",
+    "CI/CD"
+  ],
+  "experience": [
+    {
+      "id": "exp-1",
+      "company": "Northwind Labs",
+      "title": "Senior Full-Stack Developer",
+      "location": "San Francisco, CA",
+      "startDate": "2022-03",
+      "endDate": "Present",
+      "bullets": [
+        "Led development of a customer portal using Next.js and TypeScript, serving 12,000+ monthly active users.",
+        "Designed and implemented REST APIs with Node.js and PostgreSQL, reducing average response time by 35%.",
+        "Collaborated with product and design teams to ship features on two-week sprint cycles.",
+        "Mentored two junior developers through code reviews and pair programming sessions."
+      ]
+    },
+    {
+      "id": "exp-2",
+      "company": "Brightline Digital",
+      "title": "Full-Stack Developer",
+      "location": "Remote",
+      "startDate": "2019-06",
+      "endDate": "2022-02",
+      "bullets": [
+        "Built and maintained React applications with reusable component libraries.",
+        "Integrated third-party APIs and payment gateways for e-commerce clients.",
+        "Wrote unit and integration tests with Jest, improving test coverage to 80%.",
+        "Participated in on-call rotation and incident response for production systems."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "institution": "State University",
+      "degree": "Bachelor of Science",
+      "field": "Computer Science",
+      "startDate": "2015",
+      "endDate": "2019",
+      "details": ["Dean's List, 2017–2018"]
+    }
+  ],
+  "certifications": ["AWS Certified Developer – Associate"]
+}
