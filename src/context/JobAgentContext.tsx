@@ -27,6 +27,44 @@ import type {
 
 const SESSION_KEY = "job-agent-current-analysis";
 
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
+
+function normalizeParsedJob(value: unknown): ParsedJob | null {
+  if (!value || typeof value !== "object") return null;
+
+  const job = value as Partial<ParsedJob>;
+  if (!job.title && !job.company && !job.rawText) return null;
+
+  return {
+    title: job.title ?? "Role title not detected",
+    company: job.company ?? "Not detected",
+    location: job.location ?? "Not detected",
+    responsibilities: normalizeStringArray(job.responsibilities),
+    requirements: normalizeStringArray(job.requirements),
+    tools: normalizeStringArray(job.tools),
+    skills: normalizeStringArray(job.skills),
+    atsKeywords: normalizeStringArray(job.atsKeywords),
+    rawText: job.rawText ?? "",
+    sourceUrl: typeof job.sourceUrl === "string" ? job.sourceUrl : undefined,
+  };
+}
+
+function normalizeMatchResult(value: unknown): MatchResult | null {
+  if (!value || typeof value !== "object") return null;
+
+  const match = value as Partial<MatchResult>;
+  return {
+    score: typeof match.score === "number" ? match.score : 0,
+    matchedKeywords: normalizeStringArray(match.matchedKeywords),
+    missingKeywords: normalizeStringArray(match.missingKeywords),
+    recommendedFocusAreas: normalizeStringArray(match.recommendedFocusAreas),
+    summary: match.summary ?? "",
+  };
+}
+
 interface JobAgentContextValue {
   jobUrl: string;
   jobDescription: string;
@@ -63,33 +101,35 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
-      if (!raw) return;
+      if (!raw?.trim()) return;
 
       const saved = JSON.parse(raw) as {
-        jobUrl: string;
-        jobDescription: string;
-        parsedJob: ParsedJob;
-        matchResult: MatchResult;
-        generatedCV: GeneratedCV;
-        generatedCoverLetter: GeneratedCoverLetter;
+        jobUrl?: string;
+        jobDescription?: string;
+        parsedJob?: unknown;
+        matchResult?: unknown;
+        generatedCV?: GeneratedCV | null;
+        generatedCoverLetter?: GeneratedCoverLetter | null;
       };
 
-      setJobUrl(saved.jobUrl ?? "");
-      setJobDescription(saved.jobDescription ?? "");
-      setParsedJob(saved.parsedJob ?? null);
-      setMatchResult(
-        saved.matchResult
-          ? {
-              ...saved.matchResult,
-              recommendedFocusAreas:
-                saved.matchResult.recommendedFocusAreas ?? [],
-            }
+      setJobUrl(typeof saved.jobUrl === "string" ? saved.jobUrl : "");
+      setJobDescription(
+        typeof saved.jobDescription === "string" ? saved.jobDescription : ""
+      );
+      setParsedJob(normalizeParsedJob(saved.parsedJob));
+      setMatchResult(normalizeMatchResult(saved.matchResult));
+      setGeneratedCV(
+        saved.generatedCV && typeof saved.generatedCV === "object"
+          ? (saved.generatedCV as GeneratedCV)
           : null
       );
-      setGeneratedCV(saved.generatedCV ?? null);
-      setGeneratedCoverLetter(saved.generatedCoverLetter ?? null);
+      setGeneratedCoverLetter(
+        saved.generatedCoverLetter && typeof saved.generatedCoverLetter === "object"
+          ? saved.generatedCoverLetter
+          : null
+      );
     } catch {
-      // ignore invalid session data
+      sessionStorage.removeItem(SESSION_KEY);
     }
   }, [refreshApplications]);
 
