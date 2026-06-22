@@ -1,3 +1,4 @@
+import { normalizeApplication } from "@/lib/normalizeStoredData";
 import type { Application, ApplicationStatus } from "@/types";
 
 const STORAGE_KEY = "job-agent-applications";
@@ -7,9 +8,25 @@ function readApplications(): Application[] {
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as Application[];
+    if (!raw?.trim()) return [];
+
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return [];
+    }
+
+    const applications = parsed
+      .map(normalizeApplication)
+      .filter((app): app is Application => app !== null);
+
+    if (applications.length !== parsed.length) {
+      writeApplications(applications);
+    }
+
+    return applications;
   } catch {
+    localStorage.removeItem(STORAGE_KEY);
     return [];
   }
 }

@@ -11,6 +11,10 @@ import {
 import { generateCoverLetter } from "@/lib/generateCoverLetter";
 import { generateCV } from "@/lib/generateCV";
 import { getMasterCV, matchCV } from "@/lib/matchCV";
+import {
+  normalizeMatchResult,
+  normalizeParsedJob,
+} from "@/lib/normalizeStoredData";
 import { parseJob } from "@/lib/parseJob";
 import {
   createApplicationId,
@@ -26,44 +30,6 @@ import type {
 } from "@/types";
 
 const SESSION_KEY = "job-agent-current-analysis";
-
-function normalizeStringArray(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.filter((item): item is string => typeof item === "string");
-}
-
-function normalizeParsedJob(value: unknown): ParsedJob | null {
-  if (!value || typeof value !== "object") return null;
-
-  const job = value as Partial<ParsedJob>;
-  if (!job.title && !job.company && !job.rawText) return null;
-
-  return {
-    title: job.title ?? "Role title not detected",
-    company: job.company ?? "Not detected",
-    location: job.location ?? "Not detected",
-    responsibilities: normalizeStringArray(job.responsibilities),
-    requirements: normalizeStringArray(job.requirements),
-    tools: normalizeStringArray(job.tools),
-    skills: normalizeStringArray(job.skills),
-    atsKeywords: normalizeStringArray(job.atsKeywords),
-    rawText: job.rawText ?? "",
-    sourceUrl: typeof job.sourceUrl === "string" ? job.sourceUrl : undefined,
-  };
-}
-
-function normalizeMatchResult(value: unknown): MatchResult | null {
-  if (!value || typeof value !== "object") return null;
-
-  const match = value as Partial<MatchResult>;
-  return {
-    score: typeof match.score === "number" ? match.score : 0,
-    matchedKeywords: normalizeStringArray(match.matchedKeywords),
-    missingKeywords: normalizeStringArray(match.missingKeywords),
-    recommendedFocusAreas: normalizeStringArray(match.recommendedFocusAreas),
-    summary: match.summary ?? "",
-  };
-}
 
 interface JobAgentContextValue {
   jobUrl: string;
