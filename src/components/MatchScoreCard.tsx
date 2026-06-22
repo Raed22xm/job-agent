@@ -1,8 +1,11 @@
+import type { ScoreBreakdown } from "@/types";
+
 interface MatchScoreCardProps {
   score: number;
   summary: string;
   matchedCount?: number;
   missingCount?: number;
+  scoreBreakdown?: ScoreBreakdown;
 }
 
 function scoreColor(score: number): string {
@@ -17,6 +20,18 @@ function scoreRingColor(score: number): string {
   return "stroke-rose-500";
 }
 
+function hasValidBreakdown(
+  breakdown: ScoreBreakdown | undefined
+): breakdown is ScoreBreakdown {
+  if (!breakdown) return false;
+  return (
+    breakdown.skills != null &&
+    breakdown.tools != null &&
+    breakdown.keywords != null &&
+    typeof breakdown.overall === "number"
+  );
+}
+
 function scoreLabel(score: number): string {
   if (score >= 75) return "Strong match";
   if (score >= 50) return "Moderate match";
@@ -24,11 +39,54 @@ function scoreLabel(score: number): string {
   return "Low match";
 }
 
+function CategoryBar({
+  label,
+  matched,
+  total,
+  weight,
+  score,
+}: {
+  label: string;
+  matched: number;
+  total: number;
+  weight: number;
+  score: number;
+}) {
+  if (total === 0) return null;
+
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="font-medium text-slate-700">
+          {label}{" "}
+          <span className="font-normal text-slate-400">({weight}× weight)</span>
+        </span>
+        <span className="text-slate-500">
+          {matched}/{total} · {score}%
+        </span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className={`h-full rounded-full transition-all ${
+            score >= 75
+              ? "bg-emerald-500"
+              : score >= 50
+                ? "bg-amber-500"
+                : "bg-rose-400"
+          }`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function MatchScoreCard({
   score,
   summary,
   matchedCount,
   missingCount,
+  scoreBreakdown,
 }: MatchScoreCardProps) {
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
@@ -40,7 +98,7 @@ export default function MatchScoreCard({
         <div>
           <h2 className="text-lg font-semibold text-slate-900">ATS Match Score</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Keyword overlap between the job posting and your verified master CV.
+            Weighted keyword overlap between the job posting and your verified master CV.
           </p>
         </div>
         <span
@@ -98,6 +156,14 @@ export default function MatchScoreCard({
                   {missingCount} missing
                 </span>
               )}
+            </div>
+          )}
+
+          {hasValidBreakdown(scoreBreakdown) && (
+            <div className="space-y-2 border-t border-slate-100 pt-3">
+              <CategoryBar label="Skills" {...scoreBreakdown.skills} />
+              <CategoryBar label="Tools" {...scoreBreakdown.tools} />
+              <CategoryBar label="Keywords" {...scoreBreakdown.keywords} />
             </div>
           )}
         </div>

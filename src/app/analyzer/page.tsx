@@ -11,9 +11,11 @@ import { useJobAgent } from "@/context/JobAgentContext";
 
 export default function AnalyzerPage() {
   const {
+    jobUrl,
     jobDescription,
     parsedJob,
     matchResult,
+    setJobUrl,
     setJobDescription,
     analyzeJob,
     saveToTracker,
@@ -76,10 +78,12 @@ export default function AnalyzerPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_1fr]">
         <JobInput
           jobDescription={jobDescription}
+          jobUrl={jobUrl}
           onJobDescriptionChange={(value) => {
             setJobDescription(value);
             if (validationError) setValidationError(null);
           }}
+          onJobUrlChange={setJobUrl}
           onAnalyze={handleAnalyze}
           isLoading={isLoading}
           validationError={validationError}
@@ -111,6 +115,7 @@ export default function AnalyzerPage() {
                 summary={matchResult.summary}
                 matchedCount={matchResult.matchedKeywords.length}
                 missingCount={matchResult.missingKeywords.length}
+                scoreBreakdown={matchResult.scoreBreakdown}
               />
 
               <div className="grid gap-4 lg:grid-cols-2">

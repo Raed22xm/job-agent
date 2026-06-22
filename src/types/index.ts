@@ -28,6 +28,17 @@ export interface Education {
   details?: string[];
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+}
+
+export interface Language {
+  language: string;
+  level: string;
+}
+
 export interface MasterCV {
   personalInfo: PersonalInfo;
   skills: string[];
@@ -35,6 +46,22 @@ export interface MasterCV {
   experience: Experience[];
   education: Education[];
   certifications?: string[];
+  projects?: Project[];
+  languages?: Language[];
+}
+
+export interface CategoryScore {
+  matched: number;
+  total: number;
+  weight: number;
+  score: number;
+}
+
+export interface ScoreBreakdown {
+  skills: CategoryScore;
+  tools: CategoryScore;
+  keywords: CategoryScore;
+  overall: number;
 }
 
 export interface ParsedJob {
@@ -56,6 +83,18 @@ export interface MatchResult {
   missingKeywords: string[];
   recommendedFocusAreas: string[];
   summary: string;
+  scoreBreakdown?: ScoreBreakdown;
+}
+
+export interface CVValidationIssue {
+  field: string;
+  message: string;
+  severity: "error" | "warning";
+}
+
+export interface CVValidationResult {
+  valid: boolean;
+  issues: CVValidationIssue[];
 }
 
 export interface GeneratedCV {

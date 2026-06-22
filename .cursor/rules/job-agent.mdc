@@ -52,3 +52,28 @@ Always save the job to `data/jobs/{company}-{role}.md` with **Source URL** fille
 - **Web app** (`src/`): Analyzer, CV Generator, Cover Letter, Tracker — use `master-cv.json`; OpenAI not connected yet
 - **Agent prompts:** `prompts/job-match-prompt.md`, `prompts/ats-cv-prompt.md`, `prompts/cover-letter-prompt.md`, `prompts/linkedin-message-prompt.md`
 - Save jobs to `data/jobs/{company}-{role}.md`
+
+## Architecture & AI integration
+
+- **Verified source of truth:** `data/master-cv.json` — never invent CV data
+- **Local-first:** heuristic parser (`src/lib/parseJob.ts`) and weighted scorer (`src/lib/job/scoreJob.ts`) are always available as fallback
+- **Schema-first:** Zod schemas in `src/lib/ai/schemas.ts` for all structured data
+- **AI (when configured):** Vercel AI SDK pattern — server-side API routes only, keys in env vars
+  - `src/lib/ai/prompts.ts`, `providers.ts`, `schemas.ts`
+  - `src/app/api/analyze-job/`, `generate-cv/`, `generate-cover-letter/`
+- **Validation:** `src/lib/cv/validateCV.ts` checks generated output against master CV
+- **Tests:** `npm test` — vitest for parseJob, matchCV, validateCV
+- **Human review required** — no auto-apply, no LinkedIn scraping
+
+## External reference rules
+
+When using GitHub repositories as inspiration:
+- Do not copy large code blocks blindly
+- Prefer architecture and patterns over direct copying
+- Use official docs through Context7 when implementing library-specific code
+- Prefer Vercel AI SDK for AI integration in this Next.js project
+- Prefer Zod schemas for all AI structured outputs
+- Use Resume Matcher and ResumeLM as product inspiration for ATS scoring, keyword matching, CV tailoring, and PDF export
+- Use Vercel Chatbot as architecture inspiration for AI provider setup and Next.js structure
+- Use mcp-agent concepts only for workflow patterns, not heavy autonomous behavior
+- Do not add MCP server complexity until core app logic is stable and tested

@@ -1,10 +1,12 @@
 import type {
   Application,
   ApplicationStatus,
+  CategoryScore,
   GeneratedCoverLetter,
   GeneratedCV,
   MatchResult,
   ParsedJob,
+  ScoreBreakdown,
 } from "@/types";
 
 const VALID_STATUSES: ApplicationStatus[] = [
@@ -41,6 +43,52 @@ export function normalizeParsedJob(value: unknown): ParsedJob | null {
   };
 }
 
+function normalizeCategoryScore(value: unknown): CategoryScore | null {
+  if (!value || typeof value !== "object") return null;
+
+  const score = value as Partial<CategoryScore>;
+  if (
+    typeof score.matched !== "number" ||
+    typeof score.total !== "number" ||
+    typeof score.weight !== "number" ||
+    typeof score.score !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    matched: score.matched,
+    total: score.total,
+    weight: score.weight,
+    score: score.score,
+  };
+}
+
+export function normalizeScoreBreakdown(value: unknown): ScoreBreakdown | undefined {
+  if (!value || typeof value !== "object") return undefined;
+
+  const breakdown = value as Partial<ScoreBreakdown>;
+  const skills = normalizeCategoryScore(breakdown.skills);
+  const tools = normalizeCategoryScore(breakdown.tools);
+  const keywords = normalizeCategoryScore(breakdown.keywords);
+
+  if (
+    !skills ||
+    !tools ||
+    !keywords ||
+    typeof breakdown.overall !== "number"
+  ) {
+    return undefined;
+  }
+
+  return {
+    skills,
+    tools,
+    keywords,
+    overall: breakdown.overall,
+  };
+}
+
 export function normalizeMatchResult(value: unknown): MatchResult | null {
   if (!value || typeof value !== "object") return null;
 
@@ -51,6 +99,7 @@ export function normalizeMatchResult(value: unknown): MatchResult | null {
     missingKeywords: normalizeStringArray(match.missingKeywords),
     recommendedFocusAreas: normalizeStringArray(match.recommendedFocusAreas),
     summary: match.summary ?? "",
+    scoreBreakdown: normalizeScoreBreakdown(match.scoreBreakdown),
   };
 }
 

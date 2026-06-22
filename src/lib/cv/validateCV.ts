@@ -1,0 +1,134 @@
+import { normalizeTerm, termAppearsInText } from "@/lib/jobDictionaries";
+import type {
+  CVValidationIssue,
+  CVValidationResult,
+  GeneratedCoverLetter,
+  GeneratedCV,
+  MasterCV,
+} from "@/types";
+
+function masterSkillSet(cv: MasterCV): Set<string> {
+  return new Set(
+    [...cv.skills, ...cv.tools].map((s) => normalizeTerm(s)).filter(Boolean)
+  );
+}
+
+function masterExperienceIds(cv: MasterCV): Set<string> {
+  return new Set(cv.experience.map((e) => e.id));
+}
+
+function masterEducationIds(cv: MasterCV): Set<string> {
+  return new Set(cv.education.map((e) => e.id));
+}
+
+function masterCompanies(cv: MasterCV): Set<string> {
+  return new Set(cv.experience.map((e) => normalizeTerm(e.company)));
+}
+
+/**
+ * Validates generated CV content against verified master CV data.
+ * Flags invented skills, unknown experience entries, or unsupported claims.
+ */
+export function validateGeneratedCV(
+  generated: GeneratedCV,
+  master: MasterCV
+): CVValidationResult {
+  const issues: CVValidationIssue[] = [];
+  const verifiedSkills = masterSkillSet(master);
+  const verifiedExpIds = masterExperienceIds(master);
+  const verifiedEduIds = masterEducationIds(master);
+  const verifiedCompanies = masterCompanies(master);
+
+  for (const skill of generated.sections.skills) {
+    const norm = normalizeTerm(skill);
+    const found = [...verifiedSkills].some(
+      (v) => v === norm || termAppearsInText(skill, v) || termAppearsInText(v, skill)
+    );
+    if (!found) {
+      issues.push({
+        field: `skills.${skill}`,
+        message: `"${skill}" is not verified in master CV — remove or verify before applying.`,
+        severity: "error",
+      });
+    }
+  }
+
+  for (const exp of generated.sections.experience) {
+    if (!verifiedExpIds.has(exp.id)) {
+      issues.push({
+        field: `experience.${exp.id}`,
+        message: `Experience entry "${exp.title}" at "${exp.company}" is not in master CV.`,
+        severity: "error",
+      });
+    } else if (!verifiedCompanies.has(normalizeTerm(exp.company))) {
+      issues.push({
+        field: `experience.${exp.id}.company`,
+        message: `Company "${exp.company}" does not match master CV records.`,
+        severity: "warning",
+      });
+    }
+  }
+
+  for (const edu of generated.sections.education) {
+    if (!verifiedEduIds.has(edu.id)) {
+      issues.push({
+        field: `education.${edu.id}`,
+        message: `Education entry "${edu.degree}" is not in master CV.`,
+        severity: "error",
+      });
+    }
+  }
+
+  if (generated.sections.summary !== master.personalInfo.summary) {
+    issues.push({
+      field: "summary",
+      message:
+        "Summary differs from master CV. Review for unsupported claims before applying.",
+      severity: "warning",
+    });
+  }
+
+  return {
+    valid: issues.filter((i) => i.severity === "error").length === 0,
+    issues,
+  };
+}
+
+/**
+ * Basic check that cover letter references only known companies from master CV.
+ */
+export function validateCoverLetter(
+  letter: GeneratedCoverLetter,
+  master: MasterCV,
+  jobCompany: string
+): CVValidationResult {
+  const issues: CVValidationIssue[] = [];
+  const fullText = [
+    letter.greeting,
+    ...letter.paragraphs,
+    letter.closing,
+    letter.signature,
+  ].join(" ");
+
+  const verifiedCompanies = master.experience.map((e) => e.company);
+
+  for (const company of verifiedCompanies) {
+    if (fullText.includes(company)) continue;
+  }
+
+  if (
+    jobCompany !== "Not detected" &&
+    !fullText.toLowerCase().includes(jobCompany.toLowerCase())
+  ) {
+    issues.push({
+      field: "company",
+      message: `Cover letter does not mention "${jobCompany}". Consider adding a company reference.`,
+      severity: "warning",
+    });
+  }
+
+  return {
+    valid: issues.filter((i) => i.severity === "error").length === 0,
+    issues,
+  };
+}

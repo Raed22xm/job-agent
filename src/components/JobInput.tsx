@@ -2,7 +2,9 @@
 
 interface JobInputProps {
   jobDescription: string;
+  jobUrl?: string;
   onJobDescriptionChange: (value: string) => void;
+  onJobUrlChange?: (value: string) => void;
   onAnalyze: () => void;
   isLoading?: boolean;
   validationError?: string | null;
@@ -10,7 +12,9 @@ interface JobInputProps {
 
 export default function JobInput({
   jobDescription,
+  jobUrl = "",
   onJobDescriptionChange,
+  onJobUrlChange,
   onAnalyze,
   isLoading = false,
   validationError = null,
@@ -31,10 +35,32 @@ export default function JobInput({
       <div className="mb-5">
         <h2 className="text-lg font-semibold text-slate-900">Job Description</h2>
         <p className="mt-1 text-sm leading-relaxed text-slate-500">
-          Paste the full posting below. Demo extraction runs locally — no API calls,
-          no auto-apply.
+          Paste the full posting below. Analysis runs locally with weighted ATS
+          scoring — no auto-apply.
         </p>
       </div>
+
+      {onJobUrlChange && (
+        <div className="mb-4">
+          <label
+            htmlFor="job-url"
+            className="mb-1.5 block text-xs font-medium text-slate-600"
+          >
+            Source URL (optional)
+          </label>
+          <input
+            id="job-url"
+            type="url"
+            value={jobUrl}
+            onChange={(e) => onJobUrlChange(e.target.value)}
+            placeholder="https://thehub.io/jobs/..."
+            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+          />
+          <p className="mt-1 text-xs text-slate-500">
+            Used as a company hint when the posting text does not name the employer.
+          </p>
+        </div>
+      )}
 
       <div>
         <label htmlFor="job-description" className="sr-only">

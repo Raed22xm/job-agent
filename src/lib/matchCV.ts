@@ -1,8 +1,17 @@
 import masterCV from "../../data/master-cv.json";
 import { normalizeTerm, termAppearsInText } from "@/lib/jobDictionaries";
+import {
+  buildCVTerms,
+  createTermMatcher,
+  scoreJob,
+  scoreSummary,
+} from "@/lib/job/scoreJob";
 import type { MasterCV, MatchResult, ParsedJob } from "@/types";
 
-function collectCVTerms(cv: MasterCV): { terms: string[]; sources: Map<string, string[]> } {
+function collectCVTerms(cv: MasterCV): {
+  terms: string[];
+  sources: Map<string, string[]>;
+} {
   const sources = new Map<string, string[]>();
 
   const addSource = (term: string, source: string) => {
@@ -26,11 +35,21 @@ function collectCVTerms(cv: MasterCV): { terms: string[]; sources: Map<string, s
     });
   });
 
-  if (cv.certifications) {
-    cv.certifications.forEach((cert) => addSource(cert, `Certification: ${cert}`));
+  if (cv.projects) {
+    cv.projects.forEach((project) => {
+      [...cv.skills, ...cv.tools].forEach((term) => {
+        if (termAppearsInText(term, project.description)) {
+          addSource(term, `Project: ${project.name}`);
+        }
+      });
+    });
   }
 
-  return { terms: Array.from(sources.keys()), sources };
+  cv.certifications?.forEach((cert) =>
+    addSource(cert, `Certification: ${cert}`)
+  );
+
+  return { terms: buildCVTerms(cv), sources };
 }
 
 function jobTerms(job: ParsedJob): string[] {
@@ -41,12 +60,6 @@ function jobTerms(job: ParsedJob): string[] {
         .filter(Boolean)
     )
   );
-}
-
-function termMatchesCV(jobTerm: string, cvTerm: string): boolean {
-  if (jobTerm === cvTerm) return true;
-  if (cvTerm.includes(jobTerm) || jobTerm.includes(cvTerm)) return true;
-  return termAppearsInText(jobTerm, cvTerm) || termAppearsInText(cvTerm, jobTerm);
 }
 
 function displayTerm(term: string, job: ParsedJob): string {
@@ -101,7 +114,7 @@ function buildRecommendedFocusAreas(
 
 /**
  * Compares extracted job terms against verified master CV data.
- * Does not invent skills or experience.
+ * Uses weighted scoring via scoreJob(). Does not invent skills or experience.
  */
 export function matchCV(
   job: ParsedJob,
@@ -109,6 +122,7 @@ export function matchCV(
 ): MatchResult {
   const { terms: cvTerms, sources } = collectCVTerms(cv);
   const terms = jobTerms(job);
+  const termMatchesCV = createTermMatcher(cvTerms);
 
   if (terms.length === 0) {
     return {
@@ -118,36 +132,20 @@ export function matchCV(
       recommendedFocusAreas: [
         "No ATS keywords were detected in the job text. Try pasting a fuller description with skills and requirements sections.",
       ],
-      summary: "Unable to score — no extractable keywords found in the job description.",
+      summary:
+        "Unable to score — no extractable keywords found in the job description.",
     };
   }
 
-  const matchedNormalized = terms.filter((jobTerm) =>
-    cvTerms.some((cvTerm) => termMatchesCV(jobTerm, cvTerm))
-  );
-
-  const missingNormalized = terms.filter(
-    (jobTerm) => !matchedNormalized.includes(jobTerm)
-  );
+  const matchedNormalized = terms.filter(termMatchesCV);
+  const missingNormalized = terms.filter((t) => !matchedNormalized.includes(t));
 
   const matchedKeywords = matchedNormalized.map((term) => displayTerm(term, job));
   const missingKeywords = missingNormalized.map((term) => displayTerm(term, job));
 
-  const score = Math.round((matchedNormalized.length / terms.length) * 100);
-
-  let summary: string;
-  if (score >= 75) {
-    summary = "Strong alignment with your verified CV keywords.";
-  } else if (score >= 50) {
-    summary =
-      "Moderate match. Emphasize overlapping verified experience when tailoring your CV.";
-  } else if (score >= 25) {
-    summary =
-      "Partial match. Review missing terms and focus on verified strengths you already have.";
-  } else {
-    summary =
-      "Limited keyword overlap. Use recommended focus areas to prioritize honest, verified highlights.";
-  }
+  const scoreBreakdown = scoreJob(job, cv);
+  const score = scoreBreakdown.overall;
+  const summary = scoreSummary(score);
 
   const recommendedFocusAreas = buildRecommendedFocusAreas(
     job,
@@ -163,6 +161,7 @@ export function matchCV(
     missingKeywords,
     recommendedFocusAreas,
     summary,
+    scoreBreakdown,
   };
 }
 

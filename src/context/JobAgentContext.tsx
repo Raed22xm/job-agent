@@ -17,7 +17,7 @@ import {
   normalizeMatchResult,
   normalizeParsedJob,
 } from "@/lib/normalizeStoredData";
-import { parseJob } from "@/lib/parseJob";
+import { isLikelyUrl, parseJob } from "@/lib/parseJob";
 import {
   createApplicationId,
   getApplications,
@@ -97,7 +97,8 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
 
   const analyzeJob = useCallback(() => {
     const cv = getMasterCV();
-    const job = parseJob(jobDescription);
+    const sourceUrl = isLikelyUrl(jobUrl) ? jobUrl.trim() : undefined;
+    const job = parseJob(jobDescription, sourceUrl);
     const match = matchCV(job, cv);
     const tailoredCV = generateCV(cv, job, match);
     const coverLetter = generateCoverLetter(cv, job);
