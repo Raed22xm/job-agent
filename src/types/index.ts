@@ -58,9 +58,12 @@ export interface CategoryScore {
 }
 
 export interface ScoreBreakdown {
-  skills: CategoryScore;
-  tools: CategoryScore;
-  keywords: CategoryScore;
+  skillsMatch: CategoryScore;
+  experienceMatch: CategoryScore;
+  location: CategoryScore;
+  language: CategoryScore;
+  juniorFriendliness: CategoryScore;
+  portfolioRelevance: CategoryScore;
   overall: number;
 }
 
@@ -123,6 +126,8 @@ export type ApplicationStatus =
   | "rejected"
   | "offer";
 
+export type CoverLetterStatus = "none" | "draft" | "ready" | "sent";
+
 export interface Application {
   id: string;
   createdAt: string;
@@ -131,4 +136,15 @@ export interface Application {
   match: MatchResult;
   status: ApplicationStatus;
   notes?: string;
+  company: string;
+  jobTitle: string;
+  link?: string;
+  location: string;
+  deadline?: string;
+  matchScore: number;
+  cvVersion?: string;
+  coverLetterStatus: CoverLetterStatus;
+  recruiterContact?: string;
+  appliedDate?: string;
+  followUpDate?: string;
 }

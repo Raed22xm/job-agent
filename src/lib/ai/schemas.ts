@@ -73,9 +73,12 @@ export const CategoryScoreSchema = z.object({
 });
 
 export const ScoreBreakdownSchema = z.object({
-  skills: CategoryScoreSchema,
-  tools: CategoryScoreSchema,
-  keywords: CategoryScoreSchema,
+  skillsMatch: CategoryScoreSchema,
+  experienceMatch: CategoryScoreSchema,
+  location: CategoryScoreSchema,
+  language: CategoryScoreSchema,
+  juniorFriendliness: CategoryScoreSchema,
+  portfolioRelevance: CategoryScoreSchema,
   overall: z.number().min(0).max(100),
 });
 

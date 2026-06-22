@@ -132,12 +132,19 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       job: parsedJob,
       match: matchResult,
       status: "draft",
+      company: parsedJob.company,
+      jobTitle: parsedJob.title,
+      link: parsedJob.sourceUrl,
+      location: parsedJob.location,
+      matchScore: matchResult.score,
+      cvVersion: `generated-${now.slice(0, 10)}`,
+      coverLetterStatus: generatedCoverLetter ? "draft" : "none",
     };
 
     saveApplication(application);
     refreshApplications();
     return application;
-  }, [parsedJob, matchResult, refreshApplications]);
+  }, [parsedJob, matchResult, generatedCoverLetter, refreshApplications]);
 
   const value = useMemo(
     () => ({

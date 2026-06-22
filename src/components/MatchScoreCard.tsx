@@ -25,9 +25,12 @@ function hasValidBreakdown(
 ): breakdown is ScoreBreakdown {
   if (!breakdown) return false;
   return (
-    breakdown.skills != null &&
-    breakdown.tools != null &&
-    breakdown.keywords != null &&
+    breakdown.skillsMatch != null &&
+    breakdown.experienceMatch != null &&
+    breakdown.location != null &&
+    breakdown.language != null &&
+    breakdown.juniorFriendliness != null &&
+    breakdown.portfolioRelevance != null &&
     typeof breakdown.overall === "number"
   );
 }
@@ -59,7 +62,7 @@ function CategoryBar({
       <div className="mb-1 flex items-center justify-between text-xs">
         <span className="font-medium text-slate-700">
           {label}{" "}
-          <span className="font-normal text-slate-400">({weight}× weight)</span>
+          <span className="font-normal text-slate-400">({weight} pts)</span>
         </span>
         <span className="text-slate-500">
           {matched}/{total} · {score}%
@@ -96,9 +99,9 @@ export default function MatchScoreCard({
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">ATS Match Score</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Match Score</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Weighted keyword overlap between the job posting and your verified master CV.
+            Weighted comparison between the job posting and your verified master CV.
           </p>
         </div>
         <span
@@ -148,12 +151,12 @@ export default function MatchScoreCard({
             <div className="flex flex-wrap gap-3 text-xs font-medium">
               {matchedCount !== undefined && (
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                  {matchedCount} matching
+                  {matchedCount} matching keywords
                 </span>
               )}
               {missingCount !== undefined && (
                 <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                  {missingCount} missing
+                  {missingCount} missing keywords
                 </span>
               )}
             </div>
@@ -161,9 +164,21 @@ export default function MatchScoreCard({
 
           {hasValidBreakdown(scoreBreakdown) && (
             <div className="space-y-2 border-t border-slate-100 pt-3">
-              <CategoryBar label="Skills" {...scoreBreakdown.skills} />
-              <CategoryBar label="Tools" {...scoreBreakdown.tools} />
-              <CategoryBar label="Keywords" {...scoreBreakdown.keywords} />
+              <CategoryBar label="Skills Match" {...scoreBreakdown.skillsMatch} />
+              <CategoryBar
+                label="Experience Match"
+                {...scoreBreakdown.experienceMatch}
+              />
+              <CategoryBar label="Location" {...scoreBreakdown.location} />
+              <CategoryBar label="Language" {...scoreBreakdown.language} />
+              <CategoryBar
+                label="Junior-Friendliness"
+                {...scoreBreakdown.juniorFriendliness}
+              />
+              <CategoryBar
+                label="Portfolio Relevance"
+                {...scoreBreakdown.portfolioRelevance}
+              />
             </div>
           )}
         </div>

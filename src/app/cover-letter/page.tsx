@@ -1,11 +1,18 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import CoverLetterPreview from "@/components/CoverLetterPreview";
+import ExportButtons from "@/components/ExportButtons";
 import { useJobAgent } from "@/context/JobAgentContext";
+import {
+  exportCoverLetterToDocx,
+  exportCoverLetterToPdf,
+} from "@/lib/export/exportCoverLetter";
 
 export default function CoverLetterPage() {
   const { generatedCoverLetter, parsedJob } = useJobAgent();
+  const exportRef = useRef<HTMLElement>(null);
 
   if (!generatedCoverLetter || !parsedJob) {
     return (
@@ -24,26 +31,42 @@ export default function CoverLetterPage() {
     );
   }
 
+  const getExportElement = () => {
+    if (!exportRef.current) {
+      throw new Error("Cover letter preview is not ready for export.");
+    }
+    return exportRef.current;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Cover Letter</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Draft for {parsedJob.title} at {parsedJob.company}. Edit before sending — no auto-submit.
+            Draft for {parsedJob.title} at {parsedJob.company}. Edit before
+            sending — no auto-submit.
           </p>
         </div>
-        <button
-          type="button"
-          disabled
-          className="rounded-lg border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500"
-          title="Export will be available in a future version"
-        >
-          Export PDF/DOCX (soon)
-        </button>
+        <ExportButtons
+          onExportPdf={() =>
+            exportCoverLetterToPdf(
+              getExportElement(),
+              parsedJob.company,
+              parsedJob.title
+            )
+          }
+          onExportDocx={() =>
+            exportCoverLetterToDocx(
+              generatedCoverLetter,
+              parsedJob.company,
+              parsedJob.title
+            )
+          }
+        />
       </div>
 
-      <CoverLetterPreview letter={generatedCoverLetter} />
+      <CoverLetterPreview letter={generatedCoverLetter} exportRef={exportRef} />
     </div>
   );
 }

@@ -1,11 +1,15 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import CVPreview from "@/components/CVPreview";
+import ExportButtons from "@/components/ExportButtons";
 import { useJobAgent } from "@/context/JobAgentContext";
+import { exportCVToDocx, exportCVToPdf } from "@/lib/export/exportCV";
 
 export default function CVGeneratorPage() {
   const { generatedCV, parsedJob } = useJobAgent();
+  const exportRef = useRef<HTMLElement>(null);
 
   if (!generatedCV || !parsedJob) {
     return (
@@ -24,26 +28,38 @@ export default function CVGeneratorPage() {
     );
   }
 
+  const getExportElement = () => {
+    if (!exportRef.current) {
+      throw new Error("CV preview is not ready for export.");
+    }
+    return exportRef.current;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">CV Generator</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Tailored for {parsedJob.title} at {parsedJob.company}. PDF/DOCX export coming soon.
+            Tailored for {parsedJob.title} at {parsedJob.company}. Review before
+            exporting — PDF matches the preview; DOCX is editable in Word.
           </p>
         </div>
-        <button
-          type="button"
-          disabled
-          className="rounded-lg border border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-500"
-          title="Export will be available in a future version"
-        >
-          Export PDF/DOCX (soon)
-        </button>
+        <ExportButtons
+          onExportPdf={() =>
+            exportCVToPdf(
+              getExportElement(),
+              parsedJob.company,
+              parsedJob.title
+            )
+          }
+          onExportDocx={() =>
+            exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title)
+          }
+        />
       </div>
 
-      <CVPreview cv={generatedCV} />
+      <CVPreview cv={generatedCV} exportRef={exportRef} />
     </div>
   );
 }

@@ -1,10 +1,12 @@
+import type { RefObject } from "react";
 import type { GeneratedCV } from "@/types";
 
 interface CVPreviewProps {
   cv: GeneratedCV;
+  exportRef?: RefObject<HTMLElement | null>;
 }
 
-export default function CVPreview({ cv }: CVPreviewProps) {
+export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
   const { header, summary, skills, experience, education } = cv.sections;
 
   return (
@@ -16,7 +18,10 @@ export default function CVPreview({ cv }: CVPreviewProps) {
         </p>
       </div>
 
-      <article className="mx-auto max-w-2xl px-8 py-8 font-serif text-slate-900">
+      <article
+        ref={exportRef}
+        className="mx-auto max-w-2xl bg-white px-8 py-8 font-serif text-slate-900"
+      >
         <header className="border-b border-slate-300 pb-4 text-center">
           <h1 className="text-2xl font-bold uppercase tracking-wide">{header.fullName}</h1>
           <p className="mt-2 text-sm text-slate-700">

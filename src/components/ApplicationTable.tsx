@@ -26,6 +26,20 @@ const statusLabels: Record<ApplicationStatus, string> = {
   offer: "Offer",
 };
 
+const coverLetterLabels = {
+  none: "None",
+  draft: "Draft",
+  ready: "Ready",
+  sent: "Sent",
+} as const;
+
+function formatDate(value?: string): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString();
+}
+
 export default function ApplicationTable({
   applications,
   onStatusChange,
@@ -46,25 +60,60 @@ export default function ApplicationTable({
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
+          <caption className="sr-only">
+            Saved job applications with match scores, status, and follow-up dates
+          </caption>
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Job</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Company</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Match</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">Updated</th>
-              <th className="px-4 py-3 text-right font-semibold text-slate-700">Actions</th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Job Title
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Company
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Location
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Match
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                CV Version
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Cover Letter
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Applied
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Follow-up
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Link
+              </th>
+              <th className="px-4 py-3 text-right font-semibold text-slate-700">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {applications.map((app) => (
               <tr key={app.id} className="hover:bg-slate-50">
-                <td className="px-4 py-3 font-medium text-slate-900">{app.job.title}</td>
-                <td className="px-4 py-3 text-slate-700">{app.job.company}</td>
+                <td className="px-4 py-3 font-medium text-slate-900">{app.jobTitle}</td>
+                <td className="px-4 py-3 text-slate-700">{app.company}</td>
+                <td className="px-4 py-3 text-slate-600">{app.location}</td>
                 <td className="px-4 py-3">
                   <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
-                    {app.match.score}%
+                    {app.matchScore}%
                   </span>
+                </td>
+                <td className="px-4 py-3 text-slate-600">{app.cvVersion ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-600">
+                  {coverLetterLabels[app.coverLetterStatus]}
                 </td>
                 <td className="px-4 py-3">
                   <select
@@ -72,6 +121,7 @@ export default function ApplicationTable({
                     onChange={(e) =>
                       onStatusChange(app.id, e.target.value as ApplicationStatus)
                     }
+                    aria-label={`Status for ${app.jobTitle} at ${app.company}`}
                     className="rounded-lg border border-slate-300 px-2 py-1 text-xs outline-none ring-brand-500 focus:ring-2"
                   >
                     {statusOptions.map((status) => (
@@ -82,7 +132,24 @@ export default function ApplicationTable({
                   </select>
                 </td>
                 <td className="px-4 py-3 text-slate-600">
-                  {new Date(app.updatedAt).toLocaleDateString()}
+                  {formatDate(app.appliedDate)}
+                </td>
+                <td className="px-4 py-3 text-slate-600">
+                  {formatDate(app.followUpDate)}
+                </td>
+                <td className="px-4 py-3">
+                  {app.link ? (
+                    <a
+                      href={app.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                    >
+                      Open
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button

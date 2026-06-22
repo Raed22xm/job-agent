@@ -71,6 +71,33 @@ export function updateApplicationStatus(
   return updated;
 }
 
+export function updateApplication(
+  id: string,
+  patch: Partial<
+    Pick<
+      Application,
+      | "status"
+      | "notes"
+      | "deadline"
+      | "cvVersion"
+      | "coverLetterStatus"
+      | "recruiterContact"
+      | "appliedDate"
+      | "followUpDate"
+    >
+  >
+): Application[] {
+  const applications = readApplications();
+  const updated = applications.map((app) =>
+    app.id === id
+      ? { ...app, ...patch, updatedAt: new Date().toISOString() }
+      : app
+  );
+
+  writeApplications(updated);
+  return updated;
+}
+
 export function deleteApplication(id: string): Application[] {
   const filtered = readApplications().filter((app) => app.id !== id);
   writeApplications(filtered);

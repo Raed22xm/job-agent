@@ -116,9 +116,12 @@ describe("matchCV", () => {
 
     expect(result.scoreBreakdown).toBeDefined();
     expect(result.scoreBreakdown!.overall).toBe(result.score);
-    expect(result.scoreBreakdown!.skills.weight).toBe(3);
-    expect(result.scoreBreakdown!.tools.weight).toBe(2);
-    expect(result.scoreBreakdown!.keywords.weight).toBe(1);
+    expect(result.scoreBreakdown!.skillsMatch.weight).toBe(30);
+    expect(result.scoreBreakdown!.experienceMatch.weight).toBe(20);
+    expect(result.scoreBreakdown!.location.weight).toBe(15);
+    expect(result.scoreBreakdown!.language.weight).toBe(10);
+    expect(result.scoreBreakdown!.juniorFriendliness.weight).toBe(15);
+    expect(result.scoreBreakdown!.portfolioRelevance.weight).toBe(10);
   });
 
   it("provides recommended focus areas", () => {
@@ -141,7 +144,7 @@ describe("matchCV", () => {
 });
 
 describe("scoreJob", () => {
-  it("weights skills higher than keywords", () => {
+  it("scores skills match for overlapping terms", () => {
     const skillsOnlyJob: ParsedJob = {
       ...STRONG_MATCH_JOB,
       tools: [],
@@ -150,21 +153,28 @@ describe("scoreJob", () => {
     };
 
     const breakdown = scoreJob(skillsOnlyJob, TEST_CV);
-    expect(breakdown.skills.score).toBe(100);
-    expect(breakdown.overall).toBe(100);
+    expect(breakdown.skillsMatch.score).toBe(100);
+    expect(breakdown.overall).toBeGreaterThan(0);
   });
 
-  it("deduplicates keywords already counted in skills/tools", () => {
-    const job: ParsedJob = {
-      ...STRONG_MATCH_JOB,
-      skills: ["React"],
-      tools: ["Git"],
-      atsKeywords: ["React", "Git", "JavaScript"],
-    };
+  it("includes all six scoring categories", () => {
+    const breakdown = scoreJob(STRONG_MATCH_JOB, TEST_CV);
 
-    const breakdown = scoreJob(job, TEST_CV);
-    expect(breakdown.keywords.total).toBe(1);
-    expect(breakdown.keywords.total).toBeLessThan(job.atsKeywords.length);
+    expect(breakdown.skillsMatch.total).toBeGreaterThan(0);
+    expect(breakdown.experienceMatch.total).toBeGreaterThan(0);
+    expect(breakdown.location.total).toBeGreaterThan(0);
+    expect(breakdown.language.total).toBeGreaterThan(0);
+    expect(breakdown.juniorFriendliness.total).toBeGreaterThan(0);
+    expect(breakdown.portfolioRelevance.total).toBeGreaterThan(0);
+    expect(breakdown.overall).toBeGreaterThanOrEqual(0);
+    expect(breakdown.overall).toBeLessThanOrEqual(100);
+  });
+
+  it("scores strong match higher than weak match", () => {
+    const strong = scoreJob(STRONG_MATCH_JOB, TEST_CV);
+    const weak = scoreJob(WEAK_MATCH_JOB, TEST_CV);
+
+    expect(strong.overall).toBeGreaterThan(weak.overall);
   });
 });
 

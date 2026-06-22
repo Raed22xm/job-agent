@@ -11,7 +11,8 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 - **Keyword Insights** — View matching and missing ATS keywords
 - **CV Generator** — One-column ATS-friendly CV preview using verified data only
 - **Cover Letter** — Short tailored draft for human review
-- **Application Tracker** — Save jobs and track status locally (browser storage)
+- **Application Tracker** — Save jobs with match score, CV version, cover letter status, dates, and links (browser storage)
+- **Export** — DOCX and visual PDF export for CV and cover letter (DOCX recommended for ATS)
 
 ## Important rules
 
@@ -95,18 +96,21 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Scripts
 
-| Command       | Description              |
-|---------------|--------------------------|
+| Command | Description |
+|---------|-------------|
 | `npm run dev` | Start development server |
-| `npm run build` | Production build       |
+| `npm run build` | Production build |
 | `npm run start` | Start production server |
-| `npm run lint` | Run ESLint              |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run Vitest unit tests |
+| `npm run typecheck` | TypeScript check without emit |
+| `npm run check` | Lint, test, typecheck, and build |
 
 ## Roadmap
 
 - [ ] OpenAI / LLM integration for smarter parsing and writing
 - [ ] Job URL scraping
-- [ ] PDF/DOCX export for CV and cover letter
+- [x] PDF/DOCX export for CV and cover letter
 - [ ] SQLite persistence for application tracker
 - [ ] Editable CV and cover letter before export
 

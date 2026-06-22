@@ -2,6 +2,7 @@ import type {
   Application,
   ApplicationStatus,
   CategoryScore,
+  CoverLetterStatus,
   GeneratedCoverLetter,
   GeneratedCV,
   MatchResult,
@@ -16,6 +17,13 @@ const VALID_STATUSES: ApplicationStatus[] = [
   "interview",
   "rejected",
   "offer",
+];
+
+const VALID_COVER_LETTER_STATUSES: CoverLetterStatus[] = [
+  "none",
+  "draft",
+  "ready",
+  "sent",
 ];
 
 export function normalizeStringArray(value: unknown): string[] {
@@ -67,24 +75,44 @@ function normalizeCategoryScore(value: unknown): CategoryScore | null {
 export function normalizeScoreBreakdown(value: unknown): ScoreBreakdown | undefined {
   if (!value || typeof value !== "object") return undefined;
 
-  const breakdown = value as Partial<ScoreBreakdown>;
-  const skills = normalizeCategoryScore(breakdown.skills);
-  const tools = normalizeCategoryScore(breakdown.tools);
-  const keywords = normalizeCategoryScore(breakdown.keywords);
+  const breakdown = value as Partial<ScoreBreakdown> & {
+    skills?: unknown;
+    tools?: unknown;
+    keywords?: unknown;
+  };
+
+  const skillsMatch = normalizeCategoryScore(
+    breakdown.skillsMatch ?? breakdown.skills
+  );
+  const experienceMatch = normalizeCategoryScore(breakdown.experienceMatch);
+  const location = normalizeCategoryScore(breakdown.location);
+  const language = normalizeCategoryScore(breakdown.language);
+  const juniorFriendliness = normalizeCategoryScore(
+    breakdown.juniorFriendliness
+  );
+  const portfolioRelevance = normalizeCategoryScore(
+    breakdown.portfolioRelevance ?? breakdown.keywords
+  );
 
   if (
-    !skills ||
-    !tools ||
-    !keywords ||
+    !skillsMatch ||
+    !experienceMatch ||
+    !location ||
+    !language ||
+    !juniorFriendliness ||
+    !portfolioRelevance ||
     typeof breakdown.overall !== "number"
   ) {
     return undefined;
   }
 
   return {
-    skills,
-    tools,
-    keywords,
+    skillsMatch,
+    experienceMatch,
+    location,
+    language,
+    juniorFriendliness,
+    portfolioRelevance,
     overall: breakdown.overall,
   };
 }
@@ -170,6 +198,12 @@ export function normalizeApplication(value: unknown): Application | null {
     ? (app.status as ApplicationStatus)
     : "draft";
 
+  const coverLetterStatus = VALID_COVER_LETTER_STATUSES.includes(
+    app.coverLetterStatus as CoverLetterStatus
+  )
+    ? (app.coverLetterStatus as CoverLetterStatus)
+    : "none";
+
   return {
     id: app.id,
     createdAt:
@@ -180,5 +214,31 @@ export function normalizeApplication(value: unknown): Application | null {
     match,
     status,
     notes: typeof app.notes === "string" ? app.notes : undefined,
+    company:
+      typeof app.company === "string" && app.company
+        ? app.company
+        : job.company,
+    jobTitle:
+      typeof app.jobTitle === "string" && app.jobTitle
+        ? app.jobTitle
+        : job.title,
+    link:
+      typeof app.link === "string"
+        ? app.link
+        : job.sourceUrl,
+    location:
+      typeof app.location === "string" && app.location
+        ? app.location
+        : job.location,
+    deadline: typeof app.deadline === "string" ? app.deadline : undefined,
+    matchScore:
+      typeof app.matchScore === "number" ? app.matchScore : match.score,
+    cvVersion: typeof app.cvVersion === "string" ? app.cvVersion : undefined,
+    coverLetterStatus,
+    recruiterContact:
+      typeof app.recruiterContact === "string" ? app.recruiterContact : undefined,
+    appliedDate: typeof app.appliedDate === "string" ? app.appliedDate : undefined,
+    followUpDate:
+      typeof app.followUpDate === "string" ? app.followUpDate : undefined,
   };
 }
