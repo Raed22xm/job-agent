@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -13,6 +14,11 @@ const navItems = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -29,9 +35,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <nav className="flex flex-wrap gap-2">
             {navItems.map((item) => {
               const isActive =
-                item.href === "/"
+                mounted &&
+                (item.href === "/"
                   ? pathname === "/"
-                  : pathname.startsWith(item.href);
+                  : pathname.startsWith(item.href));
 
               return (
                 <Link

@@ -2,11 +2,7 @@
 
 import ApplicationTable from "@/components/ApplicationTable";
 import { useJobAgent } from "@/context/JobAgentContext";
-import {
-  deleteApplication,
-  getApplications,
-  updateApplicationStatus,
-} from "@/lib/storage";
+import { deleteApplication, updateApplicationStatus } from "@/lib/storage";
 import type { ApplicationStatus } from "@/types";
 
 export default function TrackerPage() {
@@ -22,8 +18,6 @@ export default function TrackerPage() {
     refreshApplications();
   };
 
-  const syncedApplications = applications.length ? applications : getApplications();
-
   return (
     <div className="space-y-6">
       <div>
@@ -34,7 +28,7 @@ export default function TrackerPage() {
       </div>
 
       <ApplicationTable
-        applications={syncedApplications}
+        applications={applications}
         onStatusChange={handleStatusChange}
         onDelete={handleDelete}
       />

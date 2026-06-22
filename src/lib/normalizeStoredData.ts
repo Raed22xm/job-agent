@@ -1,4 +1,11 @@
-import type { Application, ApplicationStatus, MatchResult, ParsedJob } from "@/types";
+import type {
+  Application,
+  ApplicationStatus,
+  GeneratedCoverLetter,
+  GeneratedCV,
+  MatchResult,
+  ParsedJob,
+} from "@/types";
 
 const VALID_STATUSES: ApplicationStatus[] = [
   "draft",
@@ -44,6 +51,59 @@ export function normalizeMatchResult(value: unknown): MatchResult | null {
     missingKeywords: normalizeStringArray(match.missingKeywords),
     recommendedFocusAreas: normalizeStringArray(match.recommendedFocusAreas),
     summary: match.summary ?? "",
+  };
+}
+
+export function normalizeGeneratedCV(value: unknown): GeneratedCV | null {
+  if (!value || typeof value !== "object") return null;
+
+  const cv = value as Partial<GeneratedCV>;
+  const sections = cv.sections;
+  if (!sections || typeof sections !== "object") return null;
+
+  const header = (sections as GeneratedCV["sections"]).header;
+  if (!header || typeof header.fullName !== "string") return null;
+
+  return {
+    sections: {
+      header,
+      summary:
+        typeof (sections as GeneratedCV["sections"]).summary === "string"
+          ? (sections as GeneratedCV["sections"]).summary
+          : "",
+      skills: normalizeStringArray((sections as GeneratedCV["sections"]).skills),
+      experience: Array.isArray((sections as GeneratedCV["sections"]).experience)
+        ? (sections as GeneratedCV["sections"]).experience.filter(
+            (item): item is GeneratedCV["sections"]["experience"][number] =>
+              Boolean(item && typeof item === "object" && typeof item.id === "string")
+          )
+        : [],
+      education: Array.isArray((sections as GeneratedCV["sections"]).education)
+        ? (sections as GeneratedCV["sections"]).education.filter(
+            (item): item is GeneratedCV["sections"]["education"][number] =>
+              Boolean(item && typeof item === "object" && typeof item.id === "string")
+          )
+        : [],
+    },
+    atsNotes: normalizeStringArray(cv.atsNotes),
+  };
+}
+
+export function normalizeGeneratedCoverLetter(
+  value: unknown
+): GeneratedCoverLetter | null {
+  if (!value || typeof value !== "object") return null;
+
+  const letter = value as Partial<GeneratedCoverLetter>;
+  if (typeof letter.greeting !== "string" || typeof letter.signature !== "string") {
+    return null;
+  }
+
+  return {
+    greeting: letter.greeting,
+    paragraphs: normalizeStringArray(letter.paragraphs),
+    closing: typeof letter.closing === "string" ? letter.closing : "",
+    signature: letter.signature,
   };
 }
 

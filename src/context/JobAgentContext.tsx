@@ -12,6 +12,8 @@ import { generateCoverLetter } from "@/lib/generateCoverLetter";
 import { generateCV } from "@/lib/generateCV";
 import { getMasterCV, matchCV } from "@/lib/matchCV";
 import {
+  normalizeGeneratedCoverLetter,
+  normalizeGeneratedCV,
   normalizeMatchResult,
   normalizeParsedJob,
 } from "@/lib/normalizeStoredData";
@@ -84,15 +86,9 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       );
       setParsedJob(normalizeParsedJob(saved.parsedJob));
       setMatchResult(normalizeMatchResult(saved.matchResult));
-      setGeneratedCV(
-        saved.generatedCV && typeof saved.generatedCV === "object"
-          ? (saved.generatedCV as GeneratedCV)
-          : null
-      );
+      setGeneratedCV(normalizeGeneratedCV(saved.generatedCV));
       setGeneratedCoverLetter(
-        saved.generatedCoverLetter && typeof saved.generatedCoverLetter === "object"
-          ? saved.generatedCoverLetter
-          : null
+        normalizeGeneratedCoverLetter(saved.generatedCoverLetter)
       );
     } catch {
       sessionStorage.removeItem(SESSION_KEY);
