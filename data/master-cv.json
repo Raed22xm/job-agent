@@ -1,74 +1,97 @@
 {
   "personalInfo": {
-    "fullName": "Alex Morgan",
-    "email": "alex.morgan@email.com",
-    "phone": "+1 (555) 123-4567",
-    "location": "San Francisco, CA",
-    "linkedin": "linkedin.com/in/alexmorgan",
-    "portfolio": "alexmorgan.dev",
-    "summary": "Full-stack developer with 5+ years building web applications using React, TypeScript, and Node.js. Experienced in API design, performance optimization, and cross-functional collaboration."
+    "fullName": "Raed Ibrahim",
+    "email": "Raedibri@hotmail.com",
+    "phone": "+45 42 79 74 00",
+    "location": "Sirgræsvej 68, Kastrup",
+    "summary": "Junior udvikler specialiseret i front-end development og digitalisering. Erfaring med React, JavaScript, Python og Power BI til datadrevne løsninger, der optimerer forretningsprocesser."
   },
   "skills": [
+    "Java",
+    "Python",
     "JavaScript",
-    "TypeScript",
     "React",
-    "Next.js",
-    "Node.js",
-    "REST APIs",
+    "CSS",
     "SQL",
-    "Git",
-    "Agile",
-    "Technical documentation"
+    "Power BI",
+    "Excel",
+    "Front-end development",
+    "Digitalisering",
+    "Dataanalyse"
   ],
   "tools": [
-    "VS Code",
-    "GitHub",
-    "PostgreSQL",
-    "Docker",
+    "Git",
     "Figma",
-    "Jest",
-    "CI/CD"
+    "MariaDB",
+    "Power BI",
+    "EV3",
+    "MicroPython"
   ],
   "experience": [
     {
       "id": "exp-1",
-      "company": "Northwind Labs",
-      "title": "Senior Full-Stack Developer",
-      "location": "San Francisco, CA",
-      "startDate": "2022-03",
-      "endDate": "Present",
+      "company": "Novo Nordisk",
+      "title": "Studentermedhjælper, Digitalisering",
+      "location": "København",
+      "startDate": "2023-01",
+      "endDate": "2023-09",
       "bullets": [
-        "Led development of a customer portal using Next.js and TypeScript, serving 12,000+ monthly active users.",
-        "Designed and implemented REST APIs with Node.js and PostgreSQL, reducing average response time by 35%.",
-        "Collaborated with product and design teams to ship features on two-week sprint cycles.",
-        "Mentored two junior developers through code reviews and pair programming sessions."
+        "Udviklede interaktive dashboards i Power BI for at visualisere og analysere nøgletal.",
+        "Automatiserede dataprocesser ved at integrere Power BI med flere datakilder, hvilket reducerede manuelle arbejdsgange.",
+        "Leverede datadrevet indsigt og præsenterede løsninger til ledelsen for bedre beslutningstagning."
       ]
     },
     {
       "id": "exp-2",
-      "company": "Brightline Digital",
-      "title": "Full-Stack Developer",
-      "location": "Remote",
-      "startDate": "2019-06",
-      "endDate": "2022-02",
+      "company": "DHL",
+      "title": "Assistent, Logistik & Data",
+      "location": "København",
+      "startDate": "2022-08",
+      "endDate": "2022-12",
       "bullets": [
-        "Built and maintained React applications with reusable component libraries.",
-        "Integrated third-party APIs and payment gateways for e-commerce clients.",
-        "Wrote unit and integration tests with Jest, improving test coverage to 80%.",
-        "Participated in on-call rotation and incident response for production systems."
+        "Kontrollerede godsregistrering og udviklede mindre dataanalyseværktøjer i Excel for at forbedre lagerprocesser."
       ]
     }
   ],
   "education": [
     {
       "id": "edu-1",
-      "institution": "State University",
-      "degree": "Bachelor of Science",
-      "field": "Computer Science",
-      "startDate": "2015",
-      "endDate": "2019",
-      "details": ["Dean's List, 2017–2018"]
+      "institution": "Danmarks Tekniske Universitet (DTU)",
+      "degree": "Diplomingeniør",
+      "field": "IT-økonomi",
+      "startDate": "2021",
+      "endDate": "2024",
+      "details": [
+        "Kurser: Økonomistyring, Software Processing, Database Management",
+        "Fokus: Softwareudvikling, dataanalyse, digitalisering og strategisk økonomisk ledelse"
+      ]
     }
   ],
-  "certifications": ["AWS Certified Developer – Associate"]
+  "certifications": [],
+  "projects": [
+    {
+      "id": "proj-1",
+      "name": "Front-End Projekt",
+      "description": "Responsiv webapplikation med React og CSS, fokus på intuitiv navigation og brugervenlighed."
+    },
+    {
+      "id": "proj-2",
+      "name": "CDO AI Robot Projekt",
+      "description": "AI-baseret robot med EV3 og MicroPython til navigation i komplekse miljøer."
+    },
+    {
+      "id": "proj-3",
+      "name": "Aviuz Chat Projekt",
+      "description": "Intelligent chatbot med fokus på brugeroplevelse og AI-integration."
+    },
+    {
+      "id": "proj-4",
+      "name": "Supply Chain Management Projekt",
+      "description": "Analyse og optimering af forsyningskæder i bilindustrien."
+    }
+  ],
+  "languages": [
+    { "language": "Dansk", "level": "Modersmål" },
+    { "language": "Engelsk", "level": "Forhandlingsniveau" }
+  ]
 }

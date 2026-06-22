@@ -38,3 +38,6 @@ next-env.d.ts
 
 # local data (future SQLite / exports)
 /data/applications.json
+
+# private imported files (CVs, cover letters, certificates)
+/data/private/

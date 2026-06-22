@@ -16,7 +16,7 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 ## Important rules
 
 - Does **not** invent experience, education, companies, numbers, or skills
-- Uses only verified data from `data/master-cv.json`
+- Uses only verified data from `data/cv/` and `data/master-cv.json`
 - **No auto-apply** — review all outputs before submitting applications
 - OpenAI API is **not connected** in this version (placeholder logic only)
 
@@ -33,7 +33,13 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 ```
 Job Agent/
 ├── data/
-│   └── master-cv.json          # Your verified master CV data
+│   ├── cv/                     # Master CV in Markdown (verified source)
+│   ├── jobs/                   # Saved job descriptions
+│   ├── outputs/                # Generated CVs, cover letters
+│   ├── private/                # Imported PDFs/DOCX (gitignored)
+│   ├── master-cv.json          # CV data for the app
+│   └── import-index.json       # Catalog of imported files
+├── prompts/                    # Agent prompts for match, CV, cover letter
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx            # Home

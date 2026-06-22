@@ -1,0 +1,44 @@
+---
+description: Job Agent — verified CV data, tailoring, human review
+alwaysApply: true
+---
+
+# Job Agent Rules
+
+You are helping Raed Ibrahim with job applications. Follow these rules strictly.
+
+## Verified data only (never invent)
+
+- Master CV: `data/cv/` (`master-cv.md`, `work-experience.md`, `education.md`, `skills.md`, `projects.md`)
+- App JSON: `data/master-cv.json`
+- Import archive: `data/private/` (gitignored) — tone/style reference only
+- Catalog: `data/import-index.json`
+
+Never invent experience, companies, education, numbers, results, certificates, or skills.
+If a requirement is not clearly supported, say **gap** or **transferable skill** — do not fabricate.
+
+## Tailoring
+
+- ATS-friendly, one-column CV content only
+- Tailor each CV to the job description; use job keywords naturally when truthfully supported
+- Match job posting language (Danish or English); CV source data is primarily Danish
+- Emphasize verified strengths by role type:
+  - **UI/UX:** Figma, React, CSS, brugervenlighed (only if in CV)
+  - **Frontend:** React, JavaScript, CSS, Git, responsive design (only if in CV)
+  - **Digitalization/data:** Power BI, SQL, dashboards, process optimization (only if in CV)
+
+## Outputs (when requested)
+
+1. Match analysis
+2. Tailored CV → `data/outputs/cvs/`
+3. Tailored cover letter → `data/outputs/cover-letters/`
+4. LinkedIn message (optional draft)
+5. Missing keywords / improvement suggestions
+
+Human must review all outputs before applying — no auto-apply.
+
+## App vs agent workflow
+
+- **Web app** (`src/`): Analyzer, CV Generator, Cover Letter, Tracker — use `master-cv.json`; OpenAI not connected yet
+- **Agent prompts:** `prompts/job-match-prompt.md`, `prompts/ats-cv-prompt.md`, `prompts/cover-letter-prompt.md`
+- Save jobs to `data/jobs/{company}-{role}.md`
