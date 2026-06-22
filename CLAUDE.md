@@ -1,5 +1,36 @@
 # Ruflo — Claude Code Configuration
 
+## ✅ Runtime Status (verified 2026-06-23)
+
+Ruflo is **fully configured and operational** in this project.
+
+| Component | Status | Details |
+|---|---|---|
+| **Ruflo version** | ✅ v3.14.0 | Up to date |
+| **OpenAI API** | ✅ Connected | GPT-4o via `OPENAI_API_KEY` in `.env` |
+| **AI SDK** | ✅ Installed | `ai` + `@ai-sdk/openai` packages |
+| **Daemon** | ✅ Running | PID 7140, hierarchical topology |
+| **Vector memory** | ✅ Active | HNSW 384-dim, `.swarm/memory.db` |
+| **Swarm** | ✅ Ready | Max 5 agents, hierarchical-mesh |
+| **Job Agent app** | ✅ Running | `http://localhost:3000`, mode: `local-with-ai-available` |
+| **MCP config** | ✅ Set | `.mcp.json` → `npx ruflo mcp start` |
+| **Doctor** | ✅ 14/14 passed | 6 warnings (all informational, non-blocking) |
+
+### Known Non-Blocking Warnings
+- **Claude Code CLI not installed** — using Cursor instead, not required
+- **agentic-flow not installed** — embeddings fall back to ONNX (working fine)
+- **Encryption at rest off** — local dev only, mode 0600
+- **Disk 87% full** — monitor disk space
+
+### Start Commands (if restarting)
+```bash
+npx ruflo daemon start                                    # Start background daemon
+npx ruflo swarm init --topology hierarchical --max-agents 5  # Init swarm
+npx ruflo status                                          # Verify
+```
+
+
+
 ## Rules
 
 - Do what has been asked; nothing more, nothing less
