@@ -28,7 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files (secrets, API keys)
 .env*
 !.env.example
 
@@ -39,5 +39,12 @@ next-env.d.ts
 # local data (future SQLite / exports)
 /data/applications.json
 
-# private imported files (CVs, cover letters, certificates)
+# private personal files — never commit to GitHub
 /data/private/
+*.pdf
+*.docx
+*.doc
+**/certificates/
+**/cvs/*.pdf
+**/cvs/*.docx
+**/cover-letters/*.pdf

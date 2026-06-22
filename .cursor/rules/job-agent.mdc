@@ -32,7 +32,7 @@ If a requirement is not clearly supported, say **gap** or **transferable skill**
 1. Match analysis
 2. Tailored CV → `data/outputs/cvs/`
 3. Tailored cover letter → `data/outputs/cover-letters/`
-4. LinkedIn message (optional draft)
+4. LinkedIn message → `data/outputs/linkedin-messages/`
 5. Missing keywords / improvement suggestions
 
 Human must review all outputs before applying — no auto-apply.
@@ -40,5 +40,5 @@ Human must review all outputs before applying — no auto-apply.
 ## App vs agent workflow
 
 - **Web app** (`src/`): Analyzer, CV Generator, Cover Letter, Tracker — use `master-cv.json`; OpenAI not connected yet
-- **Agent prompts:** `prompts/job-match-prompt.md`, `prompts/ats-cv-prompt.md`, `prompts/cover-letter-prompt.md`
+- **Agent prompts:** `prompts/job-match-prompt.md`, `prompts/ats-cv-prompt.md`, `prompts/cover-letter-prompt.md`, `prompts/linkedin-message-prompt.md`
 - Save jobs to `data/jobs/{company}-{role}.md`
