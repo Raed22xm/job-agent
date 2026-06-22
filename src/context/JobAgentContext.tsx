@@ -74,12 +74,20 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         generatedCoverLetter: GeneratedCoverLetter;
       };
 
-      setJobUrl(saved.jobUrl);
-      setJobDescription(saved.jobDescription);
-      setParsedJob(saved.parsedJob);
-      setMatchResult(saved.matchResult);
-      setGeneratedCV(saved.generatedCV);
-      setGeneratedCoverLetter(saved.generatedCoverLetter);
+      setJobUrl(saved.jobUrl ?? "");
+      setJobDescription(saved.jobDescription ?? "");
+      setParsedJob(saved.parsedJob ?? null);
+      setMatchResult(
+        saved.matchResult
+          ? {
+              ...saved.matchResult,
+              recommendedFocusAreas:
+                saved.matchResult.recommendedFocusAreas ?? [],
+            }
+          : null
+      );
+      setGeneratedCV(saved.generatedCV ?? null);
+      setGeneratedCoverLetter(saved.generatedCoverLetter ?? null);
     } catch {
       // ignore invalid session data
     }
@@ -100,7 +108,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem(
       SESSION_KEY,
       JSON.stringify({
-        jobUrl: "",
+        jobUrl,
         jobDescription,
         parsedJob: job,
         matchResult: match,
@@ -108,7 +116,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         generatedCoverLetter: coverLetter,
       })
     );
-  }, [jobDescription]);
+  }, [jobDescription, jobUrl]);
 
   const saveToTracker = useCallback((): Application | null => {
     if (!parsedJob || !matchResult) return null;

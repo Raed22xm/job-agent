@@ -99,6 +99,14 @@ function extractTitle(lines: string[]): string {
   }
 
   const firstLine = lines[0] ?? "";
+
+  const joinAsMatch = firstLine.match(
+    /^join\s+[A-Za-z0-9&.'-]+\s+as\s+(?:a\s+|an\s+|the\s+)?(.+)$/i
+  );
+  if (joinAsMatch?.[1]) {
+    return joinAsMatch[1].trim();
+  }
+
   const titleFromPipe = firstLine.match(/^(.+?)\s+[|–-]\s+/);
   if (titleFromPipe?.[1] && titleFromPipe[1].length <= 70) {
     return titleFromPipe[1].trim();
@@ -108,7 +116,7 @@ function extractTitle(lines: string[]): string {
     firstLine.length > 0 &&
     firstLine.length <= 70 &&
     !firstLine.endsWith(".") &&
-    !/^(about|company|overview|description)/i.test(firstLine)
+    !/^(about|company|overview|description|join\s+)/i.test(firstLine)
   ) {
     return firstLine;
   }
@@ -124,6 +132,34 @@ function textMatchRole(text: string): string | null {
   return match?.[1]?.trim() ?? null;
 }
 
+function looksLikeLocationSegment(segment: string): boolean {
+  return (
+    /\bremote\b/i.test(segment) ||
+    /\bhybrid\b/i.test(segment) ||
+    /\bon[- ]site\b/i.test(segment) ||
+    /\b[A-Z][a-z]+,\s*[A-Z]{2}\b/.test(segment) ||
+    /\(/.test(segment)
+  );
+}
+
+function extractCompanyFromMetaLine(line: string): string | null {
+  const parts = line.split(/\s*[·•]\s*/);
+  if (parts.length < 2) return null;
+
+  const company = parts[0].trim();
+  const rest = parts.slice(1).join(" · ").trim();
+
+  if (
+    company.length >= 2 &&
+    company.length <= 50 &&
+    looksLikeLocationSegment(rest)
+  ) {
+    return company;
+  }
+
+  return null;
+}
+
 function extractCompany(text: string, lines: string[], sourceUrl?: string): string {
   const labeled = lines.find((line) =>
     /^(company|employer|organization)\s*[:]/i.test(line)
@@ -132,10 +168,27 @@ function extractCompany(text: string, lines: string[], sourceUrl?: string): stri
     return labeled.replace(/^(company|employer|organization)\s*[:]\s*/i, "").trim();
   }
 
-  const joinMatch = text.match(/(?:join|at)\s+([A-Z][A-Za-z0-9&.\s'-]{2,45})(?:\.|,|\s+as\b|\s+team)/);
+  const pipeMatch = lines[0]?.match(/^(.+?)\s+[|–-]\s+(.+?)$/);
+  if (pipeMatch?.[2]) {
+    const company = pipeMatch[2].trim();
+    if (company.length >= 2 && company.length <= 50) {
+      return company;
+    }
+  }
+
+  for (const line of lines.slice(0, 3)) {
+    const fromMeta = extractCompanyFromMetaLine(line);
+    if (fromMeta) return fromMeta;
+  }
+
+  const joinMatch = text.match(
+    /(?:join|at)\s+([A-Z][A-Za-z0-9&.'-]{2,45})(?:\.|,|\s+as\b|\s+team)/i
+  );
   if (joinMatch?.[1]) return joinMatch[1].trim();
 
-  const atMatch = text.match(/\bat\s+([A-Z][A-Za-z0-9&.\s'-]{2,45})(?:\s+[,|]|\.|\s+we\b)/);
+  const atMatch = text.match(
+    /\bat\s+([A-Z][A-Za-z0-9&.'-]{2,45})(?:\s+[,|]|\.|\s+we\b)/i
+  );
   if (atMatch?.[1]) return atMatch[1].trim();
 
   if (sourceUrl) {

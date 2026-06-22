@@ -23,7 +23,6 @@ export default function AnalyzerPage() {
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
-  const [hasAnalyzed, setHasAnalyzed] = useState(Boolean(parsedJob));
 
   const handleAnalyze = () => {
     setError(null);
@@ -39,7 +38,6 @@ export default function AnalyzerPage() {
 
     try {
       analyzeJob();
-      setHasAnalyzed(true);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong during analysis.";
@@ -57,7 +55,7 @@ export default function AnalyzerPage() {
     }
   };
 
-  const showResults = hasAnalyzed && parsedJob && matchResult;
+  const showResults = Boolean(parsedJob && matchResult);
 
   return (
     <div className="space-y-8">
@@ -100,7 +98,7 @@ export default function AnalyzerPage() {
 
           {!showResults && !error && <AnalyzerEmptyState />}
 
-          {showResults && (
+          {showResults && parsedJob && matchResult && (
             <>
               <JobDetailsCard
                 job={parsedJob}
@@ -130,7 +128,7 @@ export default function AnalyzerPage() {
                 />
               </div>
 
-              <CVFocusAreas areas={matchResult.recommendedFocusAreas} />
+              <CVFocusAreas areas={matchResult.recommendedFocusAreas ?? []} />
             </>
           )}
         </div>
