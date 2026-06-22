@@ -6,7 +6,9 @@ interface JobInputProps {
   onJobDescriptionChange: (value: string) => void;
   onJobUrlChange?: (value: string) => void;
   onAnalyze: () => void;
+  onPaste?: () => void;
   isLoading?: boolean;
+  isAutoAnalyzing?: boolean;
   validationError?: string | null;
 }
 
@@ -16,7 +18,9 @@ export default function JobInput({
   onJobDescriptionChange,
   onJobUrlChange,
   onAnalyze,
+  onPaste,
   isLoading = false,
+  isAutoAnalyzing = false,
   validationError = null,
 }: JobInputProps) {
   const charCount = jobDescription.length;
@@ -70,6 +74,7 @@ export default function JobInput({
           id="job-description"
           value={jobDescription}
           onChange={(e) => onJobDescriptionChange(e.target.value)}
+          onPaste={onPaste}
           rows={14}
           placeholder={`Example:\n\nSenior Full-Stack Developer\nAcme Corp · San Francisco, CA (Hybrid)\n\nRequirements:\n- 5+ years experience with TypeScript, React, and Node.js\n- Experience with PostgreSQL and Docker\n- Strong communication and Agile experience\n\nResponsibilities:\n- Build customer-facing web applications\n- Design REST APIs and collaborate with product teams`}
           className={`w-full resize-y rounded-xl border px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:ring-2 ${
@@ -95,6 +100,12 @@ export default function JobInput({
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
+        {isAutoAnalyzing && (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500" />
+            Auto-analyzing…
+          </span>
+        )}
         <button
           type="submit"
           disabled={isLoading}

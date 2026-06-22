@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AnalyzerEmptyState from "@/components/AnalyzerEmptyState";
 import CVFocusAreas from "@/components/CVFocusAreas";
 import JobDetailsCard from "@/components/JobDetailsCard";
@@ -25,19 +25,17 @@ export default function AnalyzerPage() {
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
+  const [isAutoAnalyzing, setIsAutoAnalyzing] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleAnalyze = () => {
+  const runAnalysis = useCallback(() => {
     setError(null);
     setValidationError(null);
     setSavedMessage(null);
 
-    if (!jobDescription.trim()) {
-      setValidationError("Please paste a job description before analyzing.");
-      return;
-    }
+    if (!jobDescription.trim()) return;
 
     setIsLoading(true);
-
     try {
       analyzeJob();
     } catch (err) {
@@ -47,8 +45,42 @@ export default function AnalyzerPage() {
       setValidationError(message);
     } finally {
       setIsLoading(false);
+      setIsAutoAnalyzing(false);
     }
+  }, [analyzeJob, jobDescription]);
+
+  // Auto-analyze with 600 ms debounce whenever the job description changes
+  useEffect(() => {
+    if (!jobDescription.trim()) {
+      setIsAutoAnalyzing(false);
+      return;
+    }
+    setIsAutoAnalyzing(true);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      runAnalysis();
+    }, 600);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobDescription]);
+
+  const handleAnalyze = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setIsAutoAnalyzing(false);
+    runAnalysis();
   };
+
+  // Instant trigger on paste — skip the debounce wait
+  const handlePaste = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setIsAutoAnalyzing(false);
+    // Small tick to let React flush the textarea value first
+    debounceRef.current = setTimeout(() => {
+      runAnalysis();
+    }, 50);
+  }, [runAnalysis]);
 
   const handleSave = () => {
     const saved = saveToTracker();
@@ -85,8 +117,10 @@ export default function AnalyzerPage() {
           }}
           onJobUrlChange={setJobUrl}
           onAnalyze={handleAnalyze}
-          isLoading={isLoading}
+          onPaste={handlePaste}
+          isLoading={isLoading || isAutoAnalyzing}
           validationError={validationError}
+          isAutoAnalyzing={isAutoAnalyzing}
         />
 
         <div className="space-y-6">
