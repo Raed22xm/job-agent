@@ -1,15 +1,17 @@
 # Raed Ibrahim
 
-**Junior Udvikler** · IT-økonomi (DTU)
+**Full-Stack Udvikler** · IT-økonomi (DTU)
 
-Sirgræsvej 68, Kastrup · 42 79 74 00 · Raedibri@hotmail.com
+Sirgræsvej 68, Kastrup 2770 · +45 42 79 74 00 · Raedibri@hotmail.com
 
 ## Profil
 
-Junior udvikler specialiseret i front-end og softwareudvikling. Erfaring med React, Next.js, JavaScript, Java og Power BI til produktionsklare, datadrevne løsninger. Interesse for native Android-udvikling med Kotlin og agile teams.
+Full-stack udvikler med fokus på React, Next.js og TypeScript. Har bygget produktionsklare checkout-flows med 15 % lavere frafald, 12+ REST API'er med 99,9 % oppetid og 40 % færre produktionsfejl. Erfaring fra Novo Nordisk og BS Technologies med målbare resultater på tværs af frontend, backend og UX.
 
 ## Links
 
-- Primary CV (PDF): `data/private/original-cv.pdf`
-- Source document: `data/private/cvs/Raed_Ibrahim_CV.docx`
-- Seneste ansøgning (reference): `data/private/cover-letters/Motiveret_ansogning_Android_App_Developer_TV2_Raed_Ibrahim.pdf`
+- Portfolio: https://readibrahim.netlify.app
+- LinkedIn: https://www.linkedin.com/in/raed-ibrahim-3013a320b
+- GitHub: https://github.com/RaedIbrahim
+- Seneste CV (PDF): `data/private/cvs/job_new_2026/Raed Ibrahim - Resume4.pdf`
+- Kilde: `data/private/cvs/job_new_2026/CV1.pdf` (opdateret feb. 2026)

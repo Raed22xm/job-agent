@@ -1,26 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   exportApplicationsJson,
+  getApplications,
   importApplicationsJson,
   saveApplication,
 } from "@/lib/storage";
 import type { Application } from "@/types";
-
-function createLocalStorageMock() {
-  const store = new Map<string, string>();
-  return {
-    getItem: vi.fn((key: string) => store.get(key) ?? null),
-    setItem: vi.fn((key: string, value: string) => {
-      store.set(key, value);
-    }),
-    removeItem: vi.fn((key: string) => {
-      store.delete(key);
-    }),
-    clear: vi.fn(() => {
-      store.clear();
-    }),
-  };
-}
 
 const sampleApplication: Application = {
   id: "app-test",
@@ -52,40 +37,80 @@ const sampleApplication: Application = {
   coverLetterStatus: "draft",
 };
 
-describe("tracker storage import/export", () => {
+function mockFetchRouter(initial: Application[] = []) {
+  let store = [...initial];
+
+  return vi.fn(async (input: RequestInfo, init?: RequestInit) => {
+    const url = String(input);
+    const method = init?.method ?? "GET";
+    const body = init?.body ? JSON.parse(String(init.body)) : null;
+
+    if (url.endsWith("/api/applications") && method === "GET") {
+      return Response.json({ applications: store });
+    }
+
+    if (url.endsWith("/api/applications") && method === "POST") {
+      const app = body.application as Application;
+      store = store.filter((item) => item.id !== app.id);
+      store.unshift(app);
+      return Response.json({ applications: store, application: app });
+    }
+
+    if (url.endsWith("/api/applications") && method === "PUT") {
+      store = body.applications as Application[];
+      return Response.json({ applications: store });
+    }
+
+    return Response.json({ error: "Not found" }, { status: 404 });
+  });
+}
+
+describe("tracker storage client", () => {
   beforeEach(() => {
-    vi.stubGlobal("window", {});
-    vi.stubGlobal("localStorage", createLocalStorageMock());
+    vi.stubGlobal("fetch", mockFetchRouter());
+    vi.stubGlobal("localStorage", {
+      getItem: vi.fn(() => null),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    });
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("exports saved applications as formatted JSON", () => {
-    saveApplication(sampleApplication);
+  it("loads applications from the API", async () => {
+    vi.stubGlobal("fetch", mockFetchRouter([sampleApplication]));
 
-    const exported = exportApplicationsJson();
+    const apps = await getApplications();
+    expect(apps).toHaveLength(1);
+    expect(apps[0].jobTitle).toBe("Junior Frontend Developer");
+  });
+
+  it("exports saved applications as formatted JSON", async () => {
+    await saveApplication(sampleApplication);
+
+    const exported = await exportApplicationsJson();
     expect(JSON.parse(exported)).toHaveLength(1);
     expect(exported).toContain("Junior Frontend Developer");
   });
 
-  it("imports valid tracker backups", () => {
-    const imported = importApplicationsJson(JSON.stringify([sampleApplication]));
+  it("imports valid tracker backups via PUT", async () => {
+    const imported = await importApplicationsJson(JSON.stringify([sampleApplication]));
 
     expect(imported).toHaveLength(1);
     expect(imported[0].jobTitle).toBe("Junior Frontend Developer");
   });
 
-  it("rejects non-array tracker backups", () => {
-    expect(() => importApplicationsJson(JSON.stringify({ app: sampleApplication }))).toThrow(
-      "expected a JSON array"
-    );
+  it("rejects non-array tracker backups", async () => {
+    await expect(
+      importApplicationsJson(JSON.stringify({ app: sampleApplication }))
+    ).rejects.toThrow("expected a JSON array");
   });
 
-  it("rejects non-empty backups with no valid applications", () => {
-    expect(() => importApplicationsJson(JSON.stringify([{ id: "broken" }]))).toThrow(
-      "no valid applications"
-    );
+  it("rejects non-empty backups with no valid applications", async () => {
+    await expect(
+      importApplicationsJson(JSON.stringify([{ id: "broken" }]))
+    ).rejects.toThrow("no valid applications");
   });
 });

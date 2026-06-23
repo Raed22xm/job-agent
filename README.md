@@ -24,13 +24,23 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 
 ## Tech stack
 
-- Next.js (App Router)
-- TypeScript
-- Tailwind CSS
+- **Next.js full-stack** (App Router) — React UI + server API routes
+- TypeScript + Tailwind CSS
 - Vercel AI SDK + Zod schemas for structured AI output
-- Local JSON for master CV (`data/master-cv.json`)
-- Browser localStorage for application tracker (SQLite planned later)
-- Vitest for unit tests (64+ tests)
+- Master CV: `data/master-cv.json` (read server-side)
+- **Server persistence:** `data/applications.json` (tracker), `data/session/` (current analysis), `data/jobs/`, `data/outputs/`
+- Vitest for unit tests (75+ tests)
+
+### API routes (server)
+
+| Route | Purpose |
+|-------|---------|
+| `POST /api/analyze-job` | Local match + optional AI (`enhanceWithAI: true`) |
+| `POST /api/fetch-job` | Scrape job URL, save to `data/jobs/` |
+| `POST /api/save-application-outputs` | Write CV/cover letter markdown |
+| `GET/POST/PUT /api/applications` | Tracker CRUD + JSON import |
+| `PATCH/DELETE /api/applications/[id]` | Update or delete one application |
+| `GET/PUT /api/session` | Persist current analysis across reloads |
 
 ## Project structure
 
@@ -46,7 +56,7 @@ Job Agent/
 ├── prompts/                    # Agent prompts for match, CV, cover letter
 ├── src/
 │   ├── app/
-│   │   ├── api/                # analyze-job, fetch-job, generate-cv, generate-cover-letter
+│   │   ├── api/                # Full-stack API (analyze, fetch, applications, session, outputs)
 │   │   ├── analyzer/           # Job Analyzer
 │   │   ├── cv/                 # CV Generator + editor
 │   │   ├── cover-letter/       # Cover Letter editor
@@ -92,7 +102,8 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
+| `npm run dev` | Start dev server (clears stale `.next` cache first) |
+| `npm run dev:fast` | Start dev without clearing cache |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
@@ -107,7 +118,9 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 - [x] PDF/DOCX export for CV and cover letter
 - [x] Editable CV and cover letter before export
 - [x] Tracker JSON export/import backup
-- [ ] SQLite persistence for application tracker
+- [x] Server-side tracker persistence (`data/applications.json`)
+- [x] Server-side analysis session (`data/session/`)
+- [ ] SQLite persistence (optional upgrade from JSON files)
 - [ ] Playwright E2E tests
 
 ## License

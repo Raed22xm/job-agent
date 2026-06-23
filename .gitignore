@@ -38,6 +38,7 @@ next-env.d.ts
 
 # local data (future SQLite / exports)
 /data/applications.json
+/data/session/
 
 # private personal files — never commit to GitHub
 /data/private/

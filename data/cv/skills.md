@@ -1,22 +1,28 @@
 # Kompetencer
 
-## Programmering
+## Frontend
 
-Java, Python, JavaScript, React, Next.js, Kotlin, CSS, SQL
+React, Next.js, TypeScript, JavaScript, HTML, CSS, Tailwind CSS, Kotlin (Android)
 
-## Dataanalyse og visualisering
+## Backend & API
 
-Power BI, SQL, Excel
+Java, Spring Boot, Node.js, REST API, Prisma, SQL, PostgreSQL
 
-## Værktøjer
+## Data & digitalisering
 
-Git, Figma, MariaDB
+Power BI, Excel, PowerApps, Power Automate, Dataverse, SharePoint
 
-## Metoder
+## Værktøjer & DevOps
 
-REST API, Agile (2-ugers sprints), code review, test og kvalitetssikring
+Git, GitHub, Figma, Miro, Docker, CI/CD, Azure DevOps, MariaDB
+
+## Metoder & design
+
+Agile, Scrum, UI/UX Design, User Testing, Design Systems, code review, test og kvalitetssikring
 
 ## Sprog
 
-- Dansk (modersmål)
-- Engelsk (forhandlingsniveau)
+- Dansk (flydende)
+- Engelsk (konversation)
+- Arabisk (flydende)
+- Kurmanci (flydende)

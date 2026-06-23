@@ -1,21 +1,39 @@
 # Udvalgte projekter
 
+## ResizeHub — Image Rescaling Service (Bachelorprojekt)
+
+Skalerbar on-demand billedbehandlingsservice med cloud-infrastruktur. JWT-baseret autentificering, CDN-levering og CI/CD. Karakter 12 (A) ved DTU.
+
+**Tech:** REST API, JWT Auth, CI/CD, Cloud Storage, DevOps
+
+## Frisør Glostrup — Salon Booking System
+
+Full-stack bookingsystem med realtids-tilgængelighed og Neon cloud database. Zod-validering, modulær komponentarkitektur, deployet på Netlify.
+
+**Tech:** Next.js, TypeScript, Prisma, PostgreSQL, Tailwind CSS
+
+## RoboRally Game Server
+
+RESTful multiplayer game server med HAL-kontroller i Java/Spring Boot. 100 % automatiseret testdækning (96/96 tests).
+
+**Tech:** Java, Spring Boot, REST API
+
 ## Front-End Projekt
 
-Udviklede en responsiv webapplikation ved brug af React og CSS, med fokus på intuitiv navigation og brugervenlighed.
+Responsiv webapplikation med React og CSS, fokus på intuitiv navigation og brugervenlighed.
 
 ## CDO AI Robot Projekt
 
-Designede en AI-baseret robot ved brug af EV3 og MicroPython, der navigerede komplekse miljøer for at nå prædefinerede mål.
+AI-baseret robot med EV3 og MicroPython til navigation i komplekse miljøer.
 
 ## Aviuz Chat Projekt
 
-Udviklede en intelligent chatbot med fokus på brugeroplevelse og AI-integration.
+Intelligent chatbot med fokus på brugeroplevelse og AI-integration.
 
 ## Supply Chain Management Projekt
 
-Analyserede og optimerede forsyningskæder i bilindustrien og foreslog strategier for bedre logistik og produktionseffektivitet.
+Analyse og optimering af forsyningskæder i bilindustrien.
 
-## Fritidsinteresser
+## Interesser
 
-Nyder at arbejde med open-source projekter for at lære nye teknologier. Aktiv løber og deltager i teamorienterede sportsevents.
+Design Systems, AI/Tech, badminton, fotografi

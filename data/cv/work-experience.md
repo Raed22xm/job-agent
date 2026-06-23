@@ -1,27 +1,28 @@
 # Erhvervserfaring
 
-## Software Developer Intern — BS Technologies
+## Software Developer Intern — BS Technologies, Danmark
 
-**2024 – Nuværende**
+**Apr 2025 – Sep 2025**
 
-- Udviklede produktionsklare løsninger i React, Next.js og Java.
-- Bidrog til checkout-flows, der reducerede brugerfrafald med 15 %.
-- Byggede 12+ REST API'er med 99,9 % oppetid.
-- Reducerede produktionsfejl med 40 % gennem systematisk test og kvalitetssikring.
+- Forbedrede React/Next.js checkout-flows, hvilket reducerede frafald med 15 %.
+- Byggede 12+ Spring Boot REST-endpoints med 99,9 % oppetid.
+- Reducerede produktionsfejl med 40 % gennem omfattende test og kvalitetssikring.
 
-_Kilde: motiveret ansøgning TV2 Android App Developer (2026). Præcise datoer kan opdateres ved behov._
+_Kilde: Raed Ibrahim - Resume4.pdf (feb. 2026)_
 
-## Studentermedhjælper, Digitalisering — Novo Nordisk, København
+## Studentermedhjælper, UX/UI & Digitalisering — Novo Nordisk, Danmark
 
 **Jan 2023 – Sep 2023**
 
-- Udviklede interaktive dashboards i Power BI for at visualisere og analysere nøgletal.
-- Automatiserede dataprocesser ved at integrere Power BI med flere datakilder, hvilket reducerede manuelle arbejdsgange.
-- Designede løsninger i Figma og samarbejdede tæt med UX og forretning.
-- Leverede datadrevet indsigt; dashboards reducerede rapporteringstid med 30 % og opnåede 90 % brugertilfredshed.
+- Gennemførte brugerinterviews med 25+ laboratorieteknikere.
+- Byggede 5 interaktive Power BI-dashboards, der reducerede rapporteringstid med 30 %.
+- Designede Figma-wireframes, der sparede 10+ timer ugentligt per team.
+- Opnåede 90 % brugertilfredshed i usability tests.
+- Faciliterede design-workshops med tværfaglige teams.
 
-## Assistent, Logistik & Data — DHL, København
+## Data Assistant — DHL Express, Danmark
 
 **Aug 2022 – Dec 2022**
 
-- Kontrollerede godsregistrering og udviklede mindre dataanalyseværktøjer i Excel for at forbedre lagerprocesser.
+- Optimerede drift for 500+ daglige forsendelser.
+- Skabte automatisering, der reducerede manuel dataindtastning med 60 %.

@@ -39,7 +39,7 @@ export default function HomePage() {
     <div className="space-y-10">
       <section className="rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-8 shadow-sm sm:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-          Local-first v0.3
+          Local-first full-stack · v0.4
         </p>
         <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           Apply smarter with verified CV data — never auto-apply.

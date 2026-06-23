@@ -65,31 +65,32 @@ export default function TrackerPage() {
     });
   }, [applications, search, statusFilter]);
 
-  const handleStatusChange = (id: string, status: ApplicationStatus) => {
-    updateApplicationStatus(id, status);
-    refreshApplications();
+  const handleStatusChange = async (id: string, status: ApplicationStatus) => {
+    await updateApplicationStatus(id, status);
+    await refreshApplications();
   };
 
-  const handleUpdate: ComponentProps<typeof ApplicationTable>["onUpdate"] = (
+  const handleUpdate: ComponentProps<typeof ApplicationTable>["onUpdate"] = async (
     id,
     patch
   ) => {
-    updateApplication(id, patch);
-    refreshApplications();
+    await updateApplication(id, patch);
+    await refreshApplications();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const confirmed = window.confirm(
-      "Delete this application from the local tracker? This cannot be undone unless you have a JSON backup."
+      "Delete this application from the tracker? This cannot be undone unless you have a JSON backup."
     );
     if (!confirmed) return;
 
-    deleteApplication(id);
-    refreshApplications();
+    await deleteApplication(id);
+    await refreshApplications();
   };
 
-  const handleExport = () => {
-    const blob = new Blob([exportApplicationsJson()], {
+  const handleExport = async () => {
+    const json = await exportApplicationsJson();
+    const blob = new Blob([json], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
@@ -115,12 +116,12 @@ export default function TrackerPage() {
     try {
       const text = await file.text();
       const confirmed = window.confirm(
-        "Import will replace all saved applications in this browser. Continue?"
+        "Import will replace all saved applications on the server. Continue?"
       );
       if (!confirmed) return;
 
-      importApplicationsJson(text);
-      refreshApplications();
+      await importApplicationsJson(text);
+      await refreshApplications();
     } catch {
       setImportError("Could not import tracker backup. Check the JSON file format.");
     }
@@ -134,8 +135,9 @@ export default function TrackerPage() {
             Application Tracker
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            Saved locally in your browser. Export a JSON backup before clearing
-            site data.
+            Saved on the server in{" "}
+            <code className="text-xs">data/applications.json</code>. Export a JSON
+            backup before deleting project data.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

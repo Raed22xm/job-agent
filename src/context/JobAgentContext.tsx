@@ -21,6 +21,11 @@ import {
   getApplications,
   saveApplication,
 } from "@/lib/storage";
+import {
+  loadAnalysisSession,
+  saveAnalysisSession,
+  type ClientSessionSnapshot,
+} from "@/lib/sessionClient";
 import type {
   Application,
   GeneratedCoverLetter,
@@ -29,34 +34,7 @@ import type {
   ParsedJob,
 } from "@/types";
 
-const SESSION_KEY = "job-agent-current-analysis";
-
-interface SessionSnapshot {
-  jobUrl: string;
-  jobDescription: string;
-  parsedJob: ParsedJob | null;
-  matchResult: MatchResult | null;
-  generatedCV: GeneratedCV | null;
-  generatedCoverLetter: GeneratedCoverLetter | null;
-  originalCV: GeneratedCV | null;
-  originalCoverLetter: GeneratedCoverLetter | null;
-  analysisMode: AnalysisMode | null;
-}
-
-function readSessionSnapshot(): Partial<SessionSnapshot> | null {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    if (!raw?.trim()) return null;
-    return JSON.parse(raw) as Partial<SessionSnapshot>;
-  } catch {
-    sessionStorage.removeItem(SESSION_KEY);
-    return null;
-  }
-}
-
-function writeSessionSnapshot(snapshot: SessionSnapshot): void {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(snapshot));
-}
+interface SessionSnapshot extends ClientSessionSnapshot {}
 
 interface JobAgentContextValue {
   jobUrl: string;
@@ -81,7 +59,7 @@ interface JobAgentContextValue {
   analyzeJob: (options?: { enhanceWithAI?: boolean }) => Promise<void>;
   enhanceWithAI: () => Promise<void>;
   saveToTracker: () => Promise<Application | null>;
-  refreshApplications: () => void;
+  refreshApplications: () => Promise<void>;
 }
 
 const JobAgentContext = createContext<JobAgentContextValue | null>(null);
@@ -100,13 +78,17 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
 
-  const refreshApplications = useCallback(() => {
-    setApplications(getApplications());
+  const refreshApplications = useCallback(async () => {
+    try {
+      setApplications(await getApplications());
+    } catch {
+      setApplications([]);
+    }
   }, []);
 
   const persistSnapshot = useCallback(
     (overrides: Partial<SessionSnapshot> = {}) => {
-      writeSessionSnapshot({
+      void saveAnalysisSession({
         jobUrl,
         jobDescription,
         parsedJob,
@@ -133,28 +115,29 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
-    refreshApplications();
+    void refreshApplications();
 
-    const saved = readSessionSnapshot();
-    if (!saved) return;
+    void loadAnalysisSession().then((saved) => {
+      if (!saved) return;
 
-    setJobUrl(typeof saved.jobUrl === "string" ? saved.jobUrl : "");
-    setJobDescription(
-      typeof saved.jobDescription === "string" ? saved.jobDescription : ""
-    );
-    setParsedJob(normalizeParsedJob(saved.parsedJob));
-    setMatchResult(normalizeMatchResult(saved.matchResult));
-    setGeneratedCV(normalizeGeneratedCV(saved.generatedCV));
-    setGeneratedCoverLetter(
-      normalizeGeneratedCoverLetter(saved.generatedCoverLetter)
-    );
-    setOriginalCV(normalizeGeneratedCV(saved.originalCV ?? saved.generatedCV));
-    setOriginalCoverLetter(
-      normalizeGeneratedCoverLetter(
-        saved.originalCoverLetter ?? saved.generatedCoverLetter
-      )
-    );
-    setAnalysisMode(saved.analysisMode ?? null);
+      setJobUrl(typeof saved.jobUrl === "string" ? saved.jobUrl : "");
+      setJobDescription(
+        typeof saved.jobDescription === "string" ? saved.jobDescription : ""
+      );
+      setParsedJob(normalizeParsedJob(saved.parsedJob));
+      setMatchResult(normalizeMatchResult(saved.matchResult));
+      setGeneratedCV(normalizeGeneratedCV(saved.generatedCV));
+      setGeneratedCoverLetter(
+        normalizeGeneratedCoverLetter(saved.generatedCoverLetter)
+      );
+      setOriginalCV(normalizeGeneratedCV(saved.originalCV ?? saved.generatedCV));
+      setOriginalCoverLetter(
+        normalizeGeneratedCoverLetter(
+          saved.originalCoverLetter ?? saved.generatedCoverLetter
+        )
+      );
+      setAnalysisMode(saved.analysisMode ?? null);
+    });
   }, [refreshApplications]);
 
   const importJobFromUrl = useCallback(async () => {
@@ -270,7 +253,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       const mode = data.mode ?? (enhanceWithAI ? "ai-fallback" : "local");
       setAnalysisMode(mode);
 
-      writeSessionSnapshot({
+      void saveAnalysisSession({
         jobUrl: sourceUrl ?? jobUrl,
         jobDescription: description,
         parsedJob: job,
@@ -380,8 +363,8 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       coverLetterOutputPath,
     };
 
-    saveApplication(application);
-    refreshApplications();
+    await saveApplication(application);
+    await refreshApplications();
     return application;
   }, [
     parsedJob,

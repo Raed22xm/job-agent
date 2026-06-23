@@ -1,77 +1,101 @@
 import { normalizeApplication } from "@/lib/normalizeStoredData";
 import type { Application, ApplicationStatus } from "@/types";
 
-const STORAGE_KEY = "job-agent-applications";
+const LEGACY_STORAGE_KEY = "job-agent-applications";
 
-function readApplications(): Application[] {
-  if (typeof window === "undefined") return [];
+async function parseApplicationsResponse(response: Response): Promise<Application[]> {
+  const data = (await response.json()) as {
+    error?: string;
+    applications?: Application[];
+  };
+
+  if (!response.ok) {
+    throw new Error(data.error ?? `Request failed (${response.status})`);
+  }
+
+  return Array.isArray(data.applications) ? data.applications : [];
+}
+
+async function migrateLegacyLocalStorage(): Promise<Application[] | null> {
+  if (typeof window === "undefined") return null;
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw?.trim()) return [];
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw?.trim()) return null;
 
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
-      localStorage.removeItem(STORAGE_KEY);
-      return [];
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return null;
     }
 
     const applications = parsed
       .map(normalizeApplication)
       .filter((app): app is Application => app !== null);
 
-    if (applications.length !== parsed.length) {
-      writeApplications(applications);
+    if (applications.length === 0) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return null;
     }
 
-    return applications;
+    const response = await fetch("/api/applications", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ applications }),
+    });
+
+    if (!response.ok) return null;
+
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    return await parseApplicationsResponse(response);
   } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return [];
+    return null;
   }
 }
 
-function writeApplications(applications: Application[]): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(applications));
-}
+export async function getApplications(): Promise<Application[]> {
+  const response = await fetch("/api/applications", { cache: "no-store" });
+  const applications = await parseApplicationsResponse(response);
 
-export function getApplications(): Application[] {
-  return readApplications().sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
-}
-
-export function saveApplication(application: Application): Application[] {
-  const applications = readApplications();
-  const index = applications.findIndex((item) => item.id === application.id);
-
-  if (index >= 0) {
-    applications[index] = application;
-  } else {
-    applications.unshift(application);
+  if (applications.length === 0) {
+    const migrated = await migrateLegacyLocalStorage();
+    if (migrated) return migrated;
   }
 
-  writeApplications(applications);
   return applications;
 }
 
-export function updateApplicationStatus(
-  id: string,
-  status: ApplicationStatus
-): Application[] {
-  const applications = readApplications();
-  const updated = applications.map((app) =>
-    app.id === id
-      ? { ...app, status, updatedAt: new Date().toISOString() }
-      : app
-  );
+export async function saveApplication(
+  application: Application
+): Promise<Application[]> {
+  const response = await fetch("/api/applications", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ application }),
+  });
 
-  writeApplications(updated);
-  return updated;
+  return parseApplicationsResponse(response);
 }
 
-export function updateApplication(
+export async function updateApplicationStatus(
+  id: string,
+  status: ApplicationStatus
+): Promise<Application[]> {
+  const response = await fetch(`/api/applications/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json()) as { error?: string };
+    throw new Error(data.error ?? `Update failed (${response.status})`);
+  }
+
+  return getApplications();
+}
+
+export async function updateApplication(
   id: string,
   patch: Partial<
     Pick<
@@ -86,29 +110,35 @@ export function updateApplication(
       | "followUpDate"
     >
   >
-): Application[] {
-  const applications = readApplications();
-  const updated = applications.map((app) =>
-    app.id === id
-      ? { ...app, ...patch, updatedAt: new Date().toISOString() }
-      : app
-  );
+): Promise<Application[]> {
+  const response = await fetch(`/api/applications/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
 
-  writeApplications(updated);
-  return updated;
+  if (!response.ok) {
+    const data = (await response.json()) as { error?: string };
+    throw new Error(data.error ?? `Update failed (${response.status})`);
+  }
+
+  return getApplications();
 }
 
-export function deleteApplication(id: string): Application[] {
-  const filtered = readApplications().filter((app) => app.id !== id);
-  writeApplications(filtered);
-  return filtered;
+export async function deleteApplication(id: string): Promise<Application[]> {
+  const response = await fetch(`/api/applications/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+
+  return parseApplicationsResponse(response);
 }
 
-export function exportApplicationsJson(): string {
-  return JSON.stringify(readApplications(), null, 2);
+export async function exportApplicationsJson(): Promise<string> {
+  const applications = await getApplications();
+  return JSON.stringify(applications, null, 2);
 }
 
-export function importApplicationsJson(json: string): Application[] {
+export async function importApplicationsJson(json: string): Promise<Application[]> {
   const parsed: unknown = JSON.parse(json);
   if (!Array.isArray(parsed)) {
     throw new Error("Invalid tracker backup: expected a JSON array.");
@@ -124,8 +154,13 @@ export function importApplicationsJson(json: string): Application[] {
     );
   }
 
-  writeApplications(applications);
-  return applications;
+  const response = await fetch("/api/applications", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ applications }),
+  });
+
+  return parseApplicationsResponse(response);
 }
 
 export function createApplicationId(): string {
