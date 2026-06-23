@@ -118,6 +118,12 @@ export function importApplicationsJson(json: string): Application[] {
     .map(normalizeApplication)
     .filter((app): app is Application => app !== null);
 
+  if (parsed.length > 0 && applications.length === 0) {
+    throw new Error(
+      "Invalid tracker backup: no valid applications were found."
+    );
+  }
+
   writeApplications(applications);
   return applications;
 }

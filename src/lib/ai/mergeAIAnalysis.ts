@@ -107,6 +107,9 @@ export function mergeGeneratedCV(
       skills,
       experience: master.experience,
       education: master.education,
+      ...(heuristic.sections.projects?.length
+        ? { projects: heuristic.sections.projects }
+        : {}),
     },
     atsNotes: [
       ...heuristic.atsNotes,

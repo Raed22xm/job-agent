@@ -1,4 +1,5 @@
 import Link from "next/link";
+import RemindersBanner from "@/components/RemindersBanner";
 
 const features = [
   {
@@ -20,6 +21,11 @@ const features = [
     title: "4. Application Tracker",
     description: "Track status, dates, notes, and export a JSON backup.",
     href: "/tracker",
+  },
+  {
+    title: "LinkedIn Outreach",
+    description: "Draft a connection note or InMail from verified CV data.",
+    href: "/linkedin",
   },
   {
     title: "Job Guide",
@@ -64,6 +70,8 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      <RemindersBanner />
 
       <section>
         <h2 className="text-lg font-semibold text-slate-900">Workflow</h2>

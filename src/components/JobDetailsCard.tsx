@@ -2,7 +2,8 @@ import type { ParsedJob } from "@/types";
 
 interface JobDetailsCardProps {
   job: ParsedJob;
-  onSave?: () => void;
+  onSave?: () => void | Promise<void>;
+  isSaving?: boolean;
   savedMessage?: string | null;
 }
 
@@ -42,7 +43,7 @@ function BulletList({ items, emptyLabel }: { items: string[]; emptyLabel: string
   );
 }
 
-export default function JobDetailsCard({ job, onSave, savedMessage }: JobDetailsCardProps) {
+export default function JobDetailsCard({ job, onSave, isSaving = false, savedMessage }: JobDetailsCardProps) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-100 px-6 py-5">
@@ -64,10 +65,11 @@ export default function JobDetailsCard({ job, onSave, savedMessage }: JobDetails
           {onSave && (
             <button
               type="button"
-              onClick={onSave}
-              className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
+              onClick={() => void onSave()}
+              disabled={isSaving}
+              className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Save to Tracker
+              {isSaving ? "Saving…" : "Save to Tracker"}
             </button>
           )}
         </div>

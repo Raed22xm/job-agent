@@ -1,4 +1,4 @@
-import type { GeneratedCV, MasterCV, MatchResult, ParsedJob } from "@/types";
+import type { GeneratedCV, MasterCV, MatchResult, ParsedJob, Project } from "@/types";
 
 /**
  * Placeholder CV generator — reorders and filters verified CV content only.
@@ -27,6 +27,8 @@ export function generateCV(
 
   const tailoredSummary = cv.personalInfo.summary;
 
+  const relevantProjects = selectRelevantProjects(cv.projects ?? [], job, match);
+
   const atsNotes = [
     "One-column ATS-friendly layout (preview only in v1).",
     "Only verified CV data included — no invented experience.",
@@ -42,7 +44,31 @@ export function generateCV(
       skills: prioritizedSkills,
       experience: cv.experience,
       education: cv.education,
+      ...(relevantProjects.length > 0 ? { projects: relevantProjects } : {}),
     },
     atsNotes,
   };
+}
+
+function selectRelevantProjects(
+  projects: Project[],
+  job: ParsedJob,
+  match: MatchResult
+): Project[] {
+  if (projects.length === 0) return [];
+
+  const jobTerms = new Set(
+    [...job.atsKeywords, ...job.skills, ...job.tools, ...match.matchedKeywords].map(
+      (term) => term.toLowerCase()
+    )
+  );
+
+  const relevant = projects.filter((project) => {
+    const text = `${project.name} ${project.description}`.toLowerCase();
+    return [...jobTerms].some(
+      (term) => term.length > 2 && text.includes(term)
+    );
+  });
+
+  return relevant.length > 0 ? relevant : projects.slice(0, 2);
 }

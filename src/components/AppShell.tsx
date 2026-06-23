@@ -10,6 +10,7 @@ const navItems = [
   { href: "/analyzer", label: "Job Analyzer" },
   { href: "/cv", label: "CV Generator" },
   { href: "/cover-letter", label: "Cover Letter" },
+  { href: "/linkedin", label: "LinkedIn" },
   { href: "/tracker", label: "Application Tracker" },
 ];
 

@@ -6,11 +6,15 @@ interface JobInputProps {
   onJobDescriptionChange: (value: string) => void;
   onJobUrlChange?: (value: string) => void;
   onAnalyze: () => void;
+  onEnhanceWithAI?: () => void;
   onImportUrl?: () => void;
   onPaste?: () => void;
   isLoading?: boolean;
+  isEnhancing?: boolean;
   isImporting?: boolean;
   isAutoAnalyzing?: boolean;
+  showEnhanceButton?: boolean;
+  analysisMode?: string | null;
   importMessage?: string | null;
   validationError?: string | null;
 }
@@ -21,11 +25,15 @@ export default function JobInput({
   onJobDescriptionChange,
   onJobUrlChange,
   onAnalyze,
+  onEnhanceWithAI,
   onImportUrl,
   onPaste,
   isLoading = false,
+  isEnhancing = false,
   isImporting = false,
   isAutoAnalyzing = false,
+  showEnhanceButton = false,
+  analysisMode = null,
   importMessage = null,
   validationError = null,
 }: JobInputProps) {
@@ -46,8 +54,8 @@ export default function JobInput({
       <div className="mb-5">
         <h2 className="text-lg font-semibold text-slate-900">Job Description</h2>
         <p className="mt-1 text-sm leading-relaxed text-slate-500">
-          Paste a posting or import from The Hub, Jobindex, or LinkedIn. Analysis
-          runs on the server with verified CV data — no auto-apply.
+          Paste a posting or import from URL. Local scoring runs instantly; use
+          Enhance with AI only when you want tailored summary and cover letter.
         </p>
       </div>
 
@@ -125,21 +133,38 @@ export default function JobInput({
         {isAutoAnalyzing && (
           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500" />
-            Auto-analyzing…
+            Scoring locally…
           </span>
+        )}
+        {analysisMode === "local" && showEnhanceButton && onEnhanceWithAI && (
+          <button
+            type="button"
+            disabled={isEnhancing || isLoading || isImporting}
+            onClick={onEnhanceWithAI}
+            className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-800 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isEnhancing ? (
+              <>
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-400/30 border-t-brand-700" />
+                Enhancing…
+              </>
+            ) : (
+              "Enhance with AI"
+            )}
+          </button>
         )}
         <button
           type="submit"
-          disabled={isLoading || isImporting}
+          disabled={isLoading || isImporting || isEnhancing}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isLoading ? (
+          {isLoading && !isEnhancing ? (
             <>
               <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
               Analyzing...
             </>
           ) : (
-            "Analyze Job"
+            "Analyze (local)"
           )}
         </button>
         {!isEmpty && !isLoading && (

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import AnalyzerEmptyState from "@/components/AnalyzerEmptyState";
 import CVFocusAreas from "@/components/CVFocusAreas";
+import GapHonestyPanel from "@/components/GapHonestyPanel";
 import JobDetailsCard from "@/components/JobDetailsCard";
 import JobInput from "@/components/JobInput";
 import KeywordList from "@/components/KeywordList";
@@ -20,11 +21,14 @@ export default function AnalyzerPage() {
     setJobDescription,
     importJobFromUrl,
     analyzeJob,
+    enhanceWithAI,
     saveToTracker,
   } = useJobAgent();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -32,7 +36,7 @@ export default function AnalyzerPage() {
   const [isAutoAnalyzing, setIsAutoAnalyzing] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const runAnalysis = useCallback(async () => {
+  const runLocalAnalysis = useCallback(async () => {
     setError(null);
     setValidationError(null);
     setSavedMessage(null);
@@ -41,7 +45,7 @@ export default function AnalyzerPage() {
 
     setIsLoading(true);
     try {
-      await analyzeJob();
+      await analyzeJob({ enhanceWithAI: false });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong during analysis.";
@@ -52,6 +56,21 @@ export default function AnalyzerPage() {
       setIsAutoAnalyzing(false);
     }
   }, [analyzeJob, jobDescription, jobUrl]);
+
+  const handleEnhanceWithAI = useCallback(async () => {
+    setError(null);
+    setSavedMessage(null);
+    setIsEnhancing(true);
+    try {
+      await enhanceWithAI();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "AI enhancement failed.";
+      setError(message);
+    } finally {
+      setIsEnhancing(false);
+    }
+  }, [enhanceWithAI]);
 
   const handleImportUrl = useCallback(async () => {
     setError(null);
@@ -73,7 +92,7 @@ export default function AnalyzerPage() {
     }
   }, [importJobFromUrl]);
 
-  // Auto-analyze with 600 ms debounce whenever the job description changes
+  // Local-only auto-analyze — no AI token burn while typing
   useEffect(() => {
     if (!jobDescription.trim()) {
       setIsAutoAnalyzing(false);
@@ -82,7 +101,7 @@ export default function AnalyzerPage() {
     setIsAutoAnalyzing(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      runAnalysis();
+      runLocalAnalysis();
     }, 600);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -93,23 +112,33 @@ export default function AnalyzerPage() {
   const handleAnalyze = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setIsAutoAnalyzing(false);
-    runAnalysis();
+    runLocalAnalysis();
   };
 
-  // Instant trigger on paste — skip the debounce wait
   const handlePaste = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setIsAutoAnalyzing(false);
-    // Small tick to let React flush the textarea value first
     debounceRef.current = setTimeout(() => {
-      runAnalysis();
+      runLocalAnalysis();
     }, 50);
-  }, [runAnalysis]);
+  }, [runLocalAnalysis]);
 
-  const handleSave = () => {
-    const saved = saveToTracker();
-    if (saved) {
-      setSavedMessage(`Saved "${saved.job.title}" to Application Tracker.`);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const saved = await saveToTracker();
+      if (saved) {
+        const paths = [saved.cvVersion, saved.coverLetterOutputPath]
+          .filter(Boolean)
+          .join(", ");
+        setSavedMessage(
+          paths
+            ? `Saved "${saved.jobTitle}" to tracker. Files: ${paths}`
+            : `Saved "${saved.jobTitle}" to Application Tracker.`
+        );
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -117,10 +146,10 @@ export default function AnalyzerPage() {
 
   const modeLabel =
     analysisMode === "ai"
-      ? "AI-enhanced analysis"
+      ? "AI-enhanced"
       : analysisMode === "ai-fallback"
-        ? "Local fallback (AI unavailable)"
-        : "Local analysis";
+        ? "Local (AI unavailable)"
+        : "Local scoring";
 
   return (
     <div className="space-y-8">
@@ -132,10 +161,8 @@ export default function AnalyzerPage() {
           Job Analyzer
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Paste a job description or import from The Hub, Jobindex, or LinkedIn to
-          extract structured fields, compare ATS keywords against{" "}
-          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">master-cv.json</code>,
-          and get honest focus recommendations — no invented experience.
+          Instant local match score and keywords. Optional AI enhancement for
+          tailored summary and cover letter — you choose when to spend tokens.
         </p>
       </header>
 
@@ -143,6 +170,8 @@ export default function AnalyzerPage() {
         <JobInput
           jobDescription={jobDescription}
           jobUrl={jobUrl}
+          analysisMode={analysisMode}
+          showEnhanceButton={showResults && analysisMode !== "ai"}
           onJobDescriptionChange={(value) => {
             setJobDescription(value);
             if (validationError) setValidationError(null);
@@ -152,9 +181,11 @@ export default function AnalyzerPage() {
             if (importMessage) setImportMessage(null);
           }}
           onAnalyze={handleAnalyze}
+          onEnhanceWithAI={handleEnhanceWithAI}
           onImportUrl={handleImportUrl}
           onPaste={handlePaste}
           isLoading={isLoading}
+          isEnhancing={isEnhancing}
           isImporting={isImporting}
           importMessage={importMessage}
           validationError={validationError}
@@ -179,6 +210,7 @@ export default function AnalyzerPage() {
               <JobDetailsCard
                 job={parsedJob}
                 onSave={handleSave}
+                isSaving={isSaving}
                 savedMessage={savedMessage}
               />
 
@@ -204,6 +236,8 @@ export default function AnalyzerPage() {
                   emptyMessage="No missing keywords — strong coverage from your CV."
                 />
               </div>
+
+              <GapHonestyPanel missingKeywords={matchResult.missingKeywords} />
 
               <CVFocusAreas areas={matchResult.recommendedFocusAreas ?? []} />
             </>

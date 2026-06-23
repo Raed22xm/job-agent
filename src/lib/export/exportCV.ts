@@ -37,7 +37,7 @@ export async function exportCVToDocx(
   company: string,
   title: string
 ): Promise<void> {
-  const { header, summary, skills, experience, education } = cv.sections;
+  const { header, summary, skills, experience, education, projects } = cv.sections;
   const contactParts = [header.location, header.email, header.phone].filter(Boolean);
   const linkParts = [header.linkedin, header.portfolio].filter(Boolean);
 
@@ -108,6 +108,21 @@ export async function exportCVToDocx(
           spacing: { after: 60 },
           children: [new TextRun({ text: bullet, size: 22 })],
         })
+      );
+    }
+  }
+
+  if (projects && projects.length > 0) {
+    children.push(sectionHeading("Projects"));
+    for (const project of projects) {
+      children.push(
+        new Paragraph({
+          spacing: { before: 120 },
+          children: [
+            new TextRun({ text: project.name, bold: true, size: 22 }),
+          ],
+        }),
+        bodyParagraph(project.description)
       );
     }
   }

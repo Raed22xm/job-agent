@@ -1,8 +1,7 @@
 import type { GeneratedCoverLetter, MasterCV, ParsedJob } from "@/types";
 
 /**
- * Placeholder cover letter generator using verified CV facts only.
- * Replace with LLM-assisted drafting once API integration is added.
+ * Heuristic cover letter from verified CV facts. AI-enhanced version via POST /api/analyze-job?enhanceWithAI.
  */
 function displayValue(value: string, fallback: string): string {
   return value === "Not detected" || value === "Role title not detected"

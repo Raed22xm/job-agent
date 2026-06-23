@@ -30,7 +30,7 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 - Vercel AI SDK + Zod schemas for structured AI output
 - Local JSON for master CV (`data/master-cv.json`)
 - Browser localStorage for application tracker (SQLite planned later)
-- Vitest for unit tests (51+ tests)
+- Vitest for unit tests (64+ tests)
 
 ## Project structure
 

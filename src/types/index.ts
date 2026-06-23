@@ -107,6 +107,7 @@ export interface GeneratedCV {
     skills: string[];
     experience: Experience[];
     education: Education[];
+    projects?: Project[];
   };
   atsNotes: string[];
 }
@@ -144,6 +145,7 @@ export interface Application {
   matchScore: number;
   cvVersion?: string;
   coverLetterStatus: CoverLetterStatus;
+  coverLetterOutputPath?: string;
   recruiterContact?: string;
   appliedDate?: string;
   followUpDate?: string;

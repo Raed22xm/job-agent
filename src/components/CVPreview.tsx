@@ -7,7 +7,7 @@ interface CVPreviewProps {
 }
 
 export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
-  const { header, summary, skills, experience, education } = cv.sections;
+  const { header, summary, skills, experience, education, projects } = cv.sections;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -73,6 +73,24 @@ export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
             ))}
           </div>
         </section>
+
+        {projects && projects.length > 0 && (
+          <section className="mt-6">
+            <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">
+              Projects
+            </h2>
+            <div className="mt-3 space-y-3">
+              {projects.map((project) => (
+                <div key={project.id}>
+                  <p className="text-sm font-bold">{project.name}</p>
+                  <p className="text-sm leading-relaxed text-slate-700">
+                    {project.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-6">
           <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">

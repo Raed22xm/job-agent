@@ -10,6 +10,8 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       jobDescription?: string;
       sourceUrl?: string;
+      /** When true and AI is configured, merge AI enhancements. Default: local only. */
+      enhanceWithAI?: boolean;
     };
 
     const jobDescription = body.jobDescription?.trim();
@@ -33,10 +35,11 @@ export async function POST(request: Request) {
     }
 
     const sourceUrl = body.sourceUrl?.trim() || undefined;
+    const enhanceWithAI = body.enhanceWithAI === true;
     const baseline = analyzeJobLocally(jobDescription, sourceUrl, cv);
     const aiConfig = getAIConfig();
 
-    if (!aiConfig.isConfigured) {
+    if (!aiConfig.isConfigured || !enhanceWithAI) {
       return NextResponse.json(baseline);
     }
 

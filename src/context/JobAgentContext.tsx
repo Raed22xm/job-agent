@@ -78,8 +78,9 @@ interface JobAgentContextValue {
     sourceUrl: string;
     message: string;
   }>;
-  analyzeJob: () => Promise<void>;
-  saveToTracker: () => Application | null;
+  analyzeJob: (options?: { enhanceWithAI?: boolean }) => Promise<void>;
+  enhanceWithAI: () => Promise<void>;
+  saveToTracker: () => Promise<Application | null>;
   refreshApplications: () => void;
 }
 
@@ -202,70 +203,104 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
     };
   }, [jobUrl]);
 
-  const analyzeJob = useCallback(async () => {
-    let description = jobDescription;
-    let sourceUrl = isLikelyUrl(jobUrl) ? jobUrl.trim() : undefined;
+  const runAnalysisRequest = useCallback(
+    async (enhanceWithAI: boolean) => {
+      let description = jobDescription;
+      let sourceUrl = isLikelyUrl(jobUrl) ? jobUrl.trim() : undefined;
 
-    if (description.trim().length < 40 && sourceUrl) {
-      const imported = await importJobFromUrl();
-      description = imported.description;
-      sourceUrl = imported.sourceUrl;
-    }
+      if (description.trim().length < 40 && sourceUrl) {
+        const imported = await importJobFromUrl();
+        description = imported.description;
+        sourceUrl = imported.sourceUrl;
+      }
 
-    if (description.trim().length < 40) {
-      throw new Error(
-        "Paste or import a full job description before analyzing."
-      );
-    }
+      if (description.trim().length < 40) {
+        throw new Error(
+          "Paste or import a full job description before analyzing."
+        );
+      }
 
-    const response = await fetch("/api/analyze-job", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobDescription: description, sourceUrl }),
-    });
+      const response = await fetch("/api/analyze-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobDescription: description,
+          sourceUrl,
+          enhanceWithAI,
+        }),
+      });
 
-    const data = (await response.json()) as {
-      error?: string;
-      mode?: AnalysisMode;
-      job?: unknown;
-      match?: unknown;
-      generatedCV?: unknown;
-      generatedCoverLetter?: unknown;
-    };
+      const data = (await response.json()) as {
+        error?: string;
+        mode?: AnalysisMode;
+        job?: unknown;
+        match?: unknown;
+        generatedCV?: unknown;
+        generatedCoverLetter?: unknown;
+      };
 
-    if (!response.ok) {
-      throw new Error(data.error ?? `Analysis failed (${response.status})`);
-    }
+      if (!response.ok) {
+        throw new Error(data.error ?? `Analysis failed (${response.status})`);
+      }
 
-    const job = normalizeParsedJob(data.job);
-    const match = normalizeMatchResult(data.match);
-    const tailoredCV = normalizeGeneratedCV(data.generatedCV);
-    const coverLetter = normalizeGeneratedCoverLetter(data.generatedCoverLetter);
+      const job = normalizeParsedJob(data.job);
+      const match = normalizeMatchResult(data.match);
+      const tailoredCV = normalizeGeneratedCV(data.generatedCV);
+      const coverLetter = normalizeGeneratedCoverLetter(data.generatedCoverLetter);
 
-    if (!job || !match || !tailoredCV || !coverLetter) {
-      throw new Error("Analysis returned incomplete data.");
-    }
+      if (!job || !match || !tailoredCV || !coverLetter) {
+        throw new Error("Analysis returned incomplete data.");
+      }
 
-    setParsedJob(job);
-    setMatchResult(match);
-    setGeneratedCV(tailoredCV);
-    setGeneratedCoverLetter(coverLetter);
-    setOriginalCV(tailoredCV);
-    setOriginalCoverLetter(coverLetter);
-    setAnalysisMode(data.mode ?? "local");
+      setParsedJob(job);
+      setMatchResult(match);
+      setGeneratedCV(tailoredCV);
+      setGeneratedCoverLetter(coverLetter);
 
-    writeSessionSnapshot({
-      jobUrl: sourceUrl ?? jobUrl,
-      jobDescription: description,
-      parsedJob: job,
-      matchResult: match,
-      generatedCV: tailoredCV,
-      generatedCoverLetter: coverLetter,
-      originalCV: tailoredCV,
-      originalCoverLetter: coverLetter,
-      analysisMode: data.mode ?? "local",
-    });
-  }, [jobDescription, jobUrl, importJobFromUrl]);
+      const nextOriginalCV = enhanceWithAI ? originalCV ?? tailoredCV : tailoredCV;
+      const nextOriginalCoverLetter = enhanceWithAI
+        ? originalCoverLetter ?? coverLetter
+        : coverLetter;
+
+      if (!enhanceWithAI) {
+        setOriginalCV(tailoredCV);
+        setOriginalCoverLetter(coverLetter);
+      }
+
+      const mode = data.mode ?? (enhanceWithAI ? "ai-fallback" : "local");
+      setAnalysisMode(mode);
+
+      writeSessionSnapshot({
+        jobUrl: sourceUrl ?? jobUrl,
+        jobDescription: description,
+        parsedJob: job,
+        matchResult: match,
+        generatedCV: tailoredCV,
+        generatedCoverLetter: coverLetter,
+        originalCV: nextOriginalCV,
+        originalCoverLetter: nextOriginalCoverLetter,
+        analysisMode: mode,
+      });
+    },
+    [
+      jobDescription,
+      jobUrl,
+      importJobFromUrl,
+      originalCV,
+      originalCoverLetter,
+    ]
+  );
+
+  const analyzeJob = useCallback(
+    async (options?: { enhanceWithAI?: boolean }) => {
+      await runAnalysisRequest(options?.enhanceWithAI === true);
+    },
+    [runAnalysisRequest]
+  );
+
+  const enhanceWithAI = useCallback(async () => {
+    await runAnalysisRequest(true);
+  }, [runAnalysisRequest]);
 
   const updateGeneratedCV = useCallback(
     (cv: GeneratedCV) => {
@@ -293,10 +328,41 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
     updateGeneratedCoverLetter(originalCoverLetter);
   }, [originalCoverLetter, updateGeneratedCoverLetter]);
 
-  const saveToTracker = useCallback((): Application | null => {
+  const saveToTracker = useCallback(async (): Promise<Application | null> => {
     if (!parsedJob || !matchResult) return null;
 
     const now = new Date().toISOString();
+    let cvOutputPath: string | undefined;
+    let coverLetterOutputPath: string | undefined;
+
+    if (generatedCV || generatedCoverLetter) {
+      try {
+        const response = await fetch("/api/save-application-outputs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            company: parsedJob.company,
+            title: parsedJob.title,
+            generatedCV,
+            generatedCoverLetter,
+          }),
+        });
+
+        const data = (await response.json()) as {
+          error?: string;
+          cvPath?: string;
+          coverLetterPath?: string;
+        };
+
+        if (response.ok) {
+          cvOutputPath = data.cvPath;
+          coverLetterOutputPath = data.coverLetterPath;
+        }
+      } catch {
+        // Tracker save continues even if file write fails (e.g. read-only deploy)
+      }
+    }
+
     const application: Application = {
       id: createApplicationId(),
       createdAt: now,
@@ -309,14 +375,21 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       link: parsedJob.sourceUrl,
       location: parsedJob.location,
       matchScore: matchResult.score,
-      cvVersion: `generated-${now.slice(0, 10)}`,
+      cvVersion: cvOutputPath ?? `generated-${now.slice(0, 10)}`,
       coverLetterStatus: generatedCoverLetter ? "draft" : "none",
+      coverLetterOutputPath,
     };
 
     saveApplication(application);
     refreshApplications();
     return application;
-  }, [parsedJob, matchResult, generatedCoverLetter, refreshApplications]);
+  }, [
+    parsedJob,
+    matchResult,
+    generatedCV,
+    generatedCoverLetter,
+    refreshApplications,
+  ]);
 
   const value = useMemo(
     () => ({
@@ -336,6 +409,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       resetGeneratedCoverLetter,
       importJobFromUrl,
       analyzeJob,
+      enhanceWithAI,
       saveToTracker,
       refreshApplications,
     }),
@@ -354,6 +428,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       resetGeneratedCoverLetter,
       importJobFromUrl,
       analyzeJob,
+      enhanceWithAI,
       saveToTracker,
       refreshApplications,
     ]

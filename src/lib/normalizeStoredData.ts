@@ -161,6 +161,16 @@ export function normalizeGeneratedCV(value: unknown): GeneratedCV | null {
               Boolean(item && typeof item === "object" && typeof item.id === "string")
           )
         : [],
+      ...(Array.isArray((sections as GeneratedCV["sections"]).projects)
+        ? {
+            projects: (
+              sections as GeneratedCV["sections"]
+            ).projects!.filter(
+              (item): item is NonNullable<GeneratedCV["sections"]["projects"]>[number] =>
+                Boolean(item && typeof item === "object" && typeof item.id === "string")
+            ),
+          }
+        : {}),
     },
     atsNotes: normalizeStringArray(cv.atsNotes),
   };
@@ -235,6 +245,10 @@ export function normalizeApplication(value: unknown): Application | null {
       typeof app.matchScore === "number" ? app.matchScore : match.score,
     cvVersion: typeof app.cvVersion === "string" ? app.cvVersion : undefined,
     coverLetterStatus,
+    coverLetterOutputPath:
+      typeof app.coverLetterOutputPath === "string"
+        ? app.coverLetterOutputPath
+        : undefined,
     recruiterContact:
       typeof app.recruiterContact === "string" ? app.recruiterContact : undefined,
     appliedDate: typeof app.appliedDate === "string" ? app.appliedDate : undefined,

@@ -67,6 +67,7 @@ export default function GuidePage() {
               key={item.id}
               type="button"
               onClick={() => setCategory(item.id)}
+              aria-pressed={category === item.id}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 category === item.id
                   ? "bg-brand-600 text-white"

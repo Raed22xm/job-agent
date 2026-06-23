@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type ChangeEvent, type ComponentProps } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentProps } from "react";
 import ApplicationTable from "@/components/ApplicationTable";
 import { useJobAgent } from "@/context/JobAgentContext";
 import {
@@ -10,10 +10,12 @@ import {
   updateApplication,
   updateApplicationStatus,
 } from "@/lib/storage";
+import { filterApplicationsDueThisWeek } from "@/lib/trackerReminders";
 import type { ApplicationStatus } from "@/types";
 
-const statusFilterOptions: Array<ApplicationStatus | "all"> = [
+const statusFilterOptions: Array<ApplicationStatus | "all" | "due"> = [
   "all",
+  "due",
   "draft",
   "ready",
   "applied",
@@ -24,19 +26,34 @@ const statusFilterOptions: Array<ApplicationStatus | "all"> = [
 
 export default function TrackerPage() {
   const { applications, refreshApplications } = useJobAgent();
-  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "all">(
-    "all"
-  );
+  const [statusFilter, setStatusFilter] = useState<
+    ApplicationStatus | "all" | "due"
+  >("all");
   const [search, setSearch] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("filter") === "due") {
+      setStatusFilter("due");
+    }
+  }, []);
+
   const filteredApplications = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const dueSet =
+      statusFilter === "due"
+        ? new Set(filterApplicationsDueThisWeek(applications).map((a) => a.id))
+        : null;
 
     return applications.filter((app) => {
       const matchesStatus =
-        statusFilter === "all" ? true : app.status === statusFilter;
+        statusFilter === "all"
+          ? true
+          : statusFilter === "due"
+            ? dueSet!.has(app.id)
+            : app.status === statusFilter;
       const matchesSearch =
         !query ||
         app.jobTitle.toLowerCase().includes(query) ||
@@ -62,6 +79,11 @@ export default function TrackerPage() {
   };
 
   const handleDelete = (id: string) => {
+    const confirmed = window.confirm(
+      "Delete this application from the local tracker? This cannot be undone unless you have a JSON backup."
+    );
+    if (!confirmed) return;
+
     deleteApplication(id);
     refreshApplications();
   };
@@ -74,8 +96,10 @@ export default function TrackerPage() {
     const link = document.createElement("a");
     link.href = url;
     link.download = `job-agent-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   const handleImportClick = () => {
@@ -175,7 +199,7 @@ export default function TrackerPage() {
             id="tracker-status"
             value={statusFilter}
             onChange={(e) =>
-              setStatusFilter(e.target.value as ApplicationStatus | "all")
+              setStatusFilter(e.target.value as ApplicationStatus | "all" | "due")
             }
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2 sm:w-44"
           >
@@ -183,7 +207,9 @@ export default function TrackerPage() {
               <option key={status} value={status}>
                 {status === "all"
                   ? "All statuses"
-                  : status.charAt(0).toUpperCase() + status.slice(1)}
+                  : status === "due"
+                    ? "Due this week"
+                    : status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
             ))}
           </select>
