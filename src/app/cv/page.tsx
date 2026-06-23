@@ -1,15 +1,29 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
+import CVEditor from "@/components/CVEditor";
 import CVPreview from "@/components/CVPreview";
+import CVValidationPanel from "@/components/CVValidationPanel";
 import ExportButtons from "@/components/ExportButtons";
 import { useJobAgent } from "@/context/JobAgentContext";
+import { validateGeneratedCV } from "@/lib/cv/validateCV";
 import { exportCVToDocx, exportCVToPdf } from "@/lib/export/exportCV";
+import { getMasterCV } from "@/lib/matchCV";
 
 export default function CVGeneratorPage() {
-  const { generatedCV, parsedJob } = useJobAgent();
+  const {
+    generatedCV,
+    parsedJob,
+    updateGeneratedCV,
+    resetGeneratedCV,
+  } = useJobAgent();
   const exportRef = useRef<HTMLElement>(null);
+
+  const validation = useMemo(() => {
+    if (!generatedCV) return null;
+    return validateGeneratedCV(generatedCV, getMasterCV());
+  }, [generatedCV]);
 
   if (!generatedCV || !parsedJob) {
     return (
@@ -35,17 +49,26 @@ export default function CVGeneratorPage() {
     return exportRef.current;
   };
 
+  const exportBlocked = validation ? !validation.valid : false;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">CV Generator</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Tailored for {parsedJob.title} at {parsedJob.company}. Review before
-            exporting — PDF matches the preview; DOCX is editable in Word.
+            Tailored for {parsedJob.title} at {parsedJob.company}. Edit summary,
+            skills, and bullets, then export — PDF matches preview; DOCX is editable
+            in Word.
           </p>
         </div>
         <ExportButtons
+          disabled={exportBlocked}
+          disabledReason={
+            exportBlocked
+              ? "Fix CV validation errors before exporting."
+              : undefined
+          }
           onExportPdf={() =>
             exportCVToPdf(
               getExportElement(),
@@ -59,7 +82,16 @@ export default function CVGeneratorPage() {
         />
       </div>
 
-      <CVPreview cv={generatedCV} exportRef={exportRef} />
+      {validation && <CVValidationPanel issues={validation.issues} />}
+
+      <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <CVEditor
+          cv={generatedCV}
+          onChange={updateGeneratedCV}
+          onReset={resetGeneratedCV}
+        />
+        <CVPreview cv={generatedCV} exportRef={exportRef} />
+      </div>
     </div>
   );
 }

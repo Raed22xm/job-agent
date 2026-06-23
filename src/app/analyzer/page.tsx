@@ -15,29 +15,33 @@ export default function AnalyzerPage() {
     jobDescription,
     parsedJob,
     matchResult,
+    analysisMode,
     setJobUrl,
     setJobDescription,
+    importJobFromUrl,
     analyzeJob,
     saveToTracker,
   } = useJobAgent();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [isAutoAnalyzing, setIsAutoAnalyzing] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const runAnalysis = useCallback(() => {
+  const runAnalysis = useCallback(async () => {
     setError(null);
     setValidationError(null);
     setSavedMessage(null);
 
-    if (!jobDescription.trim()) return;
+    if (!jobDescription.trim() && !jobUrl.trim()) return;
 
     setIsLoading(true);
     try {
-      analyzeJob();
+      await analyzeJob();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong during analysis.";
@@ -47,7 +51,27 @@ export default function AnalyzerPage() {
       setIsLoading(false);
       setIsAutoAnalyzing(false);
     }
-  }, [analyzeJob, jobDescription]);
+  }, [analyzeJob, jobDescription, jobUrl]);
+
+  const handleImportUrl = useCallback(async () => {
+    setError(null);
+    setValidationError(null);
+    setImportMessage(null);
+    setSavedMessage(null);
+    setIsImporting(true);
+
+    try {
+      const result = await importJobFromUrl();
+      setImportMessage(result.message);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not import job from URL.";
+      setError(message);
+      setValidationError(message);
+    } finally {
+      setIsImporting(false);
+    }
+  }, [importJobFromUrl]);
 
   // Auto-analyze with 600 ms debounce whenever the job description changes
   useEffect(() => {
@@ -91,17 +115,25 @@ export default function AnalyzerPage() {
 
   const showResults = Boolean(parsedJob && matchResult);
 
+  const modeLabel =
+    analysisMode === "ai"
+      ? "AI-enhanced analysis"
+      : analysisMode === "ai-fallback"
+        ? "Local fallback (AI unavailable)"
+        : "Local analysis";
+
   return (
     <div className="space-y-8">
       <header>
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-          v0.2 · Local demo analysis
+          v0.3 · {modeLabel}
         </p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
           Job Analyzer
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-          Paste a job description to extract structured fields, compare ATS keywords against{" "}
+          Paste a job description or import from The Hub, Jobindex, or LinkedIn to
+          extract structured fields, compare ATS keywords against{" "}
           <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">master-cv.json</code>,
           and get honest focus recommendations — no invented experience.
         </p>
@@ -115,10 +147,16 @@ export default function AnalyzerPage() {
             setJobDescription(value);
             if (validationError) setValidationError(null);
           }}
-          onJobUrlChange={setJobUrl}
+          onJobUrlChange={(value) => {
+            setJobUrl(value);
+            if (importMessage) setImportMessage(null);
+          }}
           onAnalyze={handleAnalyze}
+          onImportUrl={handleImportUrl}
           onPaste={handlePaste}
-          isLoading={isLoading || isAutoAnalyzing}
+          isLoading={isLoading}
+          isImporting={isImporting}
+          importMessage={importMessage}
           validationError={validationError}
           isAutoAnalyzing={isAutoAnalyzing}
         />

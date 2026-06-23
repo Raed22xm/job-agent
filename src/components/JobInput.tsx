@@ -6,9 +6,12 @@ interface JobInputProps {
   onJobDescriptionChange: (value: string) => void;
   onJobUrlChange?: (value: string) => void;
   onAnalyze: () => void;
+  onImportUrl?: () => void;
   onPaste?: () => void;
   isLoading?: boolean;
+  isImporting?: boolean;
   isAutoAnalyzing?: boolean;
+  importMessage?: string | null;
   validationError?: string | null;
 }
 
@@ -18,13 +21,17 @@ export default function JobInput({
   onJobDescriptionChange,
   onJobUrlChange,
   onAnalyze,
+  onImportUrl,
   onPaste,
   isLoading = false,
+  isImporting = false,
   isAutoAnalyzing = false,
+  importMessage = null,
   validationError = null,
 }: JobInputProps) {
   const charCount = jobDescription.length;
   const isEmpty = !jobDescription.trim();
+  const canImport = Boolean(onImportUrl && jobUrl.trim());
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -39,8 +46,8 @@ export default function JobInput({
       <div className="mb-5">
         <h2 className="text-lg font-semibold text-slate-900">Job Description</h2>
         <p className="mt-1 text-sm leading-relaxed text-slate-500">
-          Paste the full posting below. Analysis runs locally with weighted ATS
-          scoring — no auto-apply.
+          Paste a posting or import from The Hub, Jobindex, or LinkedIn. Analysis
+          runs on the server with verified CV data — no auto-apply.
         </p>
       </div>
 
@@ -50,19 +57,34 @@ export default function JobInput({
             htmlFor="job-url"
             className="mb-1.5 block text-xs font-medium text-slate-600"
           >
-            Source URL (optional)
+            Job URL
           </label>
-          <input
-            id="job-url"
-            type="url"
-            value={jobUrl}
-            onChange={(e) => onJobUrlChange(e.target.value)}
-            placeholder="https://thehub.io/jobs/..."
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              id="job-url"
+              type="url"
+              value={jobUrl}
+              onChange={(e) => onJobUrlChange(e.target.value)}
+              placeholder="https://thehub.io/jobs/..."
+              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+            />
+            {onImportUrl && (
+              <button
+                type="button"
+                onClick={onImportUrl}
+                disabled={!canImport || isImporting || isLoading}
+                className="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isImporting ? "Importing…" : "Import URL"}
+              </button>
+            )}
+          </div>
           <p className="mt-1 text-xs text-slate-500">
-            Used as a company hint when the posting text does not name the employer.
+            Supported: thehub.io, jobindex.dk, linkedin.com/jobs/view/…
           </p>
+          {importMessage && (
+            <p className="mt-2 text-xs font-medium text-brand-700">{importMessage}</p>
+          )}
         </div>
       )}
 
@@ -88,7 +110,7 @@ export default function JobInput({
         <div className="mt-2 flex items-center justify-between gap-3">
           <p id="job-description-hint" className="text-xs text-slate-500">
             {isEmpty
-              ? "Paste at least a few lines for analysis."
+              ? "Paste a posting or import from URL."
               : `${charCount.toLocaleString()} characters`}
           </p>
           {validationError && (
@@ -108,7 +130,7 @@ export default function JobInput({
         )}
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || isImporting}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isLoading ? (

@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
+import { analyzeJobLocally } from "@/lib/analyzeJobLocal";
+import { analyzeJobWithAI } from "@/lib/ai/analyzeJobWithAI";
 import { getAIConfig } from "@/lib/ai/providers";
-import { parseMasterCV, ParsedJobSchema } from "@/lib/ai/schemas";
-import { generateCoverLetter } from "@/lib/generateCoverLetter";
-import { generateCV } from "@/lib/generateCV";
-import { getMasterCV, matchCV } from "@/lib/matchCV";
-import { parseJob } from "@/lib/parseJob";
-import { validateGeneratedCV } from "@/lib/cv/validateCV";
+import { parseMasterCV } from "@/lib/ai/schemas";
+import { getMasterCV } from "@/lib/matchCV";
 
 export async function POST(request: Request) {
   try {
@@ -26,34 +24,38 @@ export async function POST(request: Request) {
     const cvValidation = parseMasterCV(cv);
     if (!cvValidation.success) {
       return NextResponse.json(
-        { error: "Master CV data is invalid", details: cvValidation.error.flatten() },
+        {
+          error: "Master CV data is invalid",
+          details: cvValidation.error.flatten(),
+        },
         { status: 500 }
       );
     }
 
-    const job = parseJob(jobDescription, body.sourceUrl);
-    const jobValidation = ParsedJobSchema.safeParse(job);
-    if (!jobValidation.success) {
-      return NextResponse.json(
-        { error: "Parsed job failed validation", details: jobValidation.error.flatten() },
-        { status: 422 }
-      );
-    }
-
-    const match = matchCV(job, cv);
-    const tailoredCV = generateCV(cv, job, match);
-    const coverLetter = generateCoverLetter(cv, job);
-    const cvCheck = validateGeneratedCV(tailoredCV, cv);
+    const sourceUrl = body.sourceUrl?.trim() || undefined;
+    const baseline = analyzeJobLocally(jobDescription, sourceUrl, cv);
     const aiConfig = getAIConfig();
 
-    return NextResponse.json({
-      mode: aiConfig.isConfigured ? "local-with-ai-available" : "local",
-      job,
-      match,
-      generatedCV: tailoredCV,
-      generatedCoverLetter: coverLetter,
-      validation: cvCheck,
-    });
+    if (!aiConfig.isConfigured) {
+      return NextResponse.json(baseline);
+    }
+
+    try {
+      const result = await analyzeJobWithAI({
+        jobDescription,
+        sourceUrl,
+        cv,
+        baseline,
+        config: aiConfig,
+      });
+      return NextResponse.json(result);
+    } catch (aiError) {
+      console.error("AI analysis failed, using heuristic fallback:", aiError);
+      return NextResponse.json({
+        ...baseline,
+        mode: "ai-fallback" as const,
+      });
+    }
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Analysis failed";

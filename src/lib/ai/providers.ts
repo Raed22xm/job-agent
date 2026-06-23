@@ -18,7 +18,7 @@ export function getAIConfig(): AIConfig {
     return {
       provider: "openai",
       isConfigured: true,
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL ?? "gpt-4o",
     };
   }
 

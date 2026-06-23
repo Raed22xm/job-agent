@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
+import CoverLetterEditor from "@/components/CoverLetterEditor";
 import CoverLetterPreview from "@/components/CoverLetterPreview";
 import ExportButtons from "@/components/ExportButtons";
 import { useJobAgent } from "@/context/JobAgentContext";
@@ -11,7 +12,12 @@ import {
 } from "@/lib/export/exportCoverLetter";
 
 export default function CoverLetterPage() {
-  const { generatedCoverLetter, parsedJob } = useJobAgent();
+  const {
+    generatedCoverLetter,
+    parsedJob,
+    updateGeneratedCoverLetter,
+    resetGeneratedCoverLetter,
+  } = useJobAgent();
   const exportRef = useRef<HTMLElement>(null);
 
   if (!generatedCoverLetter || !parsedJob) {
@@ -44,8 +50,8 @@ export default function CoverLetterPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Cover Letter</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Draft for {parsedJob.title} at {parsedJob.company}. Edit before
-            sending — no auto-submit.
+            Draft for {parsedJob.title} at {parsedJob.company}. Edit the text,
+            preview live, then export — no auto-submit.
           </p>
         </div>
         <ExportButtons
@@ -66,7 +72,17 @@ export default function CoverLetterPage() {
         />
       </div>
 
-      <CoverLetterPreview letter={generatedCoverLetter} exportRef={exportRef} />
+      <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <CoverLetterEditor
+          letter={generatedCoverLetter}
+          onChange={updateGeneratedCoverLetter}
+          onReset={resetGeneratedCoverLetter}
+        />
+        <CoverLetterPreview
+          letter={generatedCoverLetter}
+          exportRef={exportRef}
+        />
+      </div>
     </div>
   );
 }
