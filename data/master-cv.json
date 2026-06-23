@@ -4,20 +4,24 @@
     "email": "Raedibri@hotmail.com",
     "phone": "+45 42 79 74 00",
     "location": "Sirgræsvej 68, Kastrup",
-    "summary": "Junior udvikler specialiseret i front-end development og digitalisering. Erfaring med React, JavaScript, Python og Power BI til datadrevne løsninger, der optimerer forretningsprocesser."
+    "summary": "Junior udvikler specialiseret i front-end og softwareudvikling. Erfaring med React, Next.js, JavaScript, Java og Power BI til produktionsklare, datadrevne løsninger. Interesse for native Android-udvikling med Kotlin og agile teams."
   },
   "skills": [
     "Java",
     "Python",
     "JavaScript",
     "React",
+    "Next.js",
+    "Kotlin",
     "CSS",
     "SQL",
     "Power BI",
     "Excel",
     "Front-end development",
     "Digitalisering",
-    "Dataanalyse"
+    "Dataanalyse",
+    "REST API",
+    "Agile"
   ],
   "tools": [
     "Git",
@@ -29,6 +33,20 @@
   ],
   "experience": [
     {
+      "id": "exp-3",
+      "company": "BS Technologies",
+      "title": "Software Developer Intern",
+      "location": "",
+      "startDate": "2024",
+      "endDate": "Nuværende",
+      "bullets": [
+        "Udviklede produktionsklare løsninger i React, Next.js og Java.",
+        "Bidrog til checkout-flows, der reducerede brugerfrafald med 15 %.",
+        "Byggede 12+ REST API'er med 99,9 % oppetid.",
+        "Reducerede produktionsfejl med 40 % gennem systematisk test og kvalitetssikring."
+      ]
+    },
+    {
       "id": "exp-1",
       "company": "Novo Nordisk",
       "title": "Studentermedhjælper, Digitalisering",
@@ -38,7 +56,8 @@
       "bullets": [
         "Udviklede interaktive dashboards i Power BI for at visualisere og analysere nøgletal.",
         "Automatiserede dataprocesser ved at integrere Power BI med flere datakilder, hvilket reducerede manuelle arbejdsgange.",
-        "Leverede datadrevet indsigt og præsenterede løsninger til ledelsen for bedre beslutningstagning."
+        "Designede løsninger i Figma og samarbejdede tæt med UX og forretning.",
+        "Leverede datadrevet indsigt; dashboards reducerede rapporteringstid med 30 % og opnåede 90 % brugertilfredshed."
       ]
     },
     {
@@ -60,10 +79,11 @@
       "degree": "Diplomingeniør",
       "field": "IT-økonomi",
       "startDate": "2021",
-      "endDate": "2024",
+      "endDate": "Nuværende",
       "details": [
         "Kurser: Økonomistyring, Software Processing, Database Management",
-        "Fokus: Softwareudvikling, dataanalyse, digitalisering og strategisk økonomisk ledelse"
+        "Fokus: Softwareudvikling, dataanalyse, digitalisering og strategisk økonomisk ledelse",
+        "Færdiggør uddannelsen (kilde: motiveret ansøgning TV2, 2026)"
       ]
     }
   ],

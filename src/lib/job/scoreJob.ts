@@ -1,4 +1,8 @@
-import { normalizeTerm, termAppearsInText } from "@/lib/jobDictionaries";
+import {
+  expandTermAliases,
+  normalizeTerm,
+  termAppearsInText,
+} from "@/lib/jobDictionaries";
 import type { MasterCV, ParsedJob, ScoreBreakdown } from "@/types";
 
 /** Recruiter-style categories — weights sum to 100. */
@@ -82,18 +86,32 @@ export function buildCVTerms(cv: MasterCV): string[] {
 
   cv.certifications?.forEach((cert) => terms.add(normalizeTerm(cert)));
 
+  cv.languages?.forEach((lang) => {
+    expandTermAliases(lang.language).forEach((variant) => terms.add(variant));
+  });
+
   return Array.from(terms).filter(Boolean);
 }
 
 export function createTermMatcher(cvTerms: string[]) {
-  return (jobTerm: string): boolean =>
-    cvTerms.some((cvTerm) => {
-      if (jobTerm === cvTerm) return true;
-      if (cvTerm.includes(jobTerm) || jobTerm.includes(cvTerm)) return true;
-      return (
-        termAppearsInText(jobTerm, cvTerm) || termAppearsInText(cvTerm, jobTerm)
+  const expandedCV = new Set(cvTerms.flatMap((term) => expandTermAliases(term)));
+
+  return (jobTerm: string): boolean => {
+    const jobVariants = expandTermAliases(jobTerm);
+
+    return jobVariants.some((jobVariant) => {
+      if (expandedCV.has(jobVariant)) return true;
+
+      return [...expandedCV].some(
+        (cvTerm) =>
+          cvTerm === jobVariant ||
+          cvTerm.includes(jobVariant) ||
+          jobVariant.includes(cvTerm) ||
+          termAppearsInText(jobVariant, cvTerm) ||
+          termAppearsInText(cvTerm, jobVariant)
       );
     });
+  };
 }
 
 function scoreCategory(

@@ -49,6 +49,10 @@ function collectCVTerms(cv: MasterCV): {
     addSource(cert, `Certification: ${cert}`)
   );
 
+  cv.languages?.forEach((lang) =>
+    addSource(lang.language, `Language: ${lang.language} (${lang.level})`)
+  );
+
   return { terms: buildCVTerms(cv), sources };
 }
 

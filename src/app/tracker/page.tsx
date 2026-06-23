@@ -1,9 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type ChangeEvent, type ComponentProps } from "react";
 import ApplicationTable from "@/components/ApplicationTable";
 import { useJobAgent } from "@/context/JobAgentContext";
-import { deleteApplication, updateApplicationStatus } from "@/lib/storage";
+import {
+  deleteApplication,
+  exportApplicationsJson,
+  importApplicationsJson,
+  updateApplication,
+  updateApplicationStatus,
+} from "@/lib/storage";
 import type { ApplicationStatus } from "@/types";
 
 const statusFilterOptions: Array<ApplicationStatus | "all"> = [
@@ -22,6 +28,8 @@ export default function TrackerPage() {
     "all"
   );
   const [search, setSearch] = useState("");
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredApplications = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -33,7 +41,8 @@ export default function TrackerPage() {
         !query ||
         app.jobTitle.toLowerCase().includes(query) ||
         app.company.toLowerCase().includes(query) ||
-        app.location.toLowerCase().includes(query);
+        app.location.toLowerCase().includes(query) ||
+        (app.notes?.toLowerCase().includes(query) ?? false);
 
       return matchesStatus && matchesSearch;
     });
@@ -44,23 +53,106 @@ export default function TrackerPage() {
     refreshApplications();
   };
 
+  const handleUpdate: ComponentProps<typeof ApplicationTable>["onUpdate"] = (
+    id,
+    patch
+  ) => {
+    updateApplication(id, patch);
+    refreshApplications();
+  };
+
   const handleDelete = (id: string) => {
     deleteApplication(id);
     refreshApplications();
   };
 
+  const handleExport = () => {
+    const blob = new Blob([exportApplicationsJson()], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `job-agent-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => {
+    setImportError(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const confirmed = window.confirm(
+        "Import will replace all saved applications in this browser. Continue?"
+      );
+      if (!confirmed) return;
+
+      importApplicationsJson(text);
+      refreshApplications();
+    } catch {
+      setImportError("Could not import tracker backup. Check the JSON file format.");
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Application Tracker</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Saved locally in your browser. SQLite persistence will be added later.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Application Tracker
+          </h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Saved locally in your browser. Export a JSON backup before clearing
+            site data.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={applications.length === 0}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Export JSON
+          </button>
+          <button
+            type="button"
+            onClick={handleImportClick}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Import JSON
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            onChange={handleImportFile}
+            className="hidden"
+            aria-hidden
+          />
+        </div>
       </div>
+
+      {importError && (
+        <p role="alert" className="text-sm text-rose-600">
+          {importError}
+        </p>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1">
-          <label htmlFor="tracker-search" className="text-sm font-medium text-slate-700">
+          <label
+            htmlFor="tracker-search"
+            className="text-sm font-medium text-slate-700"
+          >
             Search
           </label>
           <input
@@ -68,12 +160,15 @@ export default function TrackerPage() {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, company, or location"
+            placeholder="Search by title, company, location, or notes"
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
           />
         </div>
         <div>
-          <label htmlFor="tracker-status" className="text-sm font-medium text-slate-700">
+          <label
+            htmlFor="tracker-status"
+            className="text-sm font-medium text-slate-700"
+          >
             Status
           </label>
           <select
@@ -98,6 +193,7 @@ export default function TrackerPage() {
       <ApplicationTable
         applications={filteredApplications}
         onStatusChange={handleStatusChange}
+        onUpdate={handleUpdate}
         onDelete={handleDelete}
       />
     </div>

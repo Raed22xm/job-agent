@@ -104,6 +104,24 @@ export function deleteApplication(id: string): Application[] {
   return filtered;
 }
 
+export function exportApplicationsJson(): string {
+  return JSON.stringify(readApplications(), null, 2);
+}
+
+export function importApplicationsJson(json: string): Application[] {
+  const parsed: unknown = JSON.parse(json);
+  if (!Array.isArray(parsed)) {
+    throw new Error("Invalid tracker backup: expected a JSON array.");
+  }
+
+  const applications = parsed
+    .map(normalizeApplication)
+    .filter((app): app is Application => app !== null);
+
+  writeApplications(applications);
+  return applications;
+}
+
 export function createApplicationId(): string {
   return `app-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }

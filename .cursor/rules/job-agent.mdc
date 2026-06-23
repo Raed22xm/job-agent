@@ -49,9 +49,10 @@ Always save the job to `data/jobs/{company}-{role}.md` with **Source URL** fille
 
 ## App vs agent workflow
 
-- **Web app** (`src/`): Analyzer, CV Generator, Cover Letter, Tracker — use `master-cv.json`; OpenAI not connected yet
+- **Web app** (`src/`): Analyzer, CV Generator, Cover Letter, Tracker — uses `master-cv.json`; OpenAI connected server-side via Vercel AI SDK when `OPENAI_API_KEY` is set (local fallback always available)
 - **Agent prompts:** `prompts/job-match-prompt.md`, `prompts/ats-cv-prompt.md`, `prompts/cover-letter-prompt.md`, `prompts/linkedin-message-prompt.md`
 - Save jobs to `data/jobs/{company}-{role}.md`
+- **Ruflo/swarm/MCP:** optional dev infrastructure only — not wired into job application user flow
 
 ## Architecture & AI integration
 
@@ -62,7 +63,7 @@ Always save the job to `data/jobs/{company}-{role}.md` with **Source URL** fille
   - `src/lib/ai/prompts.ts`, `providers.ts`, `schemas.ts`
   - `src/app/api/analyze-job/`, `generate-cv/`, `generate-cover-letter/`
 - **Validation:** `src/lib/cv/validateCV.ts` checks generated output against master CV
-- **Tests:** `npm test` — vitest for parseJob, matchCV, validateCV
+- **Tests:** `npm test` — Vitest (parseJob, matchCV, scoreJob, validateCV, scrapers, AI merge, export)
 - **Human review required** — no auto-apply, no LinkedIn scraping
 
 ## External reference rules
