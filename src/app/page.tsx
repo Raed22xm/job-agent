@@ -21,6 +21,11 @@ const features = [
     description: "Track status, dates, notes, and export a JSON backup.",
     href: "/tracker",
   },
+  {
+    title: "Job Guide",
+    description: "Search methods, job boards, CV tips, and agent workflow.",
+    href: "/guide",
+  },
 ];
 
 export default function HomePage() {
@@ -44,6 +49,12 @@ export default function HomePage() {
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
           >
             Start with Job Analyzer
+          </Link>
+          <Link
+            href="/guide"
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Job search guide
           </Link>
           <Link
             href="/tracker"
