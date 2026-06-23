@@ -124,6 +124,15 @@ function isModelAccessError(error: unknown): boolean {
   );
 }
 
+function supportsTemperature(model: string): boolean {
+  const normalized = model.toLowerCase();
+  return !(
+    normalized.includes("gpt-5") ||
+    normalized.includes("o1") ||
+    normalized.includes("o3")
+  );
+}
+
 async function generateEnhancement(
   config: AIConfig,
   prompt: string
@@ -141,7 +150,7 @@ async function generateEnhancement(
         schema: AIJobEnhancementSchema,
         system: SYSTEM_TRUTHFULNESS,
         prompt,
-        temperature: 0.3,
+        ...(supportsTemperature(model) ? { temperature: 0.3 } : {}),
       });
       return object;
     } catch (error) {

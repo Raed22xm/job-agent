@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAIConfig } from "@/lib/ai/providers";
 import { validateCoverLetter } from "@/lib/cv/validateCV";
 import { generateCoverLetter } from "@/lib/generateCoverLetter";
 import { getMasterCV } from "@/lib/matchCV";
 import type { ParsedJob } from "@/types";
 
+/** Local heuristic cover letter regeneration. Use POST /api/analyze-job for the full AI pipeline. */
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -22,10 +22,10 @@ export async function POST(request: Request) {
       cv,
       body.job.company
     );
-    const aiConfig = getAIConfig();
 
     return NextResponse.json({
-      mode: aiConfig.isConfigured ? "local-with-ai-available" : "local",
+      mode: "local-heuristic",
+      note: "For AI-enhanced tailoring, use POST /api/analyze-job.",
       generatedCoverLetter,
       validation,
     });

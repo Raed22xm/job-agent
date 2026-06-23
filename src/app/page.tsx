@@ -2,23 +2,23 @@ import Link from "next/link";
 
 const features = [
   {
-    title: "Job Analyzer",
-    description: "Extract title, company, skills, and ATS keywords from any posting.",
+    title: "1. Job Analyzer",
+    description: "Paste text or import a URL. Local scoring first, optional AI enhancement.",
     href: "/analyzer",
   },
   {
-    title: "CV Generator",
-    description: "Tailor a one-column ATS CV using only verified master CV data.",
+    title: "2. CV Generator",
+    description: "Edit a tailored ATS CV from verified master data only.",
     href: "/cv",
   },
   {
-    title: "Cover Letter",
-    description: "Generate a short draft cover letter for human review.",
+    title: "3. Cover Letter",
+    description: "Edit a short draft cover letter before export.",
     href: "/cover-letter",
   },
   {
-    title: "Application Tracker",
-    description: "Save jobs locally and track application status.",
+    title: "4. Application Tracker",
+    description: "Track status, dates, notes, and export a JSON backup.",
     href: "/tracker",
   },
 ];
@@ -28,15 +28,15 @@ export default function HomePage() {
     <div className="space-y-10">
       <section className="rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-8 shadow-sm sm:p-10">
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-          Local-first v0.2
+          Local-first v0.3
         </p>
         <h1 className="mt-3 max-w-2xl text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           Apply smarter with verified CV data — never auto-apply.
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600">
-          Job Agent helps you analyze postings, score ATS keyword match against your master CV,
-          generate tailored documents, and track applications — all with human approval before
-          anything is sent.
+          Paste or import a job, get a match score and tailored drafts, edit before
+          export, then track applications locally. One predictable pipeline — you
+          review every output before applying.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
@@ -78,7 +78,7 @@ export default function HomePage() {
           <li>Never invent experience, education, or skills.</li>
           <li>All outputs use verified data from <code className="text-xs">data/master-cv.json</code>.</li>
           <li>No auto-apply — review and approve every application manually.</li>
-          <li>OpenAI integration is not connected in this first version.</li>
+          <li>AI runs server-side when configured; local heuristics always available as fallback.</li>
         </ul>
       </section>
     </div>

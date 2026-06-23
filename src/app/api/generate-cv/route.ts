@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAIConfig } from "@/lib/ai/providers";
 import { validateGeneratedCV } from "@/lib/cv/validateCV";
 import { generateCV } from "@/lib/generateCV";
 import { getMasterCV, matchCV } from "@/lib/matchCV";
 import type { ParsedJob } from "@/types";
 
+/** Local heuristic CV regeneration. Use POST /api/analyze-job for the full AI pipeline. */
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -19,10 +19,10 @@ export async function POST(request: Request) {
     const match = matchCV(body.job, cv);
     const generatedCV = generateCV(cv, body.job, match);
     const validation = validateGeneratedCV(generatedCV, cv);
-    const aiConfig = getAIConfig();
 
     return NextResponse.json({
-      mode: aiConfig.isConfigured ? "local-with-ai-available" : "local",
+      mode: "local-heuristic",
+      note: "For AI-enhanced tailoring, use POST /api/analyze-job.",
       generatedCV,
       validation,
     });

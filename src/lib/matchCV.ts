@@ -1,5 +1,10 @@
 import masterCV from "../../data/master-cv.json";
-import { normalizeTerm, termAppearsInText } from "@/lib/jobDictionaries";
+import {
+  isLanguageTerm,
+  normalizeTerm,
+  termAppearsInText,
+  termsAreEquivalent,
+} from "@/lib/jobDictionaries";
 import {
   buildCVTerms,
   createTermMatcher,
@@ -74,6 +79,13 @@ function displayTerm(term: string, job: ParsedJob): string {
   );
 }
 
+function cvCoversLanguageRequirement(term: string, cv: MasterCV): boolean {
+  if (!isLanguageTerm(term)) return false;
+
+  const cvLanguages = (cv.languages ?? []).map((entry) => entry.language);
+  return cvLanguages.some((language) => termsAreEquivalent(language, term));
+}
+
 function buildRecommendedFocusAreas(
   job: ParsedJob,
   cv: MasterCV,
@@ -142,7 +154,9 @@ export function matchCV(
   }
 
   const matchedNormalized = terms.filter(termMatchesCV);
-  const missingNormalized = terms.filter((t) => !matchedNormalized.includes(t));
+  const missingNormalized = terms
+    .filter((term) => !matchedNormalized.includes(term))
+    .filter((term) => !cvCoversLanguageRequirement(term, cv));
 
   const matchedKeywords = matchedNormalized.map((term) => displayTerm(term, job));
   const missingKeywords = missingNormalized.map((term) => displayTerm(term, job));
