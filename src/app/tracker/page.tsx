@@ -136,7 +136,7 @@ export default function TrackerPage() {
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             Saved on the server in{" "}
-            <code className="text-xs">data/applications.json</code>. Export a JSON
+            <code className="text-xs">data/applications.sqlite</code>. Export a JSON
             backup before deleting project data.
           </p>
         </div>

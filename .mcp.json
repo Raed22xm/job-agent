@@ -17,6 +17,37 @@
         "CLAUDE_FLOW_MEMORY_BACKEND": "memory"
       },
       "autoStart": false
+    },
+    "filesystem": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-bridge.js"
+      ],
+      "autoStart": true
+    },
+    "github": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-bridge.js"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
+      },
+      "autoStart": false
+    },
+    "playwright": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-bridge.js"
+      ],
+      "autoStart": false
+    },
+    "sqlite": {
+      "command": "node",
+      "args": [
+        "scripts/mcp-bridge.js"
+      ],
+      "autoStart": false
     }
   }
 }

@@ -110,6 +110,24 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 | `npm test` | Run Vitest unit tests |
 | `npm run typecheck` | TypeScript check without emit |
 | `npm run check` | Lint, test, typecheck, and build |
+| `npm run mcp:start` | Start the local MCP-style automation bridge |
+| `npm run browser:check` | Verify the local app responds in a browser-style check |
+
+## MCP automation bridge
+
+A local bridge is included for automation-friendly workflows:
+
+```bash
+npm run mcp:start
+```
+
+This starts a lightweight local bridge that reports readiness for:
+- filesystem workflows
+- GitHub workflows
+- browser automation workflows
+- SQLite-style workflows
+
+For full GitHub integration, provide a GitHub token in your environment as `GITHUB_TOKEN`.
 
 ## Roadmap
 

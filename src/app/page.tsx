@@ -91,6 +91,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Local automation ready</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+              This project now includes a local MCP bridge for filesystem, GitHub, browser, and SQLite-style workflows so automation can run without leaving the workspace.
+            </p>
+          </div>
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Open GitHub
+          </a>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">Filesystem + project data</p>
+            <p className="mt-1 text-sm text-slate-600">Browse and manage local CV, job, and output files directly from automation workflows.</p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">Browser + GitHub workflows</p>
+            <p className="mt-1 text-sm text-slate-600">Use browser testing and repository actions to validate features and ship changes faster.</p>
+          </div>
+        </div>
+      </section>
+
       <section className="rounded-xl border border-amber-200 bg-amber-50 p-5">
         <h2 className="text-sm font-semibold text-amber-900">Important rules</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-900/90">

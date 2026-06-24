@@ -5,6 +5,7 @@ import AnalyzerEmptyState from "@/components/AnalyzerEmptyState";
 import CVFocusAreas from "@/components/CVFocusAreas";
 import GapHonestyPanel from "@/components/GapHonestyPanel";
 import JobDetailsCard from "@/components/JobDetailsCard";
+import AnalyzerNextSteps from "@/components/AnalyzerNextSteps";
 import JobInput from "@/components/JobInput";
 import KeywordList from "@/components/KeywordList";
 import MatchScoreCard from "@/components/MatchScoreCard";
@@ -220,6 +221,11 @@ export default function AnalyzerPage() {
                 matchedCount={matchResult.matchedKeywords.length}
                 missingCount={matchResult.missingKeywords.length}
                 scoreBreakdown={matchResult.scoreBreakdown}
+              />
+
+              <AnalyzerNextSteps
+                score={matchResult.score}
+                missingKeywords={matchResult.missingKeywords}
               />
 
               <div className="grid gap-4 lg:grid-cols-2">
