@@ -1,10 +1,12 @@
 /**
  * Job Scout — fetches live job listings from:
- *   - RemoteOK       (free, no key, global remote)
- *   - Jobnet.dk      (free, Danish gov job portal, no key needed)
- *   - Jobindex.dk    (free RSS feed, Denmark's largest job board)
- *   - Adzuna DK      (free tier, requires API keys — searches Denmark)
- *   - Adzuna GB/other (optional, if ADZUNA_COUNTRY is set)
+ *   - RemoteOK          (free, no key, global remote)
+ *   - Jobnet API        (free, Danish gov REST API — no login needed)
+ *   - Jobnet.dk portal  (public website deep-links — https://jobnet.dk)
+ *   - Jobindex.dk       (free RSS feed, Denmark's largest job board)
+ *   - DTU Career Hub    (JobTeaser — login required; smart deep-links)
+ *   - Adzuna DK         (free tier, requires API keys — searches Denmark)
+ *   - Adzuna GB/other   (optional, if ADZUNA_COUNTRY is set)
  * Results are normalised, deduplicated, and sorted by match score.
  */
 
@@ -17,10 +19,12 @@ export interface ScoutedJob {
   url: string;
   tags: string[];
   postedAt: string;
-  source: "remoteok" | "adzuna" | "jobnet" | "jobindex";
+  source: "remoteok" | "adzuna" | "jobnet" | "jobnet-portal" | "jobindex" | "dtu";
   matchScore?: number;
   description?: string;
+  requiresLogin?: boolean;  // true for sources that need authentication
 }
+
 
 // ─── RemoteOK ───────────────────────────────────────────────────────────────
 
@@ -263,7 +267,118 @@ export async function fetchAdzunaJobs(
   }
 }
 
-// ─── Aggregator ──────────────────────────────────────────────────────────────
+// ─── DTU Career Hub (JobTeaser — login required) ────────────────────────────
+// DTU Career Hub runs on JobTeaser which has no public API or RSS feed.
+// Access requires a DTU student/alumni login. We generate smart deep-links
+// that open pre-searched results directly in the DTU Career Hub portal,
+// saving the user from navigating manually.
+
+const DTU_BASE = "https://careerhub.dtu.dk/students/jobs";
+const DTU_COMPANY_BASE = "https://careerhub.dtu.dk/students/companies";
+
+/**
+ * Returns curated DTU Career Hub deep-links for a given query.
+ * These are not scraped listings but direct search URLs the user
+ * clicks to find jobs after logging in with their DTU credentials.
+ */
+export function buildDTUCareerHubLinks(query: string): ScoutedJob[] {
+  const terms = query.split(/\s+/).filter(Boolean).slice(0, 4);
+  const searchParam = encodeURIComponent(terms.join(" "));
+
+  // Build a handful of targeted deep-links covering common job types
+  const links: Array<{ label: string; url: string; tags: string[] }> = [
+    {
+      label: `"${terms.join(" ")}" jobs`,
+      url: `${DTU_BASE}?query=${searchParam}`,
+      tags: ["DTU Career Hub", "Student", "Danmark"],
+    },
+    {
+      label: "Student jobs & internships",
+      url: `${DTU_BASE}?query=${searchParam}&jobTypes=student`,
+      tags: ["DTU Career Hub", "Internship", "Student job"],
+    },
+    {
+      label: "Full-time graduate positions",
+      url: `${DTU_BASE}?query=${searchParam}&jobTypes=graduate`,
+      tags: ["DTU Career Hub", "Graduate", "Full-time"],
+    },
+    {
+      label: "All companies on DTU Career Hub",
+      url: `${DTU_COMPANY_BASE}?query=${searchParam}`,
+      tags: ["DTU Career Hub", "Companies", "Direct apply"],
+    },
+  ];
+
+  return links.map((link, i): ScoutedJob => ({
+    id: `dtu-${i}-${Date.now()}`,
+    title: `DTU Career Hub — ${link.label}`,
+    company: "DTU Career Hub (login required)",
+    location: "Lyngby, Danmark",
+    url: link.url,
+    tags: link.tags,
+    postedAt: new Date().toISOString(),
+    source: "dtu",
+    requiresLogin: true,
+    description:
+      "DTU Career Hub is powered by JobTeaser and requires your DTU student or alumni login. " +
+      "Click to open pre-searched results directly in the portal.",
+  }));
+}
+
+// ─── Jobnet.dk Public Portal (https://jobnet.dk) ─────────────────────────────
+// jobnet.dk is Denmark's official public job portal run by STAR
+// (Styrelsen for Arbejdsmarked og Rekruttering). No login required to browse
+// jobs. The portal URL uses Danish query params for filtering.
+// Note: job.jobnet.dk/CV/FindWork requires NemLog-in (different portal);
+// the API at SearchPublicPositions is auth-free (see fetchJobnetJobs above).
+
+const JOBNET_PUBLIC_BASE = "https://www.jobnet.dk/ledige-job";
+
+/**
+ * Builds public deep-links to https://www.jobnet.dk with pre-applied search
+ * query and common filters. Anyone can open these — no login needed.
+ */
+export function buildJobnetPortalLinks(query: string): ScoutedJob[] {
+  const encoded = encodeURIComponent(query);
+
+  const links: Array<{ label: string; url: string; tags: string[] }> = [
+    {
+      label: `Search: "${query}"`,
+      url: `${JOBNET_PUBLIC_BASE}?søgeord=${encoded}`,
+      tags: ["Jobnet.dk", "Alle stillinger", "Danmark"],
+    },
+    {
+      label: "Fuldtidsstillinger (Full-time)",
+      url: `${JOBNET_PUBLIC_BASE}?søgeord=${encoded}&arbejdstid=Fuldtid`,
+      tags: ["Jobnet.dk", "Fuldtid", "Full-time"],
+    },
+    {
+      label: "Deltid / studiejob (Part-time)",
+      url: `${JOBNET_PUBLIC_BASE}?søgeord=${encoded}&arbejdstid=Deltid`,
+      tags: ["Jobnet.dk", "Deltid", "Studiejob"],
+    },
+    {
+      label: "Nyeste opslag (Newest first)",
+      url: `${JOBNET_PUBLIC_BASE}?søgeord=${encoded}&sortering=Dato`,
+      tags: ["Jobnet.dk", "Nyeste", "Sorteret"],
+    },
+  ];
+
+  return links.map((link, i): ScoutedJob => ({
+    id: `jobnet-portal-${i}-${Date.now()}`,
+    title: `Jobnet.dk — ${link.label}`,
+    company: "Jobnet.dk (offentlig portal)",
+    location: "Danmark",
+    url: link.url,
+    tags: link.tags,
+    postedAt: new Date().toISOString(),
+    source: "jobnet-portal",
+    requiresLogin: false,
+    description:
+      "Danmarks officielle jobportal (STAR). Åben for alle — intet login påkrævet. " +
+      "Klik for at se søgeresultater direkte på jobnet.dk.",
+  }));
+}
 
 export async function searchJobs(
   query: string,
@@ -280,10 +395,14 @@ export async function searchJobs(
 
   if (markets.includes("dk")) {
     // Always include free Danish sources
-    fetchers.push(fetchJobnetJobs(query));
-    fetchers.push(fetchJobindexJobs(query));
+    fetchers.push(fetchJobnetJobs(query));               // Jobnet API (live results)
+    fetchers.push(fetchJobindexJobs(query));             // Jobindex RSS
     // Adzuna DK if keys available
     fetchers.push(fetchAdzunaJobs(query, location ?? "Danmark", "dk"));
+    // Portal deep-links (always included — public, no login)
+    fetchers.push(Promise.resolve(buildJobnetPortalLinks(query)));
+    // DTU Career Hub deep-links (requires DTU login)
+    fetchers.push(Promise.resolve(buildDTUCareerHubLinks(query)));
   }
 
   if (markets.includes("global") || !markets.includes("dk")) {

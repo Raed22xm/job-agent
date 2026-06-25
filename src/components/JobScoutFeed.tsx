@@ -16,14 +16,18 @@ const sourceColors: Record<string, string> = {
   remoteok: "bg-purple-100 text-purple-700",
   adzuna: "bg-blue-100 text-blue-700",
   jobnet: "bg-red-100 text-red-700",
+  "jobnet-portal": "bg-emerald-100 text-emerald-700",
   jobindex: "bg-rose-100 text-rose-700",
+  dtu: "bg-indigo-100 text-indigo-700",
 };
 
 const sourceLabels: Record<string, string> = {
   remoteok: "RemoteOK",
   adzuna: "Adzuna",
-  jobnet: "🇩🇰 Jobnet.dk",
+  jobnet: "🇩🇰 Jobnet API",
+  "jobnet-portal": "🇩🇰 Jobnet.dk",
   jobindex: "🇩🇰 Jobindex.dk",
+  dtu: "🎓 DTU Career Hub",
 };
 
 const matchColor = (score?: number) => {
@@ -163,6 +167,11 @@ function OutreachModal({ job, onClose }: OutreachModalProps) {
 export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound, dkCount }: JobScoutFeedProps) {
   const [activeJob, setActiveJob] = useState<ScoutedJob | null>(null);
 
+  // Split by source type
+  const dtuJobs = jobs.filter((j) => j.source === "dtu");
+  const jobnetPortalJobs = jobs.filter((j) => j.source === "jobnet-portal");
+  const regularJobs = jobs.filter((j) => j.source !== "dtu" && j.source !== "jobnet-portal");
+
   if (jobs.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center">
@@ -179,12 +188,23 @@ export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound, dkCou
         <OutreachModal job={activeJob} onClose={() => setActiveJob(null)} />
       )}
 
-      <div className="space-y-3">
+      <div className="space-y-4">
+        {/* Stats row */}
         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-          <span className="font-medium text-slate-700">{totalFound} jobs found</span>
+          <span className="font-medium text-slate-700">{regularJobs.length} live jobs found</span>
           {dkCount !== undefined && dkCount > 0 && (
             <span className="rounded-full bg-red-50 text-red-600 px-2 py-0.5 text-xs font-medium">
               🇩🇰 {dkCount} from Denmark
+            </span>
+          )}
+          {jobnetPortalJobs.length > 0 && (
+            <span className="rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-xs font-medium">
+              🇩🇰 Jobnet.dk
+            </span>
+          )}
+          {dtuJobs.length > 0 && (
+            <span className="rounded-full bg-indigo-50 text-indigo-600 px-2 py-0.5 text-xs font-medium">
+              🎓 DTU Career Hub
             </span>
           )}
           <span>·</span>
@@ -196,7 +216,106 @@ export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound, dkCou
           )}
         </div>
 
-        {jobs.map((job) => (
+        {/* Jobnet.dk public portal section */}
+        {jobnetPortalJobs.length > 0 && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-emerald-200">
+              <span className="text-xl">🇩🇰</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-emerald-900">Jobnet.dk — Danmarks officielle jobportal</p>
+                <p className="text-xs text-emerald-700">
+                  Drevet af STAR · Åbent for alle — <strong>intet login påkrævet</strong>
+                </p>
+              </div>
+              <a
+                href="https://www.jobnet.dk"
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 transition-colors"
+              >
+                Åbn portal ↗
+              </a>
+            </div>
+            <div className="divide-y divide-emerald-100">
+              {jobnetPortalJobs.map((job) => (
+                <div key={job.id} className="flex items-center gap-3 px-4 py-3 hover:bg-emerald-100/50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-emerald-900 truncate">
+                      {job.title.replace("Jobnet.dk — ", "")}
+                    </p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {job.tags.slice(1).map((tag) => (
+                        <span key={tag} className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <a
+                    href={job.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors whitespace-nowrap"
+                  >
+                    Søg ↗
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* DTU Career Hub section */}
+        {dtuJobs.length > 0 && (
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50 overflow-hidden">
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-indigo-200">
+              <span className="text-xl">🎓</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-indigo-900">DTU Career Hub</p>
+                <p className="text-xs text-indigo-600">
+                  Requires DTU student or alumni login (JobTeaser) — no public API
+                </p>
+              </div>
+              <a
+                href="https://careerhub.dtu.dk"
+                target="_blank"
+                rel="noreferrer"
+                className="shrink-0 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700 transition-colors"
+              >
+                Open portal ↗
+              </a>
+            </div>
+            <div className="divide-y divide-indigo-100">
+              {dtuJobs.map((job) => (
+                <div key={job.id} className="flex items-center gap-3 px-4 py-3 hover:bg-indigo-100/50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-indigo-900 truncate">
+                      {job.title.replace("DTU Career Hub — ", "")}
+                    </p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {job.tags.slice(1).map((tag) => (
+                        <span key={tag} className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <a
+                    href={job.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 rounded-lg border border-indigo-300 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors whitespace-nowrap"
+                  >
+                    Search ↗
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Regular job cards */}
+        {regularJobs.map((job) => (
           <div
             key={job.id}
             className="rounded-xl border border-slate-200 bg-white p-4 hover:border-brand-200 hover:shadow-md transition-all"
