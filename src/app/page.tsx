@@ -3,6 +3,11 @@ import RemindersBanner from "@/components/RemindersBanner";
 
 const features = [
   {
+    title: "🤖 AI Job Search Agent",
+    description: "Autonomous agent that audits your CV, finds matching live jobs, and drafts outreach messages — you review everything.",
+    href: "/agent",
+  },
+  {
     title: "1. Job Analyzer",
     description: "Paste text or import a URL. Local scoring first, optional AI enhancement.",
     href: "/analyzer",
@@ -51,8 +56,14 @@ export default function HomePage() {
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
-            href="/analyzer"
+            href="/agent"
             className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          >
+            🤖 Run AI Agent
+          </Link>
+          <Link
+            href="/analyzer"
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
           >
             Start with Job Analyzer
           </Link>
