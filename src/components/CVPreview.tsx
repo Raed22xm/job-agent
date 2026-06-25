@@ -1,12 +1,23 @@
 import type { RefObject } from "react";
-import type { GeneratedCV } from "@/types";
+import type { GeneratedCV, Language } from "@/types";
 
 interface CVPreviewProps {
   cv: GeneratedCV;
   exportRef?: RefObject<HTMLElement | null>;
+  /** Full master CV languages (passed through from context) */
+  languages?: Language[];
+  /** Full master CV certifications */
+  certifications?: string[];
 }
 
-export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
+const PAGE_BREAK_PX = 960; // rough A4 height at screen scale
+
+export default function CVPreview({
+  cv,
+  exportRef,
+  languages,
+  certifications,
+}: CVPreviewProps) {
   const { header, summary, skills, experience, education, projects } = cv.sections;
 
   return (
@@ -18,50 +29,70 @@ export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
         </p>
       </div>
 
+      {/* CV document */}
       <article
         ref={exportRef}
-        className="mx-auto max-w-2xl bg-white px-8 py-8 font-serif text-slate-900"
+        className="relative mx-auto max-w-2xl bg-white px-8 py-8 font-serif text-slate-900"
       >
+        {/* Page-break hint line */}
+        <div
+          className="pointer-events-none absolute left-0 right-0 border-t-2 border-dashed border-slate-200"
+          style={{ top: `${PAGE_BREAK_PX}px` }}
+          title="Approximate A4 page break"
+        >
+          <span className="absolute right-2 -top-5 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 print:hidden">
+            ≈ page break
+          </span>
+        </div>
+
+        {/* Header */}
         <header className="border-b border-slate-300 pb-4 text-center">
-          <h1 className="text-2xl font-bold uppercase tracking-wide">{header.fullName}</h1>
-          <p className="mt-2 text-sm text-slate-700">
-            {header.location} · {header.email} · {header.phone}
+          <h1 className="text-2xl font-bold uppercase tracking-widest text-slate-900">
+            {header.fullName}
+          </h1>
+          <p className="mt-2 text-sm text-slate-600">
+            {[header.location, header.email, header.phone]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
           {(header.linkedin || header.portfolio) && (
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-slate-500">
               {[header.linkedin, header.portfolio].filter(Boolean).join(" · ")}
             </p>
           )}
         </header>
 
-        <section className="mt-6">
-          <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">
-            Professional Summary
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed">{summary}</p>
-        </section>
+        {/* Professional Summary */}
+        <Section title="Professional Summary">
+          <p className="text-sm leading-relaxed">{summary}</p>
+        </Section>
 
-        <section className="mt-6">
-          <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">
-            Skills
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed">{skills.join(" · ")}</p>
-        </section>
+        {/* Skills — pill grid */}
+        <Section title="Skills">
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {skills.map((skill) => (
+              <span
+                key={skill}
+                className="rounded border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700"
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </Section>
 
-        <section className="mt-6">
-          <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">
-            Experience
-          </h2>
+        {/* Experience */}
+        <Section title="Experience">
           <div className="mt-3 space-y-5">
             {experience.map((role) => (
               <div key={role.id}>
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="text-sm font-bold">{role.title}</h3>
-                  <span className="text-xs text-slate-600">
+                  <h3 className="text-sm font-bold text-slate-900">{role.title}</h3>
+                  <span className="text-xs text-slate-500">
                     {role.startDate} – {role.endDate}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-sm font-medium text-slate-600">
                   {role.company} · {role.location}
                 </p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed">
@@ -72,45 +103,74 @@ export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
               </div>
             ))}
           </div>
-        </section>
+        </Section>
 
+        {/* Projects */}
         {projects && projects.length > 0 && (
-          <section className="mt-6">
-            <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">
-              Projects
-            </h2>
+          <Section title="Projects">
             <div className="mt-3 space-y-3">
               {projects.map((project) => (
                 <div key={project.id}>
                   <p className="text-sm font-bold">{project.name}</p>
-                  <p className="text-sm leading-relaxed text-slate-700">
+                  <p className="text-sm leading-relaxed text-slate-600">
                     {project.description}
                   </p>
                 </div>
               ))}
             </div>
-          </section>
+          </Section>
         )}
 
-        <section className="mt-6">
-          <h2 className="border-b border-slate-400 pb-1 text-sm font-bold uppercase tracking-wider">
-            Education
-          </h2>
+        {/* Education */}
+        <Section title="Education">
           <div className="mt-3 space-y-3">
             {education.map((edu) => (
               <div key={edu.id}>
                 <p className="text-sm font-bold">
                   {edu.degree} in {edu.field}
                 </p>
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-slate-600">
                   {edu.institution} · {edu.startDate} – {edu.endDate}
                 </p>
+                {edu.details && edu.details.length > 0 && (
+                  <ul className="mt-1 list-disc pl-5 text-xs text-slate-500">
+                    {edu.details.map((d, i) => (
+                      <li key={i}>{d}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
           </div>
-        </section>
+        </Section>
+
+        {/* Certifications */}
+        {certifications && certifications.length > 0 && (
+          <Section title="Certifications">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {certifications.map((cert) => (
+                <li key={cert}>{cert}</li>
+              ))}
+            </ul>
+          </Section>
+        )}
+
+        {/* Languages */}
+        {languages && languages.length > 0 && (
+          <Section title="Languages">
+            <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1">
+              {languages.map(({ language, level }) => (
+                <p key={language} className="text-sm">
+                  <span className="font-semibold">{language}</span>
+                  <span className="ml-1 text-slate-500">— {level}</span>
+                </p>
+              ))}
+            </div>
+          </Section>
+        )}
       </article>
 
+      {/* ATS Notes */}
       {cv.atsNotes.length > 0 && (
         <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -124,5 +184,23 @@ export default function CVPreview({ cv, exportRef }: CVPreviewProps) {
         </div>
       )}
     </div>
+  );
+}
+
+// Helper: named CV section wrapper
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-6">
+      <h2 className="border-b border-slate-300 pb-1 text-[11px] font-bold uppercase tracking-widest text-slate-700">
+        {title}
+      </h2>
+      {children}
+    </section>
   );
 }

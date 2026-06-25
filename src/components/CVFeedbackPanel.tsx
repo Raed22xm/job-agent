@@ -1,0 +1,163 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { GeneratedCV } from "@/types";
+import { analyseCVFeedback, type FeedbackItem, type FeedbackSeverity } from "@/lib/cv/cvFeedback";
+
+interface CVFeedbackPanelProps {
+  cv: GeneratedCV;
+}
+
+const SEVERITY_CONFIG: Record<
+  FeedbackSeverity,
+  { label: string; icon: string; badge: string; row: string }
+> = {
+  error: {
+    label: "Error",
+    icon: "✕",
+    badge: "bg-rose-100 text-rose-700",
+    row: "border-rose-200 bg-rose-50/60",
+  },
+  warning: {
+    label: "Warning",
+    icon: "⚠",
+    badge: "bg-amber-100 text-amber-700",
+    row: "border-amber-200 bg-amber-50/60",
+  },
+  tip: {
+    label: "Tip",
+    icon: "💡",
+    badge: "bg-blue-100 text-blue-700",
+    row: "border-blue-200 bg-blue-50/40",
+  },
+};
+
+const SECTION_LABELS: Record<FeedbackItem["section"], string> = {
+  summary: "Summary",
+  skills: "Skills",
+  experience: "Experience",
+  overall: "Overall",
+};
+
+function FeedbackRow({ item }: { item: FeedbackItem }) {
+  const cfg = SEVERITY_CONFIG[item.severity];
+  return (
+    <li className={`rounded-xl border px-4 py-3 ${cfg.row}`}>
+      <div className="flex flex-wrap items-start gap-2">
+        <span
+          className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.badge}`}
+        >
+          {SECTION_LABELS[item.section]}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-slate-800">{item.message}</p>
+          {item.suggestion && (
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              {item.suggestion}
+            </p>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
+  const [open, setOpen] = useState(true);
+  const [filter, setFilter] = useState<FeedbackSeverity | "all">("all");
+
+  const allItems = useMemo(() => analyseCVFeedback(cv), [cv]);
+
+  const errors = allItems.filter((i) => i.severity === "error");
+  const warnings = allItems.filter((i) => i.severity === "warning");
+  const tips = allItems.filter((i) => i.severity === "tip");
+
+  const visible = filter === "all" ? allItems : allItems.filter((i) => i.severity === filter);
+
+  if (allItems.length === 0) {
+    return (
+      <section className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+        <p className="text-sm font-semibold text-emerald-800">
+          ✓ No CV feedback issues detected
+        </p>
+        <p className="mt-1 text-xs text-emerald-700">
+          All sections look solid. Review the ATS keyword coverage above and
+          export when ready.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      {/* Header */}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left"
+      >
+        <div className="flex items-center gap-3">
+          <h2 className="text-base font-semibold text-slate-900">
+            CV Feedback
+          </h2>
+          <div className="flex gap-1.5">
+            {errors.length > 0 && (
+              <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                {errors.length} error{errors.length > 1 ? "s" : ""}
+              </span>
+            )}
+            {warnings.length > 0 && (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                {warnings.length} warning{warnings.length > 1 ? "s" : ""}
+              </span>
+            )}
+            {tips.length > 0 && (
+              <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                {tips.length} tip{tips.length > 1 ? "s" : ""}
+              </span>
+            )}
+          </div>
+        </div>
+        <span className="text-xs font-medium text-slate-500">
+          {open ? "Collapse ▲" : "Expand ▼"}
+        </span>
+      </button>
+
+      {open && (
+        <div className="border-t border-slate-100 px-5 pb-5 pt-4">
+          {/* Filter tabs */}
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            {(["all", "error", "warning", "tip"] as const).map((f) => {
+              const count =
+                f === "all"
+                  ? allItems.length
+                  : allItems.filter((i) => i.severity === f).length;
+              if (count === 0 && f !== "all") return null;
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFilter(f)}
+                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                    filter === f
+                      ? "bg-slate-800 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {f === "all" ? `All (${count})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${count})`}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Feedback list */}
+          <ul className="space-y-2">
+            {visible.map((item, i) => (
+              <FeedbackRow key={`${item.section}-${i}`} item={item} />
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
