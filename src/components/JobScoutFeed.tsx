@@ -9,11 +9,21 @@ interface JobScoutFeedProps {
   query: string;
   hasAdzuna: boolean;
   totalFound: number;
+  dkCount?: number;
 }
 
 const sourceColors: Record<string, string> = {
   remoteok: "bg-purple-100 text-purple-700",
   adzuna: "bg-blue-100 text-blue-700",
+  jobnet: "bg-red-100 text-red-700",
+  jobindex: "bg-rose-100 text-rose-700",
+};
+
+const sourceLabels: Record<string, string> = {
+  remoteok: "RemoteOK",
+  adzuna: "Adzuna",
+  jobnet: "🇩🇰 Jobnet.dk",
+  jobindex: "🇩🇰 Jobindex.dk",
 };
 
 const matchColor = (score?: number) => {
@@ -150,7 +160,7 @@ function OutreachModal({ job, onClose }: OutreachModalProps) {
   );
 }
 
-export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound }: JobScoutFeedProps) {
+export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound, dkCount }: JobScoutFeedProps) {
   const [activeJob, setActiveJob] = useState<ScoutedJob | null>(null);
 
   if (jobs.length === 0) {
@@ -170,13 +180,18 @@ export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound }: Job
       )}
 
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
           <span className="font-medium text-slate-700">{totalFound} jobs found</span>
+          {dkCount !== undefined && dkCount > 0 && (
+            <span className="rounded-full bg-red-50 text-red-600 px-2 py-0.5 text-xs font-medium">
+              🇩🇰 {dkCount} from Denmark
+            </span>
+          )}
           <span>·</span>
-          <span>Query: &quot;{query}&quot;</span>
+          <span className="truncate max-w-xs">Query: &quot;{query}&quot;</span>
           {!hasAdzuna && (
             <span className="ml-auto text-xs bg-amber-50 text-amber-600 rounded-full px-2 py-0.5">
-              Add ADZUNA keys for wider results
+              Add ADZUNA_APP_ID/KEY for Adzuna DK results
             </span>
           )}
         </div>
@@ -202,8 +217,8 @@ export default function JobScoutFeed({ jobs, query, hasAdzuna, totalFound }: Job
                   {job.salary && (
                     <span className="text-xs text-emerald-600">💰 {job.salary}</span>
                   )}
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${sourceColors[job.source]}`}>
-                    {job.source === "remoteok" ? "RemoteOK" : "Adzuna"}
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${sourceColors[job.source] ?? "bg-slate-100 text-slate-600"}`}>
+                    {sourceLabels[job.source] ?? job.source}
                   </span>
                   {job.tags.slice(0, 3).map((tag) => (
                     <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">

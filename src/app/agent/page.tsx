@@ -8,12 +8,15 @@ import type { CVAuditResult } from "@/lib/agent/cvAudit";
 import type { ScoutedJob } from "@/lib/agent/jobScout";
 
 type Tab = "audit" | "scout" | "plan";
+type Market = "remote" | "dk" | "global";
 
 interface ScoutResult {
   jobs: ScoutedJob[];
   query: string;
   totalFound: number;
   hasAdzuna: boolean;
+  dkCount?: number;
+  markets: Market[];
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -29,6 +32,15 @@ export default function AgentPage() {
   const [scoutResult, setScoutResult] = useState<ScoutResult | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
+  const [selectedMarkets, setSelectedMarkets] = useState<Market[]>(["remote", "dk"]);
+
+  const toggleMarket = (m: Market) => {
+    setSelectedMarkets((prev) =>
+      prev.includes(m)
+        ? prev.length > 1 ? prev.filter((x) => x !== m) : prev // always keep at least 1
+        : [...prev, m]
+    );
+  };
 
   const addLog = (type: LogEntry["type"], message: string) => {
     setLogs((prev) => [...prev, { type, message }]);
@@ -70,11 +82,15 @@ export default function AgentPage() {
     setLogs([]);
     addLog("info", "Reading your CV profile…");
     await sleep(400);
-    addLog("thinking", "Searching RemoteOK for matching roles…");
-    await sleep(700);
-    if (process.env.NEXT_PUBLIC_HAS_ADZUNA !== "false") {
-      addLog("thinking", "Querying Adzuna job board…");
+    if (selectedMarkets.includes("remote")) {
+      addLog("thinking", "Searching RemoteOK for remote roles…");
       await sleep(500);
+    }
+    if (selectedMarkets.includes("dk")) {
+      addLog("thinking", "🇩🇰 Searching Jobnet.dk (Danish government job portal)…");
+      await sleep(400);
+      addLog("thinking", "🇩🇰 Searching Jobindex.dk (Denmark's largest job board)…");
+      await sleep(400);
     }
     addLog("thinking", "Scoring each job against your CV…");
 
@@ -85,11 +101,13 @@ export default function AgentPage() {
         body: JSON.stringify({
           query: searchQuery.trim() || undefined,
           location: searchLocation.trim() || undefined,
+          markets: selectedMarkets,
         }),
       });
       const data = await res.json();
       setScoutResult(data);
-      addLog("success", `Found ${data.totalFound} jobs · ranked by CV match score`);
+      const dkMsg = data.dkCount > 0 ? ` · 🇩🇰 ${data.dkCount} from Denmark` : "";
+      addLog("success", `Found ${data.totalFound} jobs${dkMsg}`);
       const top = data.jobs[0];
       if (top) {
         addLog("info", `Top match: "${top.title}" at ${top.company} (${top.matchScore ?? "?"}%)`);
@@ -126,17 +144,18 @@ export default function AgentPage() {
 
     // Step 2 – Job Scout
     setActiveTab("scout");
-    addLog("thinking", "Step 2/2: Searching for matching jobs…");
+    addLog("thinking", "Step 2/2: Searching jobs (Remote + 🇩🇰 Danmark)…");
     await sleep(400);
     try {
       const scoutRes = await fetch("/api/agent/job-scout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ markets: selectedMarkets }),
       });
       const scoutData = await scoutRes.json();
       setScoutResult(scoutData);
-      addLog("success", `Found ${scoutData.totalFound} jobs for you`);
+      const dkMsg = scoutData.dkCount > 0 ? ` (incl. 🇩🇰 ${scoutData.dkCount} from Denmark)` : "";
+      addLog("success", `Found ${scoutData.totalFound} jobs${dkMsg}`);
     } catch {
       addLog("error", "Job search failed");
     }
@@ -241,7 +260,35 @@ export default function AgentPage() {
         {/* Job Scout tab */}
         {activeTab === "scout" && (
           <div className="space-y-4">
-            {/* Search override form */}
+            {/* Markets toggle */}
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-2">Markets to search</label>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { id: "remote" as Market, label: "🌍 Remote (global)", color: "purple" },
+                  { id: "dk" as Market, label: "🇩🇰 Danmark", color: "red" },
+                  { id: "global" as Market, label: "🌐 Global (Adzuna)", color: "blue" },
+                ] as const).map(({ id, label, color }) => {
+                  const active = selectedMarkets.includes(id);
+                  const colorClass = active
+                    ? color === "purple" ? "bg-purple-600 text-white border-purple-600"
+                    : color === "red" ? "bg-red-600 text-white border-red-600"
+                    : "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50";
+                  return (
+                    <button
+                      key={id}
+                      onClick={() => toggleMarket(id)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${colorClass}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Search fields */}
             <div className="flex flex-wrap gap-3 items-end">
               <div className="flex-1 min-w-40">
                 <label className="block text-xs font-medium text-slate-600 mb-1">
@@ -263,7 +310,7 @@ export default function AgentPage() {
                   type="text"
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
-                  placeholder="e.g. London, Remote"
+                  placeholder="e.g. København, Remote"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                 />
               </div>
@@ -281,7 +328,9 @@ export default function AgentPage() {
                 <p className="text-4xl mb-3">🔍</p>
                 <p className="text-slate-600 font-medium">Job Scout ready</p>
                 <p className="text-slate-400 text-sm mt-1">
-                  Searches RemoteOK + Adzuna and scores each job against your CV
+                  Searches {selectedMarkets.includes("dk") ? "🇩🇰 Jobnet.dk + Jobindex.dk" : ""}
+                  {selectedMarkets.includes("remote") ? (selectedMarkets.includes("dk") ? " + RemoteOK" : "RemoteOK") : ""}
+                  {" "} and scores each job against your CV
                 </p>
               </div>
             )}
@@ -292,6 +341,7 @@ export default function AgentPage() {
                 query={scoutResult.query}
                 totalFound={scoutResult.totalFound}
                 hasAdzuna={scoutResult.hasAdzuna}
+                dkCount={scoutResult.dkCount}
               />
             )}
           </div>
