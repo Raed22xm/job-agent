@@ -4,10 +4,12 @@ A local-first job application assistant built with Next.js, TypeScript, and Tail
 
 Job Agent helps you analyze job postings, compare them against your master CV, generate ATS-friendly tailored documents, and track applications — with **human approval required** before anything is sent. No auto-apply functionality is included.
 
-## Features (v0.3)
+## Features (v0.4)
 
 - **Job Analyzer** — Paste a job description or import from supported URLs (The Hub, Jobindex; LinkedIn when accessible)
 - **AI-enhanced analysis** — Server-side OpenAI via Vercel AI SDK with local heuristic fallback
+- **SQLite persistence** — Server-side tracker in `data/applications.sqlite`
+- **Server-side analysis session** — Persisted in `data/session/`
 - **CV Match Score** — Weighted scoring across skills, experience, location, language, junior fit, and portfolio
 - **Keyword Insights** — Matching and missing ATS keywords with Danish/English alias support
 - **CV Generator** — Editable, ATS-friendly CV preview using verified data only
@@ -28,7 +30,7 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 - TypeScript + Tailwind CSS
 - Vercel AI SDK + Zod schemas for structured AI output
 - Master CV: `data/master-cv.json` (read server-side)
-- **Server persistence:** `data/applications.json` (tracker), `data/session/` (current analysis), `data/jobs/`, `data/outputs/`
+- **Server persistence:** `data/applications.sqlite` (tracker), `data/session/` (current analysis), `data/jobs/`, `data/outputs/`
 - Vitest for unit tests (75+ tests)
 
 ### API routes (server)
@@ -37,6 +39,9 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 |-------|---------|
 | `POST /api/analyze-job` | Local match + optional AI (`enhanceWithAI: true`) |
 | `POST /api/fetch-job` | Scrape job URL, save to `data/jobs/` |
+| `POST /api/validate-cv` | Validate edited CV content against server-side master CV |
+| `POST /api/gap-suggestions` | Generate verified gap-handling suggestions |
+| `POST /api/generate-linkedin-message` | Generate LinkedIn outreach draft from verified CV data |
 | `POST /api/save-application-outputs` | Write CV/cover letter markdown |
 | `GET/POST/PUT /api/applications` | Tracker CRUD + JSON import |
 | `PATCH/DELETE /api/applications/[id]` | Update or delete one application |
@@ -75,7 +80,7 @@ Job Agent/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22.13+ (`node:sqlite` is used for local tracker persistence)
 - npm
 
 ### Install and run
@@ -107,11 +112,12 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npm test` | Run Vitest unit tests |
+| `npm test` | Run Vitest unit tests (79 tests) |
 | `npm run typecheck` | TypeScript check without emit |
 | `npm run check` | Lint, test, typecheck, and build |
 | `npm run mcp:start` | Start the local MCP-style automation bridge |
-| `npm run browser:check` | Verify the local app responds in a browser-style check |
+| `npm run browser:check` | Verify the local app responds in a browser check |
+| `npm run test:e2e` | Run Playwright end-to-end tests |
 
 ## MCP automation bridge
 
@@ -136,9 +142,8 @@ For full GitHub integration, provide a GitHub token in your environment as `GITH
 - [x] PDF/DOCX export for CV and cover letter
 - [x] Editable CV and cover letter before export
 - [x] Tracker JSON export/import backup
-- [x] Server-side tracker persistence (`data/applications.json`)
+- [x] Server-side tracker persistence (`data/applications.sqlite`)
 - [x] Server-side analysis session (`data/session/`)
-- [ ] SQLite persistence (optional upgrade from JSON files)
 - [ ] Playwright E2E tests
 
 ## License

@@ -297,7 +297,7 @@ export const GUIDE_UPDATES = [
   },
   {
     date: "2026-06-23",
-    title: "v0.3 pipeline",
+    title: "v0.4 pipeline",
     summary:
       "Single analyze-job pipeline with AI fallback, editable CV/cover letter, tracker backup.",
   },

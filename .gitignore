@@ -29,8 +29,11 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (secrets, API keys)
-.env*
+.env
+.env.local
+.env.*.local
 !.env.example
+!.env*.md
 
 # typescript
 *.tsbuildinfo
@@ -38,6 +41,8 @@ next-env.d.ts
 
 # local data (future SQLite / exports)
 /data/applications.json
+/data/applications.sqlite
+/data/applications.sqlite-*
 /data/session/
 
 # private personal files — never commit to GitHub

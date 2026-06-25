@@ -5,7 +5,7 @@
  * Until then, all features use local heuristic fallbacks.
  */
 
-export type AIProvider = "openai" | "anthropic" | "none";
+export type AIProvider = "openai" | "none";
 
 export interface AIConfig {
   provider: AIProvider;
@@ -19,14 +19,6 @@ export function getAIConfig(): AIConfig {
       provider: "openai",
       isConfigured: true,
       model: process.env.OPENAI_MODEL ?? "gpt-4o",
-    };
-  }
-
-  if (process.env.ANTHROPIC_API_KEY) {
-    return {
-      provider: "anthropic",
-      isConfigured: true,
-      model: process.env.ANTHROPIC_MODEL ?? "claude-3-5-haiku-latest",
     };
   }
 

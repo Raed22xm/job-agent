@@ -1,19 +1,61 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useJobAgent } from "@/context/JobAgentContext";
-import { generateLinkedInMessage } from "@/lib/generateLinkedInMessage";
-import { getMasterCV } from "@/lib/matchCV";
+import type { LinkedInMessageDraft } from "@/lib/generateLinkedInMessage";
 
 export default function LinkedInMessagePage() {
   const { parsedJob, matchResult } = useJobAgent();
-  const cv = getMasterCV();
+  const [draft, setDraft] = useState<LinkedInMessageDraft | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const draft = useMemo(() => {
-    if (!parsedJob) return null;
-    return generateLinkedInMessage(cv, parsedJob, matchResult);
-  }, [cv, parsedJob, matchResult]);
+  useEffect(() => {
+    if (!parsedJob) {
+      setDraft(null);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsLoading(true);
+    setError(null);
+
+    void fetch("/api/generate-linkedin-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ job: parsedJob, match: matchResult }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as {
+          error?: string;
+          draft?: LinkedInMessageDraft;
+        };
+
+        if (!response.ok || !data.draft) {
+          throw new Error(data.error ?? `Draft generation failed (${response.status})`);
+        }
+
+        setDraft(data.draft);
+      })
+      .catch((draftError) => {
+        if (controller.signal.aborted) return;
+        setDraft(null);
+        setError(
+          draftError instanceof Error
+            ? draftError.message
+            : "Could not generate LinkedIn draft."
+        );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [parsedJob, matchResult]);
 
   if (!parsedJob || !draft) {
     return (
@@ -48,11 +90,27 @@ export default function LinkedInMessagePage() {
         </p>
       </header>
 
-      <DraftCard
-        title="Connection note (2–4 sentences)"
-        body={draft.connectionNote}
-      />
-      <DraftCard title="InMail draft" body={draft.inMail} multiline />
+      {isLoading && (
+        <p className="text-sm font-medium text-slate-500">
+          Generating LinkedIn draft...
+        </p>
+      )}
+
+      {error && (
+        <p role="alert" className="text-sm font-medium text-rose-600">
+          {error}
+        </p>
+      )}
+
+      {draft && (
+        <>
+          <DraftCard
+            title="Connection note (2–4 sentences)"
+            body={draft.connectionNote}
+          />
+          <DraftCard title="InMail draft" body={draft.inMail} multiline />
+        </>
+      )}
 
       <p className="text-xs text-slate-500">
         For deeper tailoring, use Cursor chat with{" "}

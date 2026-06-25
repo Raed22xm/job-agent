@@ -1,7 +1,10 @@
 {
   "name": "job-agent",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "rm -rf .next && next dev",
     "dev:fast": "next dev",
@@ -15,7 +18,9 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run test && npm run typecheck && npm run build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.74",
@@ -33,6 +38,7 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@playwright/test": "^1.49.0",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9.16.0",
     "eslint-config-next": "^15.1.0",

@@ -156,7 +156,7 @@ export default function AnalyzerPage() {
     <div className="space-y-8">
       <header>
         <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
-          v0.3 · {modeLabel}
+          v0.4 · {modeLabel}
         </p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
           Job Analyzer

@@ -25,6 +25,15 @@ function masterCompanies(cv: MasterCV): Set<string> {
   return new Set(cv.experience.map((e) => normalizeTerm(e.company)));
 }
 
+function masterExperienceBullets(cv: MasterCV): Map<string, Set<string>> {
+  return new Map(
+    cv.experience.map((entry) => [
+      entry.id,
+      new Set(entry.bullets.map((bullet) => normalizeTerm(bullet))),
+    ])
+  );
+}
+
 /**
  * Validates generated CV content against verified master CV data.
  * Flags invented skills, unknown experience entries, or unsupported claims.
@@ -38,6 +47,7 @@ export function validateGeneratedCV(
   const verifiedExpIds = masterExperienceIds(master);
   const verifiedEduIds = masterEducationIds(master);
   const verifiedCompanies = masterCompanies(master);
+  const verifiedBulletsByExperience = masterExperienceBullets(master);
 
   for (const skill of generated.sections.skills) {
     const norm = normalizeTerm(skill);
@@ -66,6 +76,20 @@ export function validateGeneratedCV(
         message: `Company "${exp.company}" does not match master CV records.`,
         severity: "warning",
       });
+    }
+
+    const verifiedBullets = verifiedBulletsByExperience.get(exp.id);
+    if (!verifiedBullets) continue;
+
+    for (const bullet of exp.bullets) {
+      if (!verifiedBullets.has(normalizeTerm(bullet))) {
+        issues.push({
+          field: `experience.${exp.id}.bullets`,
+          message:
+            `Edited bullet under "${exp.title}" is not an exact verified master CV bullet. Remove it or add it to the master CV first.`,
+          severity: "error",
+        });
+      }
     }
   }
 

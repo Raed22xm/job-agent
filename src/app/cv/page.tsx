@@ -1,15 +1,14 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import CVEditor from "@/components/CVEditor";
 import CVPreview from "@/components/CVPreview";
 import CVValidationPanel from "@/components/CVValidationPanel";
 import ExportButtons from "@/components/ExportButtons";
 import { useJobAgent } from "@/context/JobAgentContext";
-import { validateGeneratedCV } from "@/lib/cv/validateCV";
 import { exportCVToDocx, exportCVToPdf } from "@/lib/export/exportCV";
-import { getMasterCV } from "@/lib/matchCV";
+import type { CVValidationResult } from "@/types";
 
 export default function CVGeneratorPage() {
   const {
@@ -19,10 +18,53 @@ export default function CVGeneratorPage() {
     resetGeneratedCV,
   } = useJobAgent();
   const exportRef = useRef<HTMLElement>(null);
+  const [validation, setValidation] = useState<CVValidationResult | null>(null);
 
-  const validation = useMemo(() => {
-    if (!generatedCV) return null;
-    return validateGeneratedCV(generatedCV, getMasterCV());
+  useEffect(() => {
+    if (!generatedCV) {
+      setValidation(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setValidation(null);
+
+    void fetch("/api/validate-cv", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ generatedCV }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as {
+          error?: string;
+          validation?: CVValidationResult;
+        };
+
+        if (!response.ok || !data.validation) {
+          throw new Error(data.error ?? `Validation failed (${response.status})`);
+        }
+
+        setValidation(data.validation);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setValidation({
+          valid: false,
+          issues: [
+            {
+              field: "validation",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Could not validate CV before export.",
+              severity: "error",
+            },
+          ],
+        });
+      });
+
+    return () => controller.abort();
   }, [generatedCV]);
 
   if (!generatedCV || !parsedJob) {
@@ -49,7 +91,7 @@ export default function CVGeneratorPage() {
     return exportRef.current;
   };
 
-  const exportBlocked = validation ? !validation.valid : false;
+  const exportBlocked = !validation || !validation.valid;
 
   return (
     <div className="space-y-6">
@@ -65,9 +107,11 @@ export default function CVGeneratorPage() {
         <ExportButtons
           disabled={exportBlocked}
           disabledReason={
-            exportBlocked
-              ? "Fix CV validation errors before exporting."
-              : undefined
+            !validation
+              ? "Checking CV validation before export."
+              : exportBlocked
+                ? "Fix CV validation errors before exporting."
+                : undefined
           }
           onExportPdf={() =>
             exportCVToPdf(
@@ -83,6 +127,11 @@ export default function CVGeneratorPage() {
       </div>
 
       {validation && <CVValidationPanel issues={validation.issues} />}
+      {!validation && (
+        <p className="text-sm font-medium text-slate-500">
+          Checking CV validation...
+        </p>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
         <CVEditor
