@@ -1,7 +1,8 @@
+import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import type { GeneratedCV, MasterCV, MatchResult, ParsedJob, Project } from "@/types";
 
 /**
- * Placeholder CV generator — reorders and filters verified CV content only.
+ * Tailors verified CV content for ATS: skill order, experience/bullet order, relevant projects.
  * Does not invent experience, metrics, or skills.
  */
 export function generateCV(
@@ -14,9 +15,10 @@ export function generateCV(
   );
 
   const prioritizedSkills = [
-    ...cv.skills.filter((skill) =>
-      jobKeywordSet.has(skill.toLowerCase()) ||
-      match.matchedKeywords.some((kw) => skill.toLowerCase().includes(kw))
+    ...cv.skills.filter(
+      (skill) =>
+        jobKeywordSet.has(skill.toLowerCase()) ||
+        match.matchedKeywords.some((kw) => skill.toLowerCase().includes(kw))
     ),
     ...cv.skills.filter(
       (skill) =>
@@ -25,24 +27,23 @@ export function generateCV(
     ),
   ];
 
-  const tailoredSummary = cv.personalInfo.summary;
-
+  const tailoredExperience = tailorExperienceForJob(cv.experience, job, match);
   const relevantProjects = selectRelevantProjects(cv.projects ?? [], job, match);
 
   const atsNotes = [
-    "One-column ATS-friendly layout (preview only in v1).",
-    "Only verified CV data included — no invented experience.",
+    "One-column ATS-friendly layout.",
+    "Only verified CV data — experience bullets reordered by job relevance.",
     match.missingKeywords.length
-      ? `Consider addressing gaps honestly in cover letter: ${match.missingKeywords.slice(0, 5).join(", ")}.`
+      ? `Gaps to address honestly: ${match.missingKeywords.slice(0, 5).join(", ")}.`
       : "Strong keyword coverage from your existing CV.",
   ];
 
   return {
     sections: {
       header: cv.personalInfo,
-      summary: tailoredSummary,
+      summary: cv.personalInfo.summary,
       skills: prioritizedSkills,
-      experience: cv.experience,
+      experience: tailoredExperience,
       education: cv.education,
       ...(relevantProjects.length > 0 ? { projects: relevantProjects } : {}),
     },

@@ -121,19 +121,22 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 
 ## MCP automation bridge
 
-A local bridge is included for automation-friendly workflows:
+Cursor MCP servers (`.cursor/mcp.json`):
+
+| Server | Purpose |
+|--------|---------|
+| **job-agent-filesystem** | Read/write `data/cv/`, jobs, and tailored outputs |
+| **job-agent-playwright** | Fetch full job postings from URLs when paste/import fails |
+
+Restart Cursor after changing MCP config. For CLI background helpers:
 
 ```bash
 npm run mcp:start
 ```
 
-This starts a lightweight local bridge that reports readiness for:
-- filesystem workflows
-- GitHub workflows
-- browser automation workflows
-- SQLite-style workflows
+This starts filesystem + Playwright bridge workers. For GitHub MCP, set `GITHUB_TOKEN` in your environment.
 
-For full GitHub integration, provide a GitHub token in your environment as `GITHUB_TOKEN`.
+**ATS workflow in Cursor:** use Playwright MCP to open a job URL → paste/save to `data/jobs/` → tailor CV from verified `data/master-cv.json`.
 
 ## Roadmap
 

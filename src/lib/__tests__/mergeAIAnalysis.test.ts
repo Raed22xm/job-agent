@@ -111,12 +111,19 @@ describe("mergeGeneratedCV", () => {
       baseline.generatedCV,
       "Tailored summary for React role.",
       ["React", "JavaScript", "CSS"],
-      TEST_CV
+      TEST_CV,
+      baseline.job,
+      baseline.match
     );
 
     expect(merged.sections.summary).toBe("Tailored summary for React role.");
     expect(merged.sections.skills).toEqual(["React", "JavaScript", "CSS"]);
-    expect(merged.sections.experience).toEqual(TEST_CV.experience);
+    expect(merged.sections.experience.map((exp) => exp.id)).toEqual(
+      expect.arrayContaining(["exp-1"])
+    );
+    expect(merged.sections.experience[0].bullets).toEqual(
+      TEST_CV.experience[0].bullets
+    );
     expect(merged.sections.education).toEqual(TEST_CV.education);
   });
 });

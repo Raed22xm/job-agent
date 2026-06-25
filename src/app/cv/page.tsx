@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import ATSKeywordCoverage from "@/components/ATSKeywordCoverage";
 import CVEditor from "@/components/CVEditor";
 import CVPreview from "@/components/CVPreview";
 import CVValidationPanel from "@/components/CVValidationPanel";
 import ExportButtons from "@/components/ExportButtons";
 import { useJobAgent } from "@/context/JobAgentContext";
+import { scoreCVKeywordCoverage } from "@/lib/cv/scoreCVKeywords";
 import { exportCVToDocx, exportCVToPdf } from "@/lib/export/exportCV";
 import type { CVValidationResult } from "@/types";
 
@@ -19,6 +21,11 @@ export default function CVGeneratorPage() {
   } = useJobAgent();
   const exportRef = useRef<HTMLElement>(null);
   const [validation, setValidation] = useState<CVValidationResult | null>(null);
+
+  const keywordCoverage = useMemo(() => {
+    if (!generatedCV || !parsedJob) return null;
+    return scoreCVKeywordCoverage(generatedCV, parsedJob);
+  }, [generatedCV, parsedJob]);
 
   useEffect(() => {
     if (!generatedCV) {
@@ -127,6 +134,7 @@ export default function CVGeneratorPage() {
       </div>
 
       {validation && <CVValidationPanel issues={validation.issues} />}
+      {keywordCoverage && <ATSKeywordCoverage coverage={keywordCoverage} />}
       {!validation && (
         <p className="text-sm font-medium text-slate-500">
           Checking CV validation...

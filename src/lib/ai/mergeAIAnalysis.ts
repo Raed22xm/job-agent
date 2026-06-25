@@ -1,5 +1,6 @@
 import { ParsedJobSchema } from "@/lib/ai/schemas";
 import { validateGeneratedCV } from "@/lib/cv/validateCV";
+import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import { matchCV } from "@/lib/matchCV";
 import type { AnalyzeJobResult } from "@/lib/analyzeJobLocal";
 import type {
@@ -93,19 +94,23 @@ export function mergeGeneratedCV(
   heuristic: GeneratedCV,
   cvSummary: string,
   skillOrder: string[],
-  master: MasterCV
+  master: MasterCV,
+  job: ParsedJob,
+  match: MatchResult
 ): GeneratedCV {
   const skills =
     skillOrder.length > 0
       ? mergeSkillOrder(master.skills, skillOrder)
       : heuristic.sections.skills;
 
+  const experience = tailorExperienceForJob(master.experience, job, match);
+
   return {
     sections: {
       header: master.personalInfo,
       summary: cvSummary.trim() || heuristic.sections.summary,
       skills,
-      experience: master.experience,
+      experience,
       education: master.education,
       ...(heuristic.sections.projects?.length
         ? { projects: heuristic.sections.projects }
@@ -113,7 +118,7 @@ export function mergeGeneratedCV(
     },
     atsNotes: [
       ...heuristic.atsNotes,
-      "AI-tailored summary and skill order — experience unchanged from verified master CV.",
+      "AI-tailored summary and skill order — verified bullets reordered for the role.",
     ],
   };
 }
@@ -137,7 +142,9 @@ export function mergeAIEnhancement(
     baseline.generatedCV,
     enhancement.cvSummary,
     enhancement.skillOrder,
-    cv
+    cv,
+    job,
+    match
   );
 
   const generatedCoverLetter: GeneratedCoverLetter = {
