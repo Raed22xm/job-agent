@@ -9,6 +9,7 @@ import CVImpactScore from "@/components/CVImpactScore";
 import CVPreview from "@/components/CVPreview";
 import CVValidationPanel from "@/components/CVValidationPanel";
 import ExportButtons from "@/components/ExportButtons";
+import PreSendReviewModal from "@/components/PreSendReviewModal";
 import { useJobAgent } from "@/context/JobAgentContext";
 import { scoreCVKeywordCoverage } from "@/lib/cv/scoreCVKeywords";
 import { exportCVToDocx, exportCVToPdf } from "@/lib/export/exportCV";
@@ -30,6 +31,9 @@ export default function CVGeneratorPage() {
   const exportRef = useRef<HTMLElement>(null);
   const [validation, setValidation] = useState<CVValidationResult | null>(null);
   const [cvMeta, setCVMeta] = useState<CVMeta>({ languages: [], certifications: [] });
+  const [preSendOpen, setPreSendOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState<"pdf" | "docx" | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   // Fetch master CV metadata (languages + certifications) once on mount
   useEffect(() => {
@@ -129,6 +133,29 @@ export default function CVGeneratorPage() {
 
   const exportBlocked = !validation || !validation.valid;
 
+  const handleExport = async (type: "pdf" | "docx") => {
+    setExportError(null);
+    setIsExporting(type);
+    try {
+      if (type === "pdf") {
+        await exportCVToPdf(
+          getExportElement(),
+          parsedJob.company,
+          parsedJob.title
+        );
+      } else {
+        await exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title);
+      }
+      setPreSendOpen(false);
+    } catch (err) {
+      setExportError(
+        err instanceof Error ? err.message : "Export failed. Please try again."
+      );
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page header + export buttons */}
@@ -144,6 +171,7 @@ export default function CVGeneratorPage() {
           </p>
         </div>
         <ExportButtons
+          mode="review-first"
           disabled={exportBlocked}
           disabledReason={
             !validation
@@ -152,12 +180,9 @@ export default function CVGeneratorPage() {
               ? "Fix CV validation errors before exporting."
               : undefined
           }
-          onExportPdf={() =>
-            exportCVToPdf(getExportElement(), parsedJob.company, parsedJob.title)
-          }
-          onExportDocx={() =>
-            exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title)
-          }
+          primaryLabel="Review & export"
+          onExportPdf={() => setPreSendOpen(true)}
+          onExportDocx={() => setPreSendOpen(true)}
         />
       </div>
 
@@ -177,6 +202,20 @@ export default function CVGeneratorPage() {
 
       {/* ── Per-section feedback ──────────────────────────────────────────── */}
       <CVFeedbackPanel cv={generatedCV} />
+
+      <PreSendReviewModal
+        open={preSendOpen}
+        cv={generatedCV}
+        parsedJob={parsedJob}
+        validation={validation}
+        isExporting={isExporting}
+        onClose={() => {
+          setPreSendOpen(false);
+          setExportError(null);
+        }}
+        onExport={(type) => void handleExport(type)}
+        exportError={exportError}
+      />
 
       {/* ── Editor + Preview split ────────────────────────────────────────── */}
       <div className="grid gap-6 xl:grid-cols-2 xl:items-start">

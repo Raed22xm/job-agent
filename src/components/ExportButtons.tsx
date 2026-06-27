@@ -3,10 +3,14 @@
 import { useState } from "react";
 
 interface ExportButtonsProps {
-  onExportPdf: () => Promise<void>;
-  onExportDocx: () => Promise<void>;
+  onExportPdf: () => Promise<void> | void;
+  onExportDocx: () => Promise<void> | void;
   disabled?: boolean;
   disabledReason?: string;
+  primaryLabel?: string;
+  /** Opens review step first (export happens in modal). Default: direct export. */
+  mode?: "direct" | "review-first";
+  helpText?: string;
 }
 
 export default function ExportButtons({
@@ -14,6 +18,9 @@ export default function ExportButtons({
   onExportDocx,
   disabled = false,
   disabledReason,
+  primaryLabel = "Export DOCX",
+  mode = "direct",
+  helpText,
 }: ExportButtonsProps) {
   const [isExporting, setIsExporting] = useState<"pdf" | "docx" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,12 +46,38 @@ export default function ExportButtons({
 
   const isBusy = isExporting !== null;
   const isDisabled = disabled || isBusy;
+  const defaultHelp =
+    mode === "review-first"
+      ? "Compare your CV to best practices before you export and apply."
+      : "DOCX is recommended for ATS submissions. PDF preview export is image-based and may not be fully ATS-readable.";
+
+  if (mode === "review-first") {
+    return (
+      <div className="flex flex-col items-end gap-2">
+        <p className="max-w-sm text-right text-xs text-slate-500">
+          {helpText ?? defaultHelp}
+        </p>
+        {disabledReason && (
+          <p className="max-w-sm text-right text-xs font-medium text-rose-600">
+            {disabledReason}
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={isDisabled}
+          onClick={() => void onExportDocx()}
+          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {primaryLabel}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-end gap-2">
       <p className="max-w-sm text-right text-xs text-slate-500">
-        DOCX is recommended for ATS submissions. PDF preview export is image-based
-        and may not be fully ATS-readable.
+        {helpText ?? defaultHelp}
       </p>
       {disabledReason && (
         <p className="max-w-sm text-right text-xs font-medium text-rose-600">
@@ -66,7 +99,7 @@ export default function ExportButtons({
           onClick={() => handleExport("docx")}
           className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isExporting === "docx" ? "Exporting DOCX…" : "Export DOCX"}
+          {isExporting === "docx" ? "Exporting DOCX…" : primaryLabel}
         </button>
       </div>
       {error && (

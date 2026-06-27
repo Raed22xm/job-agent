@@ -54,7 +54,7 @@ function startsWithStrongVerb(bullet: string): boolean {
   return STRONG_VERBS.has(first);
 }
 
-function hasWeakOpener(text: string): boolean {
+export function hasWeakOpener(text: string): boolean {
   return WEAK_OPENERS.some((re) => re.test(text.trim()));
 }
 
