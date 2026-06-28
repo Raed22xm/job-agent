@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import InterviewPrepModal from "@/components/InterviewPrepModal";
 import type {
   Application,
   ApplicationStatus,
@@ -258,6 +259,34 @@ export default function ApplicationTable({
   onDelete,
 }: ApplicationTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [prepApp, setPrepApp] = useState<Application | null>(null);
+  const [loggingJobnet, setLoggingJobnet] = useState<string | null>(null);
+
+  const handleJobnetLog = async (app: Application) => {
+    setLoggingJobnet(app.id);
+    try {
+      const res = await fetch("/api/agent/jobnet-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobTitle: app.jobTitle,
+          company: app.company,
+          url: app.link,
+          appliedDate: app.appliedDate,
+        }),
+      });
+      if (res.ok) {
+        onUpdate(app.id, { jobnetLogged: true, jobnetLoggedDate: new Date().toISOString() });
+      } else {
+        alert("Jobnet subagent timeout or error. Check terminal.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to run Jobnet subagent.");
+    } finally {
+      setLoggingJobnet(null);
+    }
+  };
 
   if (applications.length === 0) {
     return (
@@ -395,12 +424,25 @@ export default function ApplicationTable({
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          window.location.href = `/jobnet?app=${encodeURIComponent(app.id)}`;
-                        }}
-                        className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                        onClick={() => setPrepApp(app)}
+                        className="text-xs font-medium text-purple-600 hover:text-purple-700"
                       >
-                        Jobnet
+                        Prep
+                      </button>
+                      <button
+                        type="button"
+                        disabled={loggingJobnet === app.id}
+                        onClick={() => handleJobnetLog(app)}
+                        className="text-xs font-medium text-emerald-700 hover:text-emerald-800 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {loggingJobnet === app.id ? (
+                          <>
+                            <span className="animate-spin">⟳</span>
+                            Logging...
+                          </>
+                        ) : (
+                          "Jobnet"
+                        )}
                       </button>
                       <button
                         type="button"
@@ -437,6 +479,13 @@ export default function ApplicationTable({
           </tbody>
         </table>
       </div>
+      
+      {prepApp && (
+        <InterviewPrepModal
+          application={prepApp}
+          onClose={() => setPrepApp(null)}
+        />
+      )}
     </div>
   );
 }

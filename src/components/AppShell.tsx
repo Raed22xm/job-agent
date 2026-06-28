@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ThemeProvider, useTheme } from "next-themes";
+import AutoScoutDaemon from "@/components/AutoScoutDaemon";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -14,29 +16,41 @@ const navItems = [
   { href: "/linkedin", label: "LinkedIn" },
   { href: "/tracker", label: "Application Tracker" },
   { href: "/jobnet", label: "🇩🇰 Jobnet" },
+  { href: "/geo-audit", label: "🗺️ Geo Audit" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div>
-            <Link href="/" className="text-xl font-semibold tracking-tight text-brand-700">
-              Job Agent
-            </Link>
-            <p className="text-sm text-slate-500">
-              Tailor applications from verified CV data — human approval required.
-            </p>
-          </div>
-          <nav className="flex flex-wrap gap-2">
+    <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
+      <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
+        <header className="border-b border-border bg-background-secondary">
+          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex items-center justify-between sm:justify-start sm:gap-4 w-full sm:w-auto">
+              <div>
+                <Link href="/" className="text-xl font-semibold tracking-tight text-primary">
+                  Job Agent
+                </Link>
+                <p className="text-sm text-foreground-secondary">
+                  Tailor applications from verified CV data — human approval required.
+                </p>
+              </div>
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="rounded-lg p-2 hover:bg-border transition-colors sm:ml-4"
+                aria-label="Toggle Dark Mode"
+              >
+                {mounted ? (theme === "dark" ? "☀️" : "🌙") : "🌙"}
+              </button>
+            </div>
+            <nav className="flex flex-wrap gap-2">
             {navItems.map((item) => {
               const isActive =
                 mounted &&
@@ -50,8 +64,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   href={item.href}
                   className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-brand-600 text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      ? "bg-primary text-white"
+                      : "text-foreground-secondary hover:bg-border hover:text-foreground"
                   }`}
                 >
                   {item.label}
@@ -60,15 +74,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </div>
-      </header>
+        </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-4 text-center text-xs text-slate-500 sm:px-6">
-          Local-first full-stack v0.4 — no auto-apply. Review all outputs before submitting applications.
-        </div>
-      </footer>
-    </div>
+        <footer className="border-t border-border bg-background-secondary">
+          <div className="mx-auto max-w-6xl px-4 py-4 text-center text-xs text-foreground-tertiary sm:px-6 flex items-center justify-center gap-2">
+            <span>Local-first full-stack v0.4 — no auto-apply. Review all outputs before submitting applications.</span>
+            <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-2">Daemon Active</span>
+          </div>
+        </footer>
+        <AutoScoutDaemon />
+      </div>
+    </ThemeProvider>
   );
 }

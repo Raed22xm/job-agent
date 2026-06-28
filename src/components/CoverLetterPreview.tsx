@@ -11,17 +11,17 @@ export default function CoverLetterPreview({
   exportRef,
 }: CoverLetterPreviewProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-slate-900">Cover Letter Preview</h2>
-        <p className="mt-1 text-sm text-slate-500">
+    <div className="rounded-xl border border-border bg-background shadow-sm">
+      <div className="border-b border-border px-6 py-4">
+        <h2 className="text-lg font-semibold text-foreground">Cover Letter Preview</h2>
+        <p className="mt-1 text-sm text-foreground-secondary">
           Draft generated from verified CV facts. Review and edit before sending.
         </p>
       </div>
 
       <article
         ref={exportRef}
-        className="mx-auto max-w-2xl bg-white px-8 py-8 text-sm leading-relaxed text-slate-800"
+        className="mx-auto max-w-2xl bg-background px-8 py-8 text-sm leading-relaxed text-foreground"
       >
         <p>{letter.greeting}</p>
         {letter.paragraphs.map((paragraph, index) => (

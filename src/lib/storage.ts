@@ -140,6 +140,25 @@ export async function exportApplicationsJson(): Promise<string> {
   return JSON.stringify(applications, null, 2);
 }
 
+export async function exportApplicationsCsv(): Promise<string> {
+  const applications = await getApplications();
+  const headers = [
+    "Company", "Job Title", "Location", "Status", "Match Score",
+    "Applied Date", "Deadline", "Follow-up Date", "Cover Letter",
+    "Notes", "Link", "Created At",
+  ];
+  const escape = (v: unknown) => {
+    const s = String(v ?? "").replace(/"/g, '""');
+    return s.includes(",") || s.includes("\n") || s.includes('"') ? `"${s}"` : s;
+  };
+  const rows = applications.map(a => [
+    a.company, a.jobTitle, a.location, a.status, a.matchScore ?? "",
+    a.appliedDate ?? "", a.deadline ?? "", a.followUpDate ?? "",
+    a.coverLetterStatus, a.notes ?? "", a.link ?? "", a.createdAt,
+  ].map(escape).join(","));
+  return [headers.join(","), ...rows].join("\n");
+}
+
 export async function importApplicationsJson(json: string): Promise<Application[]> {
   const parsed: unknown = JSON.parse(json);
   if (!Array.isArray(parsed)) {

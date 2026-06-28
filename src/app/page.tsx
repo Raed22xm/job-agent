@@ -33,6 +33,11 @@ const features = [
     href: "/linkedin",
   },
   {
+    title: "🗺️ Geo Audit",
+    description: "Score your CV skills against job market demand across DK cities and remote tiers — find your best market.",
+    href: "/geo-audit",
+  },
+  {
     title: "Job Guide",
     description: "Search methods, job boards, CV tips, and agent workflow.",
     href: "/guide",

@@ -2,15 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentProps } from "react";
 import ApplicationTable from "@/components/ApplicationTable";
+import SkillsGapDashboard from "@/components/SkillsGapDashboard";
 import { useJobAgent } from "@/context/JobAgentContext";
 import {
   deleteApplication,
   exportApplicationsJson,
+  exportApplicationsCsv,
   importApplicationsJson,
   updateApplication,
   updateApplicationStatus,
 } from "@/lib/storage";
-import { filterApplicationsDueThisWeek } from "@/lib/trackerReminders";
+import { filterApplicationsDueThisWeek, isOverdue } from "@/lib/trackerReminders";
 import { filterApplicationsNeedingJobnetLog } from "@/lib/jobnet/trackerJobnet";
 import type { ApplicationStatus } from "@/types";
 
@@ -31,6 +33,7 @@ export default function TrackerPage() {
   const [statusFilter, setStatusFilter] = useState<
     ApplicationStatus | "all" | "due" | "jobnet"
   >("all");
+  const [viewMode, setViewMode] = useState<"table" | "skills">("table");
   const [search, setSearch] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,13 +104,24 @@ export default function TrackerPage() {
 
   const handleExport = async () => {
     const json = await exportApplicationsJson();
-    const blob = new Blob([json], {
-      type: "application/json",
-    });
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = `job-agent-tracker-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
+  const handleExportCsv = async () => {
+    const csv = await exportApplicationsCsv();
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `job-agent-tracker-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -152,7 +166,27 @@ export default function TrackerPage() {
             fields for your kommune joblog on jobnet.dk.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex rounded-lg border border-border bg-background p-1 mr-2">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === "table" ? "bg-primary text-white" : "text-foreground-secondary hover:text-foreground"
+              }`}
+            >
+              Table View
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("skills")}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                viewMode === "skills" ? "bg-primary text-white" : "text-foreground-secondary hover:text-foreground"
+              }`}
+            >
+              Skills Gap
+            </button>
+          </div>
           <button
             type="button"
             onClick={handleExport}
@@ -160,6 +194,14 @@ export default function TrackerPage() {
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Export JSON
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleExportCsv()}
+            disabled={applications.length === 0}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Export CSV
           </button>
           <button
             type="button"
@@ -185,59 +227,106 @@ export default function TrackerPage() {
         </p>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <label
-            htmlFor="tracker-search"
-            className="text-sm font-medium text-slate-700"
-          >
-            Search
-          </label>
-          <input
-            id="tracker-search"
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, company, location, or notes"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="tracker-status"
-            className="text-sm font-medium text-slate-700"
-          >
-            Status
-          </label>
-          <select
-            id="tracker-status"
-            value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(e.target.value as ApplicationStatus | "all" | "due" | "jobnet")
-            }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2 sm:w-44"
-          >
-            {statusFilterOptions.map((status) => (
-              <option key={status} value={status}>
-                {status === "all"
-                  ? "All statuses"
-                  : status === "due"
-                    ? "Due this week"
-                    : status === "jobnet"
-                      ? "Needs Jobnet log"
-                    : status.charAt(0).toUpperCase() + status.slice(1)}
-              </option>
+      {/* Stats dashboard */}
+      {applications.length > 0 && (() => {
+        const applied = applications.filter(a => a.status === "applied" || a.status === "interview" || a.status === "offer").length;
+        const interviews = applications.filter(a => a.status === "interview").length;
+        const offers = applications.filter(a => a.status === "offer").length;
+        const rejected = applications.filter(a => a.status === "rejected").length;
+        const avgScore = applications.length > 0
+          ? Math.round(applications.reduce((s, a) => s + (a.matchScore ?? 0), 0) / applications.length)
+          : 0;
+        const overdue = applications.filter(a =>
+          isOverdue(a.deadline) || isOverdue(a.followUpDate)
+        ).length;
+        return (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+            {[
+              { label: "Total", value: applications.length, color: "slate" },
+              { label: "Applied", value: applied, color: "blue" },
+              { label: "Interviews", value: interviews, color: "emerald" },
+              { label: "Offers", value: offers, color: "violet" },
+              { label: "Rejected", value: rejected, color: "rose" },
+              { label: "Avg Match", value: `${avgScore}%`, color: overdue > 0 ? "amber" : "slate" },
+            ].map(stat => (
+              <div key={stat.label} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm">
+                <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{stat.label}</p>
+              </div>
             ))}
-          </select>
-        </div>
-      </div>
+          </div>
+        );
+      })()}
+      {applications.length > 0 && (() => {
+        const overdue = applications.filter(a =>
+          isOverdue(a.deadline) || isOverdue(a.followUpDate)
+        ).length;
+        return overdue > 0 ? (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-medium text-rose-700">
+            ⚠️ {overdue} application{overdue > 1 ? "s" : ""} overdue — check your deadlines
+          </div>
+        ) : null;
+      })()}
 
-      <ApplicationTable
-        applications={filteredApplications}
-        onStatusChange={handleStatusChange}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-      />
+      {viewMode === "table" ? (
+        <>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label
+                htmlFor="tracker-search"
+                className="text-sm font-medium text-slate-700"
+              >
+                Search
+              </label>
+              <input
+                id="tracker-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by title, company, location, or notes"
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="tracker-status"
+                className="text-sm font-medium text-slate-700"
+              >
+                Status
+              </label>
+              <select
+                id="tracker-status"
+                value={statusFilter}
+                onChange={(e) =>
+                  setStatusFilter(e.target.value as ApplicationStatus | "all" | "due" | "jobnet")
+                }
+                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2 sm:w-44"
+              >
+                {statusFilterOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {status === "all"
+                      ? "All statuses"
+                      : status === "due"
+                        ? "Due this week"
+                        : status === "jobnet"
+                          ? "Needs Jobnet log"
+                        : status.charAt(0).toUpperCase() + status.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <ApplicationTable
+            applications={filteredApplications}
+            onStatusChange={handleStatusChange}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
+        </>
+      ) : (
+        <SkillsGapDashboard applications={applications} />
+      )}
     </div>
   );
 }

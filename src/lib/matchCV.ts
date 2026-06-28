@@ -12,6 +12,7 @@ import {
   scoreSummary,
 } from "@/lib/job/scoreJob";
 import type { MasterCV, MatchResult, ParsedJob } from "@/types";
+import { semanticScoreJob } from "@/lib/ai/semanticMatch";
 
 function collectCVTerms(cv: MasterCV): {
   terms: string[];
@@ -180,6 +181,25 @@ export function matchCV(
     recommendedFocusAreas,
     summary,
     scoreBreakdown,
+  };
+}
+
+export async function semanticMatchCV(
+  job: ParsedJob,
+  cv: MasterCV = masterCV as MasterCV
+): Promise<MatchResult> {
+  // Get base keyword match
+  const baseMatch = matchCV(job, cv);
+  
+  if (baseMatch.score === 0) return baseMatch;
+
+  // Enhance the score breakdown with vector semantics
+  const enhancedBreakdown = await semanticScoreJob(job, cv);
+  
+  return {
+    ...baseMatch,
+    score: enhancedBreakdown.overall,
+    scoreBreakdown: enhancedBreakdown,
   };
 }
 

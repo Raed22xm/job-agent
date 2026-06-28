@@ -3,9 +3,27 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  /* Light Theme */
+  --background: #fafafa;
+  --background-secondary: #f0f0f0;
+  --foreground: #171717;
+  --foreground-secondary: #525252;
+  --foreground-tertiary: #a3a3a3;
+  --primary: #10b981; /* Emerald-500 equivalent */
+  --primary-dark: #059669;
+  --border: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] {
+  /* Dark Theme */
+  --background: #0a0a0a;
+  --background-secondary: #141414;
+  --foreground: #ededed;
+  --foreground-secondary: #888888;
+  --foreground-tertiary: #666666;
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 body {
-  @apply antialiased;
+  @apply antialiased bg-background text-foreground transition-colors duration-200;
 }

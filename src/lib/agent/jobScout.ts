@@ -10,6 +10,8 @@
  * Results are normalised, deduplicated, and sorted by match score.
  */
 
+import { type ScoreBreakdown } from "@/types";
+
 export interface ScoutedJob {
   id: string;
   title: string;
@@ -21,6 +23,7 @@ export interface ScoutedJob {
   postedAt: string;
   source: "remoteok" | "adzuna" | "jobnet" | "jobnet-portal" | "jobindex" | "dtu";
   matchScore?: number;
+  scoreBreakdown?: ScoreBreakdown;
   description?: string;
   requiresLogin?: boolean;  // true for sources that need authentication
 }
@@ -380,11 +383,19 @@ export function buildJobnetPortalLinks(query: string): ScoutedJob[] {
   }));
 }
 
+const searchCache = new Map<string, { data: ScoutedJob[]; timestamp: number }>();
+
 export async function searchJobs(
   query: string,
   location?: string,
   markets: ("remote" | "dk" | "global")[] = ["remote", "dk"]
 ): Promise<ScoutedJob[]> {
+  const cacheKey = `${query}|${location ?? ""}|${markets.join(",")}`;
+  const cached = searchCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+    return cached.data;
+  }
+
   const adzunaConfiguredCountry = process.env.ADZUNA_COUNTRY ?? "gb";
 
   const fetchers: Promise<ScoutedJob[]>[] = [];
@@ -425,7 +436,10 @@ export async function searchJobs(
     }
   }
 
-  return deduped.slice(0, 40);
+  const finalResults = deduped.slice(0, 40);
+  searchCache.set(cacheKey, { data: finalResults, timestamp: Date.now() });
+
+  return finalResults;
 }
 
 export function buildSearchQuery(skills: string[], title?: string): string {

@@ -3,7 +3,7 @@ import masterCV from "../../../../../data/master-cv.json";
 import type { MasterCV } from "@/types";
 import { searchJobs, buildSearchQuery, type ScoutedJob } from "@/lib/agent/jobScout";
 import { parseJob } from "@/lib/parseJob";
-import { matchCV } from "@/lib/matchCV";
+import { semanticMatchCV } from "@/lib/matchCV";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const jobs = await searchJobs(query, location, markets);
 
-  // Score each job against the CV using existing matchCV logic
+  // Score each job against the CV using semantic matchCV logic
   const scored: ScoutedJob[] = await Promise.all(
     jobs.map(async (job) => {
       try {
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
           job.description ??
           `${job.title} at ${job.company}. Tags: ${job.tags.join(", ")}`;
         const parsed = parseJob(description);
-        const match = matchCV(parsed);
-        return { ...job, matchScore: match.score };
+        const match = await semanticMatchCV(parsed);
+        return { ...job, matchScore: match.score, scoreBreakdown: match.scoreBreakdown };
       } catch {
         return job;
       }

@@ -6,9 +6,24 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
+        background: {
+          DEFAULT: "var(--background)",
+          secondary: "var(--background-secondary)",
+        },
+        foreground: {
+          DEFAULT: "var(--foreground)",
+          secondary: "var(--foreground-secondary)",
+          tertiary: "var(--foreground-tertiary)",
+        },
+        border: "var(--border)",
+        primary: {
+          DEFAULT: "var(--primary)",
+          dark: "var(--primary-dark)",
+        },
         brand: {
           50: "#f0f7ff",
           100: "#e0effe",

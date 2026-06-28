@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { CVAuditResult } from "@/lib/agent/cvAudit";
 
 interface CVAuditReportProps {
@@ -56,8 +57,8 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold text-slate-900">{result.overallScore}</span>
-            <span className="text-xs text-slate-500">/ 100</span>
+            <span className="text-2xl font-bold text-foreground">{result.overallScore}</span>
+            <span className="text-xs text-foreground-secondary">/ 100</span>
           </div>
         </div>
 
@@ -69,11 +70,11 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
             <span className={`rounded-full px-3 py-1 text-xs font-medium ${riskColors[result.atsRisk]}`}>
               ATS Risk: {result.atsRisk}
             </span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+            <span className="rounded-full bg-background-secondary border border-border px-3 py-1 text-xs text-foreground-secondary">
               ~{result.wordCount} words
             </span>
             {mode !== "ai" && (
-              <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-500">
+              <span className="rounded-full bg-background-secondary border border-border px-2 py-1 text-xs text-foreground-tertiary">
                 Local scoring
               </span>
             )}
@@ -81,12 +82,12 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
 
           {result.topPriorities.length > 0 && (
             <div className="mt-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-foreground-tertiary mb-2">
                 Top Priorities
               </p>
               <ul className="space-y-1">
                 {result.topPriorities.slice(0, 3).map((p, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                  <li key={i} className="flex items-start gap-2 text-sm text-foreground-secondary">
                     <span className="mt-0.5 text-rose-400 shrink-0">▲</span>
                     {p}
                   </li>
@@ -99,25 +100,25 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
 
       {/* Section breakdown */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3">Section Breakdown</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-3">Section Breakdown</h3>
         <div className="space-y-3">
           {result.sections.map((section) => (
             <div
               key={section.section}
-              className="rounded-xl border border-slate-200 bg-white p-4"
+              className="rounded-xl border border-border bg-background p-4"
             >
               <div className="flex items-center justify-between gap-3 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-medium text-slate-900 text-sm">{section.section}</span>
+                  <span className="font-medium text-foreground text-sm">{section.section}</span>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${labelColors[section.label]}`}>
                     {section.label}
                   </span>
                 </div>
-                <span className="text-sm font-bold text-slate-700 shrink-0">{section.score}/100</span>
+                <span className="text-sm font-bold text-foreground-secondary shrink-0">{section.score}/100</span>
               </div>
 
               {/* Score bar */}
-              <div className="h-1.5 w-full rounded-full bg-slate-100 mb-3">
+              <div className="h-1.5 w-full rounded-full bg-background-secondary mb-3">
                 <div
                   className="h-1.5 rounded-full transition-all duration-700"
                   style={{
@@ -141,20 +142,44 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
               {section.tips.length > 0 && (
                 <ul className="mb-2 space-y-0.5">
                   {section.tips.slice(0, 2).map((tip, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-xs text-slate-600">
-                      <span className="shrink-0 text-brand-500">→</span> {tip}
+                    <li key={i} className="flex items-start gap-1.5 text-xs text-foreground-secondary">
+                      <span className="shrink-0 text-primary">→</span> {tip}
                     </li>
                   ))}
                 </ul>
               )}
 
               {section.rewrittenExample && (
-                <pre className="mt-2 rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700 whitespace-pre-wrap font-mono">
+                <pre className="mt-2 rounded-lg bg-background-secondary border border-border p-3 text-xs text-foreground-secondary whitespace-pre-wrap font-mono">
                   {section.rewrittenExample}
                 </pre>
               )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* CTA — fix in CV Generator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-5 py-4">
+        <div>
+          <p className="text-sm font-semibold text-primary">Ready to apply the fixes?</p>
+          <p className="text-xs text-foreground-secondary mt-0.5">
+            Analyse a job first, then generate a tailored CV with these improvements applied.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/analyzer"
+            className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Analyze a job →
+          </Link>
+          <Link
+            href="/cv"
+            className="rounded-lg border border-primary bg-background px-4 py-2 text-xs font-semibold text-primary hover:bg-primary/5 transition-colors"
+          >
+            Go to CV Generator →
+          </Link>
         </div>
       </div>
     </div>

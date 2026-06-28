@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import CoverLetterEditor from "@/components/CoverLetterEditor";
 import CoverLetterPreview from "@/components/CoverLetterPreview";
@@ -10,6 +10,8 @@ import {
   exportCoverLetterToDocx,
   exportCoverLetterToPdf,
 } from "@/lib/export/exportCoverLetter";
+import { saveApplication, updateApplication } from "@/lib/storage";
+import type { Application } from "@/types";
 
 export default function CoverLetterPage() {
   const {
@@ -17,8 +19,11 @@ export default function CoverLetterPage() {
     parsedJob,
     updateGeneratedCoverLetter,
     resetGeneratedCoverLetter,
+    applications,
+    refreshApplications,
   } = useJobAgent();
   const exportRef = useRef<HTMLElement>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   if (!generatedCoverLetter || !parsedJob) {
     return (
@@ -44,6 +49,43 @@ export default function CoverLetterPage() {
     return exportRef.current;
   };
 
+  const handleExportComplete = async () => {
+    if (!parsedJob) return;
+    
+    // Check if application exists in tracker
+    const existingApp = applications.find(
+      (a) => a.jobTitle === parsedJob.title && a.company === parsedJob.company
+    );
+
+    try {
+      if (existingApp) {
+        await updateApplication(existingApp.id, { coverLetterStatus: "ready" });
+        setSaveMessage("Cover letter status updated in tracker ✓");
+      } else {
+        const app: Partial<Application> = {
+          id: `app-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          company: parsedJob.company,
+          jobTitle: parsedJob.title,
+          location: parsedJob.location,
+          link: parsedJob.sourceUrl || "",
+          matchScore: 0, // Will be updated if analyzed later
+          status: "draft",
+          coverLetterStatus: "ready",
+          job: parsedJob,
+          match: { score: 0, matchedKeywords: [], missingKeywords: [], recommendedFocusAreas: [], summary: "" },
+        };
+        await saveApplication(app as Application);
+        setSaveMessage("Saved to application tracker ✓");
+      }
+      await refreshApplications();
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch {
+      // Silently fail if save error, user still gets their export
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -54,22 +96,19 @@ export default function CoverLetterPage() {
             preview live, then export — no auto-submit.
           </p>
         </div>
-        <ExportButtons
-          onExportPdf={() =>
-            exportCoverLetterToPdf(
-              getExportElement(),
-              parsedJob.company,
-              parsedJob.title
-            )
-          }
-          onExportDocx={() =>
-            exportCoverLetterToDocx(
-              generatedCoverLetter,
-              parsedJob.company,
-              parsedJob.title
-            )
-          }
-        />
+        <div className="flex items-center gap-3">
+          {saveMessage && <span className="text-sm font-medium text-emerald-600">{saveMessage}</span>}
+          <ExportButtons
+            onExportPdf={async () => {
+              await exportCoverLetterToPdf(getExportElement(), parsedJob.company, parsedJob.title);
+              await handleExportComplete();
+            }}
+            onExportDocx={async () => {
+              await exportCoverLetterToDocx(generatedCoverLetter, parsedJob.company, parsedJob.title);
+              await handleExportComplete();
+            }}
+          />
+        </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
