@@ -22,6 +22,8 @@ interface ApplicationTableProps {
         | "recruiterContact"
         | "appliedDate"
         | "followUpDate"
+        | "jobnetLogged"
+        | "jobnetLoggedDate"
       >
     >
   ) => void;
@@ -309,6 +311,9 @@ export default function ApplicationTable({
               <th className="px-4 py-3 text-left font-semibold text-slate-700">
                 Link
               </th>
+              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+                Jobnet
+              </th>
               <th className="px-4 py-3 text-right font-semibold text-slate-700">
                 Actions
               </th>
@@ -373,8 +378,30 @@ export default function ApplicationTable({
                       <span className="text-slate-400">—</span>
                     )}
                   </td>
+                  <td className="px-4 py-3">
+                    {app.jobnetLogged ? (
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        Logget
+                      </span>
+                    ) : app.status === "applied" || app.status === "interview" ? (
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        Mangler
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.location.href = `/jobnet?app=${encodeURIComponent(app.id)}`;
+                        }}
+                        className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
+                      >
+                        Jobnet
+                      </button>
                       <button
                         type="button"
                         onClick={() =>
@@ -396,7 +423,7 @@ export default function ApplicationTable({
                 </tr>
                 {expandedId === app.id && (
                   <tr>
-                    <td colSpan={11} className="px-4 py-3">
+                    <td colSpan={12} className="px-4 py-3">
                       <EditFields
                         app={app}
                         onUpdate={onUpdate}

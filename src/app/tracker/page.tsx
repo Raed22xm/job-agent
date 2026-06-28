@@ -11,11 +11,13 @@ import {
   updateApplicationStatus,
 } from "@/lib/storage";
 import { filterApplicationsDueThisWeek } from "@/lib/trackerReminders";
+import { filterApplicationsNeedingJobnetLog } from "@/lib/jobnet/trackerJobnet";
 import type { ApplicationStatus } from "@/types";
 
-const statusFilterOptions: Array<ApplicationStatus | "all" | "due"> = [
+const statusFilterOptions: Array<ApplicationStatus | "all" | "due" | "jobnet"> = [
   "all",
   "due",
+  "jobnet",
   "draft",
   "ready",
   "applied",
@@ -27,7 +29,7 @@ const statusFilterOptions: Array<ApplicationStatus | "all" | "due"> = [
 export default function TrackerPage() {
   const { applications, refreshApplications } = useJobAgent();
   const [statusFilter, setStatusFilter] = useState<
-    ApplicationStatus | "all" | "due"
+    ApplicationStatus | "all" | "due" | "jobnet"
   >("all");
   const [search, setSearch] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
@@ -38,6 +40,9 @@ export default function TrackerPage() {
     if (params.get("filter") === "due") {
       setStatusFilter("due");
     }
+    if (params.get("filter") === "jobnet") {
+      setStatusFilter("jobnet");
+    }
   }, []);
 
   const filteredApplications = useMemo(() => {
@@ -46,6 +51,10 @@ export default function TrackerPage() {
       statusFilter === "due"
         ? new Set(filterApplicationsDueThisWeek(applications).map((a) => a.id))
         : null;
+    const jobnetSet =
+      statusFilter === "jobnet"
+        ? new Set(filterApplicationsNeedingJobnetLog(applications).map((a) => a.id))
+        : null;
 
     return applications.filter((app) => {
       const matchesStatus =
@@ -53,6 +62,8 @@ export default function TrackerPage() {
           ? true
           : statusFilter === "due"
             ? dueSet!.has(app.id)
+            : statusFilter === "jobnet"
+              ? jobnetSet!.has(app.id)
             : app.status === statusFilter;
       const matchesSearch =
         !query ||
@@ -136,8 +147,9 @@ export default function TrackerPage() {
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             Saved on the server in{" "}
-            <code className="text-xs">data/applications.sqlite</code>. Export a JSON
-            backup before deleting project data.
+            <code className="text-xs">data/applications.sqlite</code>. After each
+            application, use <strong className="font-medium">Jobnet</strong> to copy
+            fields for your kommune joblog on jobnet.dk.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -201,7 +213,7 @@ export default function TrackerPage() {
             id="tracker-status"
             value={statusFilter}
             onChange={(e) =>
-              setStatusFilter(e.target.value as ApplicationStatus | "all" | "due")
+              setStatusFilter(e.target.value as ApplicationStatus | "all" | "due" | "jobnet")
             }
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2 sm:w-44"
           >
@@ -211,6 +223,8 @@ export default function TrackerPage() {
                   ? "All statuses"
                   : status === "due"
                     ? "Due this week"
+                    : status === "jobnet"
+                      ? "Needs Jobnet log"
                     : status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
             ))}

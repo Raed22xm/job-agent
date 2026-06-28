@@ -21,6 +21,7 @@ import {
   getApplications,
   saveApplication,
 } from "@/lib/storage";
+import { findMatchingApplication, mergeApplicationWithSession } from "@/lib/jobnet/sessionApplication";
 import {
   loadAnalysisSession,
   saveAnalysisSession,
@@ -346,22 +347,32 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const application: Application = {
-      id: createApplicationId(),
-      createdAt: now,
-      updatedAt: now,
-      job: parsedJob,
-      match: matchResult,
-      status: "draft",
-      company: parsedJob.company,
-      jobTitle: parsedJob.title,
-      link: parsedJob.sourceUrl,
-      location: parsedJob.location,
-      matchScore: matchResult.score,
-      cvVersion: cvOutputPath ?? `generated-${now.slice(0, 10)}`,
-      coverLetterStatus: generatedCoverLetter ? "draft" : "none",
-      coverLetterOutputPath,
-    };
+    const existingApps = await getApplications();
+    const existing = findMatchingApplication(existingApps, parsedJob);
+
+    const application: Application = existing
+      ? mergeApplicationWithSession(existing, parsedJob, matchResult, {
+          generatedCV,
+          generatedCoverLetter,
+          cvOutputPath,
+          coverLetterOutputPath,
+        })
+      : {
+          id: createApplicationId(),
+          createdAt: now,
+          updatedAt: now,
+          job: parsedJob,
+          match: matchResult,
+          status: "draft",
+          company: parsedJob.company,
+          jobTitle: parsedJob.title,
+          link: parsedJob.sourceUrl,
+          location: parsedJob.location,
+          matchScore: matchResult.score,
+          cvVersion: cvOutputPath ?? `generated-${now.slice(0, 10)}`,
+          coverLetterStatus: generatedCoverLetter ? "draft" : "none",
+          coverLetterOutputPath,
+        };
 
     await saveApplication(application);
     await refreshApplications();

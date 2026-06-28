@@ -175,6 +175,8 @@ export async function patchApplicationOnDisk(
       | "recruiterContact"
       | "appliedDate"
       | "followUpDate"
+      | "jobnetLogged"
+      | "jobnetLoggedDate"
     >
   >,
   workspaceRoot = process.cwd()

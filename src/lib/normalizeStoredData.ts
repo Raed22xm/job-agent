@@ -254,5 +254,9 @@ export function normalizeApplication(value: unknown): Application | null {
     appliedDate: typeof app.appliedDate === "string" ? app.appliedDate : undefined,
     followUpDate:
       typeof app.followUpDate === "string" ? app.followUpDate : undefined,
+    jobnetLogged:
+      typeof app.jobnetLogged === "boolean" ? app.jobnetLogged : undefined,
+    jobnetLoggedDate:
+      typeof app.jobnetLoggedDate === "string" ? app.jobnetLoggedDate : undefined,
   };
 }

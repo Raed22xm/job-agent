@@ -14,11 +14,12 @@ export interface AIConfig {
 }
 
 export function getAIConfig(): AIConfig {
-  if (process.env.OPENAI_API_KEY) {
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  if (apiKey) {
     return {
       provider: "openai",
       isConfigured: true,
-      model: process.env.OPENAI_MODEL ?? "gpt-4o",
+      model: process.env.OPENAI_MODEL?.trim() || "gpt-4o",
     };
   }
 

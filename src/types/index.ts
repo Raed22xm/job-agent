@@ -149,4 +149,7 @@ export interface Application {
   recruiterContact?: string;
   appliedDate?: string;
   followUpDate?: string;
+  /** Logged on jobnet.dk for kommune / jobcenter documentation */
+  jobnetLogged?: boolean;
+  jobnetLoggedDate?: string;
 }

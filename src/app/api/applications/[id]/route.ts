@@ -19,6 +19,8 @@ const ApplicationPatchSchema = z
     recruiterContact: z.string().optional(),
     appliedDate: z.string().optional(),
     followUpDate: z.string().optional(),
+    jobnetLogged: z.boolean().optional(),
+    jobnetLoggedDate: z.string().optional(),
   })
   .strict();
 

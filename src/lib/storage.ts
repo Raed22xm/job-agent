@@ -108,6 +108,8 @@ export async function updateApplication(
       | "recruiterContact"
       | "appliedDate"
       | "followUpDate"
+      | "jobnetLogged"
+      | "jobnetLoggedDate"
     >
   >
 ): Promise<Application[]> {

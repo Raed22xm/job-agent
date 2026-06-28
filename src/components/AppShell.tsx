@@ -13,6 +13,7 @@ const navItems = [
   { href: "/cover-letter", label: "Cover Letter" },
   { href: "/linkedin", label: "LinkedIn" },
   { href: "/tracker", label: "Application Tracker" },
+  { href: "/jobnet", label: "🇩🇰 Jobnet" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

@@ -39,7 +39,17 @@ export async function POST(request: Request) {
     const baseline = analyzeJobLocally(jobDescription, sourceUrl, cv);
     const aiConfig = getAIConfig();
 
-    if (!aiConfig.isConfigured || !enhanceWithAI) {
+    if (enhanceWithAI && !aiConfig.isConfigured) {
+      return NextResponse.json(
+        {
+          error:
+            "AI is not configured. Add OPENAI_API_KEY to .env and restart the dev server (npm run dev).",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (!enhanceWithAI) {
       return NextResponse.json(baseline);
     }
 

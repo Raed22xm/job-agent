@@ -11,8 +11,9 @@ export async function GET() {
     return NextResponse.json({
       languages: cv.languages ?? [],
       certifications: cv.certifications ?? [],
+      portfolio: cv.personalInfo.portfolio ?? "",
     });
   } catch {
-    return NextResponse.json({ languages: [], certifications: [] });
+    return NextResponse.json({ languages: [], certifications: [], portfolio: "" });
   }
 }

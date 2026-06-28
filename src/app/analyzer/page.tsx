@@ -194,12 +194,14 @@ export default function AnalyzerPage() {
         />
 
         <div className="space-y-6">
-          {error && !showResults && (
+          {error && (
             <div
               role="alert"
               className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800"
             >
-              <p className="font-semibold">Analysis failed</p>
+              <p className="font-semibold">
+                {showResults ? "AI enhancement failed" : "Analysis failed"}
+              </p>
               <p className="mt-1">{error}</p>
             </div>
           )}
