@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import masterCV from "../../../../../data/master-cv.json";
+import { getPersona } from "@/lib/personaManager";
 import type { MasterCV } from "@/types";
 import { searchJobs, buildSearchQuery, type ScoutedJob } from "@/lib/agent/jobScout";
 import { parseJob } from "@/lib/parseJob";
@@ -7,7 +7,12 @@ import { semanticMatchCV } from "@/lib/matchCV";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const cv = masterCV as MasterCV;
+  const personaId = body.personaId;
+  const cv = getPersona(personaId);
+  
+  if (!cv) {
+    return NextResponse.json({ error: "No CV persona found" }, { status: 400 });
+  }
 
   const customQuery: string | undefined = body.query;
   const location: string | undefined = body.location;

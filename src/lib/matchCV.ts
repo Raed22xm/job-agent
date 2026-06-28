@@ -1,4 +1,4 @@
-import masterCV from "../../data/master-cv.json";
+import { getPersona } from "@/lib/personaManager";
 import {
   isLanguageTerm,
   normalizeTerm,
@@ -135,7 +135,7 @@ function buildRecommendedFocusAreas(
  */
 export function matchCV(
   job: ParsedJob,
-  cv: MasterCV = masterCV as MasterCV
+  cv: MasterCV
 ): MatchResult {
   const { terms: cvTerms, sources } = collectCVTerms(cv);
   const terms = jobTerms(job);
@@ -186,8 +186,19 @@ export function matchCV(
 
 export async function semanticMatchCV(
   job: ParsedJob,
-  cv: MasterCV = masterCV as MasterCV
+  personaId?: string
 ): Promise<MatchResult> {
+  const cv = getPersona(personaId);
+  if (!cv) {
+    return {
+      score: 0,
+      matchedKeywords: [],
+      missingKeywords: [],
+      recommendedFocusAreas: [],
+      summary: "",
+    };
+  }
+  
   // Get base keyword match
   const baseMatch = matchCV(job, cv);
   
@@ -204,5 +215,7 @@ export async function semanticMatchCV(
 }
 
 export function getMasterCV(): MasterCV {
-  return masterCV as MasterCV;
+  const cv = getPersona();
+  if (!cv) throw new Error("No default CV found");
+  return cv;
 }

@@ -1,7 +1,7 @@
-import { openai } from "@ai-sdk/openai";
+import { getProvider } from "@/lib/ai/provider";
 import { generateText } from "ai";
 import { NextResponse } from "next/server";
-import masterCV from "../../../../../data/master-cv.json";
+import { getPersona } from "@/lib/personaManager";
 import type { MasterCV } from "@/types";
 import {
   fallbackGeoAudit,
@@ -20,8 +20,17 @@ const LOCATION_META_IDS = [
   "remote_global",
 ];
 
-export async function POST() {
-  const cv = masterCV as MasterCV;
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  
+  const personaId = body.personaId;
+  const cv = getPersona(personaId);
+  
+  if (!cv) {
+    return NextResponse.json({ error: "No CV persona found" }, { status: 400 });
+  }
+
+  const { query, location } = body;
   const apiKey = process.env.OPENAI_API_KEY;
 
   // Run local scoring regardless of AI availability
@@ -47,8 +56,10 @@ export async function POST() {
 
   // Enrich with AI narrative
   try {
+    const { model } = getProvider();
+  
     const { text } = await generateText({
-      model: openai("gpt-4o-mini"),
+      model,
       prompt: buildGeoAuditPrompt(cv, fallback.locations),
       temperature: 0.4,
       maxOutputTokens: 150,

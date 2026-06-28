@@ -9,6 +9,7 @@ import AnalyzerNextSteps from "@/components/AnalyzerNextSteps";
 import JobInput from "@/components/JobInput";
 import KeywordList from "@/components/KeywordList";
 import MatchScoreCard from "@/components/MatchScoreCard";
+import NegotiationPanel from "@/components/NegotiationPanel";
 import { useJobAgent } from "@/context/JobAgentContext";
 
 export default function AnalyzerPage() {
@@ -248,6 +249,11 @@ export default function AnalyzerPage() {
               <GapHonestyPanel missingKeywords={matchResult.missingKeywords} />
 
               <CVFocusAreas areas={matchResult.recommendedFocusAreas ?? []} />
+
+              <NegotiationPanel 
+                jobDescription={jobDescription} 
+                matchScore={matchResult.score} 
+              />
             </>
           )}
         </div>

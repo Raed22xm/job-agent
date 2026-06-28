@@ -1,5 +1,5 @@
 import { embed } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { getProvider } from "@/lib/ai/provider";
 
 /**
  * Calculates cosine similarity between two vectors.
@@ -26,9 +26,11 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
  * Generates an embedding for a given text string using OpenAI.
  */
 export async function generateTextEmbedding(text: string): Promise<number[]> {
+  const { embeddingModel } = getProvider();
+  
   try {
     const { embedding } = await embed({
-      model: openai.embedding("text-embedding-3-small"),
+      model: embeddingModel,
       value: text,
     });
     return embedding;

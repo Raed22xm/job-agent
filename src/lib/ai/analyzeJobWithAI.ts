@@ -1,4 +1,4 @@
-import { openai } from "@ai-sdk/openai";
+import { getProvider } from "@/lib/ai/provider";
 import { generateObject } from "ai";
 import { z } from "zod";
 import type { AnalyzeJobResult } from "@/lib/analyzeJobLocal";
@@ -13,8 +13,6 @@ import {
 import type { AIConfig } from "@/lib/ai/providers";
 import { GeneratedCoverLetterSchema } from "@/lib/ai/schemas";
 import type { MasterCV } from "@/types";
-
-const FALLBACK_MODELS = ["gpt-4o-mini", "gpt-5-nano-2025-08-07"];
 
 const AIJobFieldsSchema = z.object({
   title: z.string(),
@@ -97,10 +95,6 @@ export async function analyzeJobWithAI(
 ): Promise<AnalyzeJobResult> {
   const { jobDescription, sourceUrl, cv, baseline, config } = options;
 
-  if (config.provider !== "openai") {
-    throw new Error(`Unsupported AI provider: ${config.provider}`);
-  }
-
   const object = await generateEnhancement(
     config,
     buildAnalysisPrompt(jobDescription, cv, baseline)
@@ -115,53 +109,23 @@ export async function analyzeJobWithAI(
   );
 }
 
-function isModelAccessError(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const err = error as { statusCode?: number; data?: { error?: { code?: string } } };
-  return (
-    err.statusCode === 403 &&
-    err.data?.error?.code === "model_not_found"
-  );
-}
-
-function supportsTemperature(model: string): boolean {
-  const normalized = model.toLowerCase();
-  return !(
-    normalized.includes("gpt-5") ||
-    normalized.includes("o1") ||
-    normalized.includes("o3")
-  );
-}
-
 async function generateEnhancement(
   config: AIConfig,
   prompt: string
 ): Promise<AIJobEnhancement> {
-  const models = [config.model, ...FALLBACK_MODELS].filter(
-    (model, index, all) => model && all.indexOf(model) === index
-  );
+  const { model } = getProvider();
 
-  let lastError: unknown;
-
-  for (const model of models) {
-    try {
-      const { object } = await generateObject({
-        model: openai(model),
-        schema: AIJobEnhancementSchema,
-        system: SYSTEM_TRUTHFULNESS,
-        prompt,
-        ...(supportsTemperature(model) ? { temperature: 0.3 } : {}),
-      });
-      return object;
-    } catch (error) {
-      lastError = error;
-      const isLast = model === models[models.length - 1];
-      if (!isModelAccessError(error) || isLast) {
-        throw error;
-      }
-      console.warn(`Model ${model} unavailable, trying next fallback`);
-    }
+  try {
+    const { object } = await generateObject({
+      model,
+      schema: AIJobEnhancementSchema,
+      system: SYSTEM_TRUTHFULNESS,
+      prompt,
+      temperature: 0.1,
+    });
+    return object;
+  } catch (error) {
+    console.error(`AI analysis failed:`, error);
+    throw error;
   }
-
-  throw lastError;
 }

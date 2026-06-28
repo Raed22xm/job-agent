@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentProps } from "react";
 import ApplicationTable from "@/components/ApplicationTable";
+import ApplicationHeatmap from "@/components/ApplicationHeatmap";
 import SkillsGapDashboard from "@/components/SkillsGapDashboard";
 import { useJobAgent } from "@/context/JobAgentContext";
 import {
@@ -267,6 +268,8 @@ export default function TrackerPage() {
           </div>
         ) : null;
       })()}
+
+      <ApplicationHeatmap applications={applications} />
 
       {viewMode === "table" ? (
         <>

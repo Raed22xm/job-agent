@@ -1,8 +1,8 @@
-import { openai } from "@ai-sdk/openai";
+import { getProvider } from "@/lib/ai/provider";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import masterCV from "../../../../../data/master-cv.json";
+import { getPersona } from "@/lib/personaManager";
 import type { MasterCV } from "@/types";
 import {
   buildCVAuditPrompt,
@@ -30,8 +30,16 @@ const CVAuditSchema = z.object({
   wordCount: z.number(),
 });
 
-export async function POST() {
-  const cv = masterCV as MasterCV;
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => ({}));
+  
+  const personaId = body.personaId;
+  const cv = getPersona(personaId);
+  
+  if (!cv) {
+    return NextResponse.json({ error: "No CV persona found" }, { status: 400 });
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
@@ -40,8 +48,10 @@ export async function POST() {
   }
 
   try {
+    const { model } = getProvider();
+
     const { object } = await generateObject({
-      model: openai("gpt-4o-mini"),
+      model,
       schema: CVAuditSchema,
       system: SYSTEM,
       prompt: buildCVAuditPrompt(cv),

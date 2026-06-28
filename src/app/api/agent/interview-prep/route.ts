@@ -1,8 +1,8 @@
-import { openai } from "@ai-sdk/openai";
+import { getProvider } from "@/lib/ai/provider";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
-import masterCV from "../../../../../data/master-cv.json";
+import { getPersona } from "@/lib/personaManager";
 import type { MasterCV } from "@/types";
 import { SYSTEM_TRUTHFULNESS } from "@/lib/ai/prompts";
 
@@ -85,6 +85,14 @@ function fallbackPrep(
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
+  
+  const personaId = body.personaId;
+  const cv = getPersona(personaId);
+  
+  if (!cv) {
+    return NextResponse.json({ error: "No CV persona found" }, { status: 400 });
+  }
+
   const { jobTitle, company, jobDescription = "" } = body;
 
   if (!jobTitle || !company) {
@@ -94,7 +102,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const cv = masterCV as MasterCV;
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
@@ -105,8 +112,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const { model } = getProvider();
+
     const { object } = await generateObject({
-      model: openai("gpt-4o"),
+      model,
       schema: InterviewPrepSchema,
       system: SYSTEM_TRUTHFULNESS,
       prompt: buildInterviewPrompt(cv, jobTitle, company, jobDescription),

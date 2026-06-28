@@ -9,6 +9,8 @@ import AutoScoutDaemon from "@/components/AutoScoutDaemon";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/agent", label: "🤖 Agent" },
+  { href: "/copilot", label: "🎙️ Copilot" },
+  { href: "/boardroom", label: "🤖 Boardroom" },
   { href: "/guide", label: "Job Guide" },
   { href: "/analyzer", label: "Job Analyzer" },
   { href: "/cv", label: "CV Generator" },
