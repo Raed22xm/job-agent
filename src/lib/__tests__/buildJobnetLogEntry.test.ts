@@ -98,6 +98,51 @@ describe("buildJobnetLogEntry", () => {
     expect(entry.description).toContain("Figma");
   });
 
+  it("extracts recruiter contact fields from job posting text", () => {
+    const entry = buildJobnetLogEntry(
+      makeApplication({
+        job: {
+          ...makeApplication().job,
+          rawText:
+            "Kontaktperson: Anna Larsen. Ansøg til anna.larsen@sybo.dk eller ring +45 20 11 22 33.",
+        },
+      })
+    );
+
+    expect(entry.fields.find((f) => f.key === "contactName")?.value).toBe(
+      "Anna Larsen"
+    );
+    expect(entry.fields.find((f) => f.key === "contactEmail")?.value).toBe(
+      "anna.larsen@sybo.dk"
+    );
+    expect(entry.fields.find((f) => f.key === "contactPhone")?.value).toBe(
+      "+45 20 11 22 33"
+    );
+  });
+
+  it("extracts deadline and address from posting when tracker fields are empty", () => {
+    const entry = buildJobnetLogEntry(
+      makeApplication({
+        location: "Copenhagen",
+        job: {
+          ...makeApplication().job,
+          rawText:
+            "Ansøgningsfrist: 01.08.2026. Kontor: Holmens Kanal 7, 1060 København K.",
+        },
+      })
+    );
+
+    expect(entry.fields.find((f) => f.key === "deadline")?.value).toBe(
+      "01-08-2026"
+    );
+    expect(entry.fields.find((f) => f.key === "address")?.value).toContain(
+      "Holmens Kanal"
+    );
+    expect(entry.fields.find((f) => f.key === "postalCodeAndCity")?.value).toBe(
+      "1060 København K"
+    );
+  });
+
   it("flags missing postcode when only city is known", () => {
     const entry = buildJobnetLogEntry(makeApplication());
     expect(entry.missingRequired).toContain("Postnummer og by");

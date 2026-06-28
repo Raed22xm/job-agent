@@ -165,7 +165,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             type="text"
             value={recruiterContact}
             onChange={(e) => setRecruiterContact(e.target.value)}
-            placeholder="Name, email, or LinkedIn"
+            placeholder="Navn, email, telefon — auto-udfyldes fra jobopslag hvis muligt"
             className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
           />
         </div>

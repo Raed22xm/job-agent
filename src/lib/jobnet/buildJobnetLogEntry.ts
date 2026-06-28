@@ -1,8 +1,16 @@
 import type { Application, ApplicationStatus } from "@/types";
+import { extractJobContact } from "@/lib/jobnet/extractJobContact";
+import {
+  extractJobDeadline,
+  extractWorkplaceAddress,
+  inferJobnetApplyMethod,
+  inferJobnetFoundVia,
+  type JobnetApplyMethod,
+  type JobnetFoundVia,
+} from "@/lib/jobnet/extractJobPostingMeta";
 
+export type { JobnetApplyMethod, JobnetFoundVia };
 export type JobnetProgressStatus = "Ikke søgt" | "Søgt" | "Samtale";
-export type JobnetFoundVia = "Opslået stilling" | "Uopfordret" | "Gennem Netværk";
-export type JobnetApplyMethod = "Digitalt" | "Personligt" | "Telefonisk";
 export type JobnetWorkingHours = "Fuldtid" | "Deltid";
 
 /** Matches scroll order on jobnet.dk → Opret joblog */
@@ -187,7 +195,20 @@ export function buildJobnetLogEntry(
   application: Application,
   options: BuildJobnetLogOptions = {}
 ): JobnetLogEntry {
-  const workplace = parseWorkplaceLocation(application.location);
+  const rawText = application.job.rawText ?? "";
+  const contact = extractJobContact(rawText, application.recruiterContact);
+  const extractedAddress = extractWorkplaceAddress(rawText);
+  const locationContext = [application.location, extractedAddress]
+    .filter(Boolean)
+    .join(" · ");
+  const workplace = parseWorkplaceLocation(locationContext);
+  const streetAddress =
+    workplace.streetAddress ||
+    (extractedAddress && !/\d{4}/.test(extractedAddress)
+      ? extractedAddress
+      : extractedAddress.replace(/\d{4}\s+[A-Za-zÆØÅæøå .-]+.*$/, "").trim());
+  const deadlineIso =
+    application.deadline?.trim() || extractJobDeadline(rawText);
   const appliedDate =
     formatJobnetDate(application.appliedDate) ||
     formatJobnetDate(new Date().toISOString());
@@ -195,10 +216,12 @@ export function buildJobnetLogEntry(
   const workingHours = inferWorkingHours(
     application.jobTitle,
     application.location,
-    application.job.rawText
+    rawText
   );
-  const foundVia = options.foundVia ?? "Opslået stilling";
-  const applyMethod = options.applyMethod ?? "Digitalt";
+  const hasJobLink = Boolean(application.link?.trim());
+  const foundVia =
+    options.foundVia ?? inferJobnetFoundVia(rawText, hasJobLink);
+  const applyMethod = options.applyMethod ?? inferJobnetApplyMethod(rawText);
   const description = buildDescription(application, options.portfolioUrl);
 
   const cvFileName = application.cvVersion?.endsWith(".pdf")
@@ -218,7 +241,7 @@ export function buildJobnetLogEntry(
     field(
       "deadline",
       "Ansøgningsfrist",
-      formatJobnetDate(application.deadline),
+      formatJobnetDate(deadlineIso),
       "Om jobbet",
       false
     ),
@@ -241,12 +264,12 @@ export function buildJobnetLogEntry(
     field(
       "address",
       "Adresse",
-      workplace.streetAddress || workplace.addressLine,
+      streetAddress || workplace.addressLine,
       "Om arbejdspladsen",
       false,
       "text",
       undefined,
-      workplace.streetAddress
+      streetAddress || workplace.streetAddress
         ? undefined
         : "Gade/adresse hvis du kender den — ellers lad stå tom"
     ),
@@ -266,12 +289,24 @@ export function buildJobnetLogEntry(
     field(
       "contactName",
       "Navn på kontaktperson",
-      application.recruiterContact?.split(/[,@]/)[0]?.trim() ?? "",
+      contact.contactName,
       "Kontakt og link",
       false
     ),
-    field("contactPhone", "Telefonnummer", "", "Kontakt og link", false),
-    field("contactEmail", "E-mail", "", "Kontakt og link", false),
+    field(
+      "contactPhone",
+      "Telefonnummer",
+      contact.contactPhone,
+      "Kontakt og link",
+      false
+    ),
+    field(
+      "contactEmail",
+      "E-mail",
+      contact.contactEmail,
+      "Kontakt og link",
+      false
+    ),
     field(
       "jobLink",
       "Link til jobannonce",

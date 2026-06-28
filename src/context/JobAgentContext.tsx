@@ -23,6 +23,11 @@ import {
 } from "@/lib/storage";
 import { findMatchingApplication, mergeApplicationWithSession } from "@/lib/jobnet/sessionApplication";
 import {
+  extractJobContact,
+  formatRecruiterContact,
+} from "@/lib/jobnet/extractJobContact";
+import { extractJobDeadline } from "@/lib/jobnet/extractJobPostingMeta";
+import {
   loadAnalysisSession,
   saveAnalysisSession,
   type ClientSessionSnapshot,
@@ -349,14 +354,26 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
 
     const existingApps = await getApplications();
     const existing = findMatchingApplication(existingApps, parsedJob);
+    const extractedContact = extractJobContact(
+      parsedJob.rawText,
+      existing?.recruiterContact
+    );
+    const recruiterContact =
+      existing?.recruiterContact ?? formatRecruiterContact(extractedContact);
+    const deadline =
+      existing?.deadline ?? extractJobDeadline(parsedJob.rawText);
 
     const application: Application = existing
-      ? mergeApplicationWithSession(existing, parsedJob, matchResult, {
-          generatedCV,
-          generatedCoverLetter,
-          cvOutputPath,
-          coverLetterOutputPath,
-        })
+      ? {
+          ...mergeApplicationWithSession(existing, parsedJob, matchResult, {
+            generatedCV,
+            generatedCoverLetter,
+            cvOutputPath,
+            coverLetterOutputPath,
+          }),
+          recruiterContact: existing.recruiterContact ?? recruiterContact,
+          deadline: existing.deadline ?? deadline,
+        }
       : {
           id: createApplicationId(),
           createdAt: now,
@@ -372,6 +389,8 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
           cvVersion: cvOutputPath ?? `generated-${now.slice(0, 10)}`,
           coverLetterStatus: generatedCoverLetter ? "draft" : "none",
           coverLetterOutputPath,
+          recruiterContact,
+          deadline,
         };
 
     await saveApplication(application);
