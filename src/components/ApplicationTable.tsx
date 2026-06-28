@@ -261,6 +261,33 @@ export default function ApplicationTable({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [prepApp, setPrepApp] = useState<Application | null>(null);
   const [loggingJobnet, setLoggingJobnet] = useState<string | null>(null);
+  const [autoApplying, setAutoApplying] = useState<string | null>(null);
+
+  const handleAutoApply = async (app: Application) => {
+    if (!app.link) return;
+    setAutoApplying(app.id);
+    try {
+      const res = await fetch("/api/agent/auto-apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applyUrl: app.link,
+          personaId: "default",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || "Browser opened for review.");
+      } else {
+        alert(data.error || "Failed to auto-apply");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Failed to start Auto-Apply swarm.");
+    } finally {
+      setAutoApplying(null);
+    }
+  };
 
   const handleJobnetLog = async (app: Application) => {
     setLoggingJobnet(app.id);
@@ -429,6 +456,23 @@ export default function ApplicationTable({
                       >
                         Prep
                       </button>
+                      {app.link && (
+                        <button
+                          type="button"
+                          disabled={autoApplying === app.id}
+                          onClick={() => handleAutoApply(app)}
+                          className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 flex items-center gap-1"
+                        >
+                          {autoApplying === app.id ? (
+                            <>
+                              <span className="animate-spin">⟳</span>
+                              Applying...
+                            </>
+                          ) : (
+                            "Auto-Apply"
+                          )}
+                        </button>
+                      )}
                       <button
                         type="button"
                         disabled={loggingJobnet === app.id}

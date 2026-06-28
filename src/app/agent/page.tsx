@@ -38,6 +38,29 @@ export default function AgentPage() {
 
   const [geoResult, setGeoResult] = useState<GeoAuditResult | null>(null);
   const [pipelineStep, setPipelineStep] = useState<0 | 1 | 2 | 3>(0);
+  const [isSyncingGithub, setIsSyncingGithub] = useState(false);
+
+  const runGithubSync = async () => {
+    setIsSyncingGithub(true);
+    addLog("info", "🐙 Connecting to GitHub API to sync recent activity...");
+    try {
+      const res = await fetch("/api/agent/github-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: "octocat" }) // Default for demo
+      });
+      const data = await res.json();
+      if (res.ok) {
+        addLog("success", `🐙 ${data.message}`);
+      } else {
+        addLog("error", `🐙 GitHub Sync failed: ${data.error}`);
+      }
+    } catch (e: any) {
+      addLog("error", `🐙 GitHub Sync failed: ${e.message}`);
+    } finally {
+      setIsSyncingGithub(false);
+    }
+  };
 
   // Read ?location= param from URL (set by Geo Audit card links)
   useEffect(() => {
@@ -516,6 +539,26 @@ export default function AgentPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">Advanced Sync</h3>
+                <p className="text-xs text-slate-500 mb-3">
+                  Sync your recent GitHub commits into the RAG Knowledge Base to dynamically inject live coding activity into your Cover Letters.
+                </p>
+                <button
+                  onClick={runGithubSync}
+                  disabled={isSyncingGithub}
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+                >
+                  {isSyncingGithub ? (
+                    <>
+                      <span className="animate-spin">⟳</span> Syncing...
+                    </>
+                  ) : (
+                    "🐙 Sync GitHub Activity"
+                  )}
+                </button>
               </div>
             </div>
 

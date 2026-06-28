@@ -152,4 +152,5 @@ export interface Application {
   /** Logged on jobnet.dk for kommune / jobcenter documentation */
   jobnetLogged?: boolean;
   jobnetLoggedDate?: string;
+  personaIdUsed?: string;
 }

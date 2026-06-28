@@ -258,6 +258,56 @@ export default function TrackerPage() {
           </div>
         );
       })()}
+      
+      {/* Persona A/B Analytics */}
+      {applications.length > 0 && (() => {
+        // Group by personaIdUsed
+        const personaStats: Record<string, { total: number; interviews: number }> = {};
+        
+        for (const app of applications) {
+          const pId = app.personaIdUsed || "default";
+          if (!personaStats[pId]) personaStats[pId] = { total: 0, interviews: 0 };
+          
+          if (["applied", "interview", "rejected", "offer"].includes(app.status)) {
+            personaStats[pId].total += 1;
+            if (["interview", "offer"].includes(app.status)) {
+              personaStats[pId].interviews += 1;
+            }
+          }
+        }
+
+        const entries = Object.entries(personaStats).filter(([_, stats]) => stats.total > 0);
+        if (entries.length === 0) return null;
+
+        return (
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-slate-900 mb-3">CV A/B Testing Analytics</h2>
+            <div className="space-y-3">
+              {entries.map(([pId, stats]) => {
+                const conversion = Math.round((stats.interviews / stats.total) * 100);
+                return (
+                  <div key={pId} className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-700">Persona: {pId}</p>
+                      <p className="text-xs text-slate-500">{stats.interviews} interviews / {stats.total} applied</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-indigo-500 rounded-full" 
+                          style={{ width: `${conversion}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm font-bold text-slate-900 w-12 text-right">{conversion}%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {applications.length > 0 && (() => {
         const overdue = applications.filter(a =>
           isOverdue(a.deadline) || isOverdue(a.followUpDate)

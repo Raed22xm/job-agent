@@ -2,6 +2,44 @@ import cron from "node-cron";
 import { checkInboxForReplies } from "../src/lib/imapSync";
 
 const API_BASE = "http://localhost:3000/api";
+const MATCH_THRESHOLD = 85;
+
+// Optional: Discord Webhook URL for push notifications
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+
+async function sendDiscordNotification(job: any, matchScore: number) {
+  if (!DISCORD_WEBHOOK_URL) return;
+
+  const payload = {
+    username: "Job Agent Daemon",
+    avatar_url: "https://i.imgur.com/4M34hi2.png",
+    embeds: [
+      {
+        title: `🔥 High Match Job Found: ${job.title}`,
+        url: job.url,
+        color: 0x00FF00,
+        fields: [
+          { name: "Company", value: job.company, inline: true },
+          { name: "Match Score", value: `${matchScore}%`, inline: true },
+          { name: "Location", value: job.location, inline: true },
+        ],
+        footer: { text: "Job Agent Tracker • Auto-Scraped" },
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  };
+
+  try {
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    console.log(`[Daemon] 📱 Push notification sent for ${job.title}`);
+  } catch (error) {
+    console.error("[Daemon] Failed to send Discord notification", error);
+  }
+}
 
 async function runDaemonSweep() {
   console.log(`[Daemon] Starting autonomous sweep at ${new Date().toISOString()}`);
@@ -38,7 +76,7 @@ async function runDaemonSweep() {
       const scoutData = await scoutRes.json();
       const matchedJob = scoutData.jobs?.[0]; // Get the first match to see if it scored well
       
-      if (matchedJob && matchedJob.matchScore >= 85) {
+      if (matchedJob && matchedJob.matchScore >= MATCH_THRESHOLD) {
         console.log(`[Daemon] 🎯 High match found: ${job.title} (${matchedJob.matchScore}%)`);
         
         // Draft an email
@@ -55,6 +93,10 @@ async function runDaemonSweep() {
         
         if (outreachRes.ok) {
           console.log(`[Daemon] ✅ Outreach email drafted for ${job.company}`);
+          
+          // Send Mobile Push Notification
+          await sendDiscordNotification(job, matchedJob.matchScore);
+          
           excellentMatches++;
         }
       }
