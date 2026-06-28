@@ -25,11 +25,11 @@ export default function CoverLetterEditor({
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-6 py-4">
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-6 py-4 dark:border-slate-700">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Edit Cover Letter</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Edit Cover Letter</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Refine the draft before export. Use only verified facts from your CV.
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function CoverLetterEditor({
         <div>
           <label
             htmlFor="letter-greeting"
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
           >
             Greeting
           </label>
@@ -57,14 +57,14 @@ export default function CoverLetterEditor({
             type="text"
             value={letter.greeting}
             onChange={(e) => updateField("greeting", e.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+            className="field-input"
           />
         </div>
 
         <div>
           <label
             htmlFor="letter-body"
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
           >
             Body
           </label>
@@ -75,9 +75,9 @@ export default function CoverLetterEditor({
               updateField("paragraphs", textToParagraphs(e.target.value))
             }
             rows={12}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+            className="field-textarea"
           />
-          <p className="mt-1.5 text-xs text-slate-500">
+          <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
             Separate paragraphs with a blank line.
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function CoverLetterEditor({
           <div>
             <label
               htmlFor="letter-closing"
-              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
             >
               Closing
             </label>
@@ -95,13 +95,13 @@ export default function CoverLetterEditor({
               type="text"
               value={letter.closing}
               onChange={(e) => updateField("closing", e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+              className="field-input"
             />
           </div>
           <div>
             <label
               htmlFor="letter-signature"
-              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
             >
               Signature
             </label>
@@ -110,7 +110,7 @@ export default function CoverLetterEditor({
               type="text"
               value={letter.signature}
               onChange={(e) => updateField("signature", e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+              className="field-input"
             />
           </div>
         </div>

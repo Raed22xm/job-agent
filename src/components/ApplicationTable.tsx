@@ -129,7 +129,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             value={cvVersion}
             onChange={(e) => setCvVersion(e.target.value)}
             placeholder="e.g. tailored-react-v2"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+            className="mt-1 field-input-compact"
           />
         </div>
         <div>
@@ -145,7 +145,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             onChange={(e) =>
               setCoverLetterStatus(e.target.value as CoverLetterStatus)
             }
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+            className="mt-1 field-input-compact"
           >
             {coverLetterOptions.map((status) => (
               <option key={status} value={status}>
@@ -167,7 +167,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             value={recruiterContact}
             onChange={(e) => setRecruiterContact(e.target.value)}
             placeholder="Navn, email, telefon — auto-udfyldes fra jobopslag hvis muligt"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+            className="mt-1 field-input-compact"
           />
         </div>
         <div>
@@ -182,7 +182,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             type="date"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+            className="mt-1 field-input-compact"
           />
         </div>
         <div>
@@ -197,7 +197,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             type="date"
             value={appliedDate}
             onChange={(e) => setAppliedDate(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+            className="mt-1 field-input-compact"
           />
         </div>
         <div>
@@ -212,7 +212,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
             type="date"
             value={followUpDate}
             onChange={(e) => setFollowUpDate(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+            className="mt-1 field-input-compact"
           />
         </div>
       </div>
@@ -229,7 +229,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="Interview prep, feedback, next steps…"
-          className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+          className="mt-1 field-input-compact resize-y"
         />
       </div>
       <div className="flex flex-wrap gap-2">

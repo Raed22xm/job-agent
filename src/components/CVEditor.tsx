@@ -145,7 +145,7 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
             value={cv.sections.summary}
             onChange={(e) => updateSummary(e.target.value)}
             rows={5}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+            className="field-textarea"
           />
           <SummaryTip text={cv.sections.summary} />
         </div>
@@ -181,7 +181,7 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
             value={listToLines(cv.sections.skills)}
             onChange={(e) => updateSkills(e.target.value)}
             rows={6}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+            className="field-textarea"
           />
           <p className="mt-1.5 text-xs text-slate-500">
             One skill per line · ranked by job relevance.
@@ -206,7 +206,7 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
                 value={listToLines(role.bullets)}
                 onChange={(e) => updateBullets(role.id, e.target.value)}
                 rows={Math.max(4, role.bullets.length + 1)}
-                className="mt-3 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+                className="field-textarea mt-3"
               />
               <div className="mt-1.5 flex items-start justify-between gap-2">
                 <p className="text-xs text-slate-500">One bullet per line.</p>

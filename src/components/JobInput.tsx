@@ -74,7 +74,7 @@ export default function JobInput({
               value={jobUrl}
               onChange={(e) => onJobUrlChange(e.target.value)}
               placeholder="https://thehub.io/jobs/..."
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm text-slate-800 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500"
+              className="field-input"
             />
             {onImportUrl && (
               <button
@@ -107,7 +107,7 @@ export default function JobInput({
           onPaste={onPaste}
           rows={14}
           placeholder={`Example:\n\nSenior Full-Stack Developer\nAcme Corp · San Francisco, CA (Hybrid)\n\nRequirements:\n- 5+ years experience with TypeScript, React, and Node.js\n- Experience with PostgreSQL and Docker\n- Strong communication and Agile experience\n\nResponsibilities:\n- Build customer-facing web applications\n- Design REST APIs and collaborate with product teams`}
-          className={`w-full resize-y rounded-xl border px-4 py-3 text-sm leading-relaxed text-slate-800 outline-none transition focus:ring-2 ${
+          className={`field-textarea resize-y ${
             validationError
               ? "border-rose-300 ring-rose-200 focus:border-rose-400"
               : "border-slate-300 ring-brand-500 focus:border-brand-400"

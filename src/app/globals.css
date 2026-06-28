@@ -12,6 +12,10 @@
   --primary: #10b981; /* Emerald-500 equivalent */
   --primary-dark: #059669;
   --border: rgba(0, 0, 0, 0.08);
+  --field-bg: #ffffff;
+  --field-text: #0f172a;
+  --field-border: #cbd5e1;
+  --field-placeholder: #94a3b8;
 }
 
 [data-theme="dark"] {
@@ -22,8 +26,61 @@
   --foreground-secondary: #888888;
   --foreground-tertiary: #666666;
   --border: rgba(255, 255, 255, 0.08);
+  --field-bg: #1e293b;
+  --field-text: #f8fafc;
+  --field-border: #475569;
+  --field-placeholder: #94a3b8;
 }
 
 body {
   @apply antialiased bg-background text-foreground transition-colors duration-200;
+}
+
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]),
+  textarea,
+  select {
+    background-color: var(--field-bg);
+    color: var(--field-text);
+    border-color: var(--field-border);
+    caret-color: var(--field-text);
+    -webkit-text-fill-color: var(--field-text);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--field-placeholder);
+    opacity: 1;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--field-bg) inset;
+    -webkit-text-fill-color: var(--field-text);
+    caret-color: var(--field-text);
+  }
+}
+
+@layer components {
+  .field-input {
+    @apply w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500;
+    background-color: var(--field-bg);
+    color: var(--field-text);
+  }
+
+  .field-textarea {
+    @apply w-full resize-y rounded-xl border px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-500;
+    background-color: var(--field-bg);
+    color: var(--field-text);
+  }
+
+  .field-input-compact {
+    @apply w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-brand-500;
+    background-color: var(--field-bg);
+    color: var(--field-text);
+  }
 }
