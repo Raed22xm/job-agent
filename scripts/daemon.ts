@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import { checkInboxForReplies } from "../src/lib/imapSync";
 
 const API_BASE = "http://localhost:3000/api";
 
@@ -60,6 +61,17 @@ async function runDaemonSweep() {
     }
     
     console.log(`[Daemon] Sweep complete. Found ${excellentMatches} highly qualified roles ready for outreach.`);
+
+    // 3. Check for recruiter replies
+    console.log(`[Daemon] Checking IMAP Inbox for recruiter replies...`);
+    const replies = await checkInboxForReplies();
+    if (replies.length > 0) {
+      console.log(`[Daemon] 📬 Found ${replies.length} new replies.`);
+      // In a full system, we would match these against the Tracker DB
+      // and use AI to update status to "Interview" or "Rejected"
+    } else {
+      console.log(`[Daemon] 📭 No new recruiter replies.`);
+    }
 
   } catch (error) {
     console.error("[Daemon] Error during sweep:", error);

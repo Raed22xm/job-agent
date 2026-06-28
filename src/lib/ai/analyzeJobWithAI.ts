@@ -13,6 +13,7 @@ import {
 import type { AIConfig } from "@/lib/ai/providers";
 import { GeneratedCoverLetterSchema } from "@/lib/ai/schemas";
 import type { MasterCV } from "@/types";
+import { searchKnowledgeBase } from "@/lib/rag";
 
 const AIJobFieldsSchema = z.object({
   title: z.string(),
@@ -47,7 +48,8 @@ export interface AnalyzeJobWithAIOptions {
 function buildAnalysisPrompt(
   jobDescription: string,
   cv: MasterCV,
-  baseline: AnalyzeJobResult
+  baseline: AnalyzeJobResult,
+  ragContext: string[]
 ): string {
   const masterCVJson = JSON.stringify(cv, null, 2);
   const heuristicJobJson = JSON.stringify(baseline.job, null, 2);
@@ -87,7 +89,10 @@ Job: ${heuristicJobJson}
 Match: ${matchJson}
 
 Master CV:
-${masterCVJson}`;
+${masterCVJson}
+
+Additional Verified Knowledge Base Context:
+${ragContext.length > 0 ? ragContext.join("\n\n") : "No additional knowledge base context provided."}`;
 }
 
 export async function analyzeJobWithAI(
@@ -95,9 +100,12 @@ export async function analyzeJobWithAI(
 ): Promise<AnalyzeJobResult> {
   const { jobDescription, sourceUrl, cv, baseline, config } = options;
 
+  // Retrieve relevant past achievements, code snippets, etc. from local RAG
+  const ragContext = await searchKnowledgeBase(jobDescription, 3);
+
   const object = await generateEnhancement(
     config,
-    buildAnalysisPrompt(jobDescription, cv, baseline)
+    buildAnalysisPrompt(jobDescription, cv, baseline, ragContext)
   );
 
   return mergeAIEnhancement(
