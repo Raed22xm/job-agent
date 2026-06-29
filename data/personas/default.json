@@ -9,6 +9,8 @@
     "summary": "Full-stack udvikler med fokus på React, Next.js og TypeScript. Har bygget produktionsklare checkout-flows med 15 % lavere frafald, 12+ REST API'er med 99,9 % oppetid og 40 % færre produktionsfejl. Erfaring fra Novo Nordisk og BS Technologies med målbare resultater på tværs af frontend, backend og UX."
   },
   "skills": [
+    "Go",
+    "Golang",
     "Java",
     "JavaScript",
     "TypeScript",
