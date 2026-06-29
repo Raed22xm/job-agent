@@ -138,11 +138,7 @@ export default function CVGeneratorPage() {
     setIsExporting(type);
     try {
       if (type === "pdf") {
-        await exportCVToPdf(
-          getExportElement(),
-          parsedJob.company,
-          parsedJob.title
-        );
+        await exportCVToPdf(generatedCV, parsedJob.company, parsedJob.title);
       } else {
         await exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title);
       }
@@ -166,8 +162,8 @@ export default function CVGeneratorPage() {
             Tailored for{" "}
             <span className="font-medium">{parsedJob.title}</span> at{" "}
             <span className="font-medium">{parsedJob.company}</span>. Edit
-            summary, skills, and bullets, then export — PDF matches preview;
-            DOCX is editable in Word.
+            summary, skills, and bullets, then export — PDF is text-based
+            (under 1 MB, Jobnet-safe); DOCX is editable in Word.
           </p>
         </div>
         <ExportButtons

@@ -100,7 +100,11 @@ export default function CoverLetterPage() {
           {saveMessage && <span className="text-sm font-medium text-emerald-600">{saveMessage}</span>}
           <ExportButtons
             onExportPdf={async () => {
-              await exportCoverLetterToPdf(getExportElement(), parsedJob.company, parsedJob.title);
+              await exportCoverLetterToPdf(
+                generatedCoverLetter,
+                parsedJob.company,
+                parsedJob.title
+              );
               await handleExportComplete();
             }}
             onExportDocx={async () => {

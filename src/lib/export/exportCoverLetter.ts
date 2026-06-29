@@ -1,7 +1,13 @@
 import { Document, Packer, Paragraph, TextRun } from "docx";
 import type { GeneratedCoverLetter } from "@/types";
 import { buildExportBasename, downloadBlob } from "@/lib/export/download";
-import { exportElementToPdf } from "@/lib/export/exportElementToPdf";
+import {
+  addPdfWrappedText,
+  createA4PdfAsync,
+  PDF_BODY_SIZE,
+  PDF_MARGIN_MM,
+  pdfContentWidth,
+} from "@/lib/export/textPdf";
 
 export async function exportCoverLetterToDocx(
   letter: GeneratedCoverLetter,
@@ -39,11 +45,34 @@ export async function exportCoverLetterToDocx(
   downloadBlob(blob, `${basename}.docx`);
 }
 
+/** Text-based PDF — small file size (Jobnet max 6 MB). */
 export async function exportCoverLetterToPdf(
-  element: HTMLElement,
+  letter: GeneratedCoverLetter,
   company: string,
   title: string
 ): Promise<void> {
+  const pdf = await createA4PdfAsync();
+  const maxWidth = pdfContentWidth(pdf);
+  let y = PDF_MARGIN_MM;
+
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(PDF_BODY_SIZE);
+
+  y = addPdfWrappedText(pdf, letter.greeting, PDF_MARGIN_MM, y, maxWidth);
+  y += 4;
+
+  for (const paragraph of letter.paragraphs) {
+    y = addPdfWrappedText(pdf, paragraph, PDF_MARGIN_MM, y, maxWidth);
+    y += 4;
+  }
+
+  y += 2;
+  y = addPdfWrappedText(pdf, letter.closing, PDF_MARGIN_MM, y, maxWidth);
+  y += 8;
+  pdf.setFont("helvetica", "bold");
+  y = addPdfWrappedText(pdf, letter.signature, PDF_MARGIN_MM, y, maxWidth);
+
+  const blob = pdf.output("blob");
   const basename = buildExportBasename("cover-letter", company, title);
-  await exportElementToPdf(element, `${basename}.pdf`);
+  downloadBlob(blob, `${basename}.pdf`);
 }

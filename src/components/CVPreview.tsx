@@ -43,51 +43,51 @@ export default function CVPreview({
 
         <article
           ref={exportRef}
-          className="cv-document bg-white px-[12mm] py-[10mm] font-sans text-slate-900"
+          className="cv-document bg-white px-[10mm] py-[8mm]"
           style={{ width: "210mm", maxWidth: "100%" }}
         >
           <header className="border-b border-slate-400 pb-1.5 text-center">
-            <h1 className="text-[16pt] font-bold leading-tight text-slate-900">
+            <h1 className="text-[15pt] font-bold leading-tight text-[#111111]">
               {header.fullName}
             </h1>
-            <p className="mt-0.5 text-[9pt] text-slate-600">
+            <p className="cv-text-muted mt-0.5 text-[8.5pt]">
               {[header.location, header.email, header.phone]
                 .filter(Boolean)
                 .join(" · ")}
             </p>
             {(header.linkedin || header.portfolio) && (
-              <p className="text-[8.5pt] text-slate-500">
+              <p className="cv-text-subtle text-[8pt]">
                 {[header.linkedin, header.portfolio].filter(Boolean).join(" · ")}
               </p>
             )}
           </header>
 
           <Section title="Professional Summary">
-            <p className="text-[9.5pt] leading-snug text-slate-800">{summary}</p>
+            <p className="text-[10pt] leading-snug text-[#111111]">{summary}</p>
           </Section>
 
           <Section title="Skills">
-            <p className="text-[9.5pt] leading-snug text-slate-700">
+            <p className="text-[10pt] leading-snug text-[#111111]">
               {skills.join(" · ")}
             </p>
           </Section>
 
           <Section title="Experience">
-            <div className="mt-1 space-y-2">
+            <div className="mt-1 space-y-1.5">
               {experience.map((role) => (
                 <div key={role.id}>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0">
-                    <h3 className="text-[10pt] font-bold text-slate-900">
+                    <h3 className="text-[10pt] font-bold text-[#111111]">
                       {role.title}
                     </h3>
-                    <span className="text-[8.5pt] text-slate-500 shrink-0">
+                    <span className="cv-text-subtle shrink-0 text-[8pt]">
                       {role.startDate} – {role.endDate}
                     </span>
                   </div>
-                  <p className="text-[9pt] font-medium text-slate-600">
+                  <p className="cv-text-muted text-[8.5pt] font-medium">
                     {role.company} · {role.location}
                   </p>
-                  <ul className="list-disc space-y-0.5 pl-[1.1em] text-[9.5pt] leading-snug text-slate-800">
+                  <ul className="list-disc space-y-0.5 pl-[1.1em] text-[10pt] leading-snug text-[#111111]">
                     {role.bullets.map((bullet, index) => (
                       <li key={`${role.id}-${index}`}>{bullet}</li>
                     ))}
@@ -102,10 +102,10 @@ export default function CVPreview({
               <div className="mt-1 space-y-1">
                 {projects.map((project) => (
                   <div key={project.id}>
-                    <p className="text-[9.5pt] font-bold text-slate-900">
+                    <p className="text-[10pt] font-bold text-[#111111]">
                       {project.name}
                     </p>
-                    <p className="text-[9.5pt] leading-snug text-slate-700">
+                    <p className="text-[10pt] leading-snug text-[#111111]">
                       {project.description}
                     </p>
                   </div>
@@ -118,14 +118,14 @@ export default function CVPreview({
             <div className="mt-1 space-y-1">
               {education.map((edu) => (
                 <div key={edu.id}>
-                  <p className="text-[9.5pt] font-bold text-slate-900">
+                  <p className="text-[10pt] font-bold text-[#111111]">
                     {edu.degree} in {edu.field}
                   </p>
-                  <p className="text-[9pt] text-slate-600">
+                  <p className="cv-text-muted text-[8.5pt]">
                     {edu.institution} · {edu.startDate} – {edu.endDate}
                   </p>
                   {edu.details && edu.details.length > 0 && (
-                    <ul className="mt-0.5 list-disc pl-[1.1em] text-[9pt] leading-snug text-slate-500">
+                    <ul className="cv-text-subtle mt-0.5 list-disc pl-[1.1em] text-[8.5pt] leading-snug">
                       {edu.details.map((d, i) => (
                         <li key={i}>{d}</li>
                       ))}
@@ -138,7 +138,7 @@ export default function CVPreview({
 
           {certifications && certifications.length > 0 && (
             <Section title="Certifications">
-              <ul className="mt-1 list-disc space-y-0 pl-[1.1em] text-[9.5pt] leading-snug text-slate-800">
+              <ul className="mt-1 list-disc space-y-0 pl-[1.1em] text-[10pt] leading-snug text-[#111111]">
                 {certifications.map((cert) => (
                   <li key={cert}>{cert}</li>
                 ))}
@@ -148,7 +148,7 @@ export default function CVPreview({
 
           {languages && languages.length > 0 && (
             <Section title="Languages">
-              <p className="text-[9.5pt] leading-snug text-slate-800">
+              <p className="text-[10pt] leading-snug text-[#111111]">
                 {languages.map(({ language, level }) => `${language} (${level})`).join(" · ")}
               </p>
             </Section>
@@ -180,8 +180,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-2.5">
-      <h2 className="border-b border-slate-400 pb-0.5 text-[8pt] font-bold uppercase tracking-wide text-slate-800">
+    <section className="mt-2">
+      <h2 className="border-b border-slate-400 pb-0.5 text-[8pt] font-bold uppercase tracking-wide text-[#111111]">
         {title}
       </h2>
       {children}

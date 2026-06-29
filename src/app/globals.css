@@ -83,4 +83,23 @@ body {
     background-color: var(--field-bg);
     color: var(--field-text);
   }
+
+  /* ATS export preview — always light paper, crisp black text (unaffected by dark mode) */
+  .cv-document,
+  .export-document {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #111111;
+    font-family: Arial, Helvetica, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .cv-document .cv-text-muted {
+    color: #333333;
+  }
+
+  .cv-document .cv-text-subtle {
+    color: #555555;
+  }
 }
