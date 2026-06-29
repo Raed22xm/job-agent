@@ -6,6 +6,72 @@ import {
 } from "@/lib/jobDictionaries";
 import type { ParsedJob } from "@/types";
 
+const BOILERPLATE_LINE =
+  /^(skip to main content|skip to content|career menu|share page|apply now|back to jobs|back to job|menu|navigation|cookie|accept all)$/i;
+
+function isBoilerplateLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return true;
+  if (BOILERPLATE_LINE.test(trimmed)) return true;
+  if (/^(home|jobs|careers|about us|about)$/i.test(trimmed)) return true;
+  return false;
+}
+
+function meaningfulLines(lines: string[]): string[] {
+  return lines.filter((line) => !isBoilerplateLine(line));
+}
+
+function extractJoinAsTitle(text: string): string | null {
+  const match = text.match(
+    /join\s+([A-Za-z0-9][A-Za-z0-9&.'-]{1,45})\s+as\s+(?:a\s+|an\s+|the\s+)?(.+?)(?:[!?.]|$)/i
+  );
+  const title = match?.[2]?.trim();
+  if (title && title.length >= 3 && title.length <= 70) {
+    return title.replace(/\s+/g, " ");
+  }
+  return null;
+}
+
+function extractJoinAsCompany(text: string): string | null {
+  const match = text.match(
+    /join\s+([A-Za-z0-9][A-Za-z0-9&.'-]{1,45})\s+as\b/i
+  );
+  const company = match?.[1]?.trim();
+  if (company && company.length >= 2 && company.length <= 50) {
+    return company;
+  }
+  return null;
+}
+
+function looksLikeRoleTitle(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length < 3 || trimmed.length > 70) return false;
+  if (trimmed.endsWith(".")) return false;
+  if (/^(about|requirements|responsibilities|what we|who you)/i.test(trimmed)) {
+    return false;
+  }
+  return (
+    /\b(lead|manager|engineer|developer|designer|architect|consultant|specialist|student|assistant|director|coordinator|analyst|strategist|owner)\b/i.test(
+      trimmed
+    ) || /\b(ux|ui|frontend|backend|full[- ]stack|product|portfolio)\b/i.test(trimmed)
+  );
+}
+
+function extractLocationFromDotLine(line: string): string | null {
+  if (!/[·•]/.test(line)) return null;
+  const segment = line.split(/[·•]/).pop()?.trim();
+  if (!segment || segment.length < 3) return null;
+
+  const dkMatch = segment.match(/^DK\s*-\s*(.+)$/i);
+  if (dkMatch?.[1]) return dkMatch[1].trim();
+
+  if (/^[A-Za-zÆØÅæøå .-]{3,60}$/.test(segment)) {
+    return segment;
+  }
+
+  return null;
+}
+
 const SECTION_HEADINGS = {
   responsibilities:
     /^(responsibilities|what you('ll| will) do|what you'll do|role overview|key responsibilities)/i,
@@ -91,21 +157,26 @@ function extractRequirements(text: string, lines: string[]): string[] {
 }
 
 function extractTitle(lines: string[]): string {
-  const labeled = lines.find((line) =>
-    /^(job title|position|role)\s*[:]/i.test(line)
+  const contentLines = meaningfulLines(lines);
+  const fullText = contentLines.join("\n");
+
+  const joinTitle = extractJoinAsTitle(fullText);
+  if (joinTitle) return joinTitle;
+
+  const labeled = contentLines.find((line) =>
+    /^(job title|position|role|stilling)\s*[:]/i.test(line)
   );
   if (labeled) {
-    return labeled.replace(/^(job title|position|role)\s*[:]\s*/i, "").trim();
+    return labeled.replace(/^(job title|position|role|stilling)\s*[:]\s*/i, "").trim();
   }
 
-  const firstLine = lines[0] ?? "";
-
-  const joinAsMatch = firstLine.match(
-    /^join\s+[A-Za-z0-9&.'-]+\s+as\s+(?:a\s+|an\s+|the\s+)?(.+)$/i
-  );
-  if (joinAsMatch?.[1]) {
-    return joinAsMatch[1].trim();
+  for (const line of contentLines.slice(0, 12)) {
+    if (looksLikeRoleTitle(line)) {
+      return line.trim();
+    }
   }
+
+  const firstLine = contentLines[0] ?? "";
 
   const titleFromPipe = firstLine.match(/^(.+?)\s+[|–-]\s+/);
   if (titleFromPipe?.[1] && titleFromPipe[1].length <= 70) {
@@ -121,7 +192,7 @@ function extractTitle(lines: string[]): string {
     return firstLine;
   }
 
-  const roleMatch = textMatchRole(lines.join("\n"));
+  const roleMatch = textMatchRole(fullText);
   return roleMatch ?? "Role title not detected";
 }
 
@@ -161,14 +232,21 @@ function extractCompanyFromMetaLine(line: string): string | null {
 }
 
 function extractCompany(text: string, lines: string[], sourceUrl?: string): string {
-  const labeled = lines.find((line) =>
-    /^(company|employer|organization)\s*[:]/i.test(line)
+  const contentLines = meaningfulLines(lines);
+
+  const joinCompany = extractJoinAsCompany(text);
+  if (joinCompany) return joinCompany;
+
+  const labeled = contentLines.find((line) =>
+    /^(company|employer|organization|virksomhed)\s*[:]/i.test(line)
   );
   if (labeled) {
-    return labeled.replace(/^(company|employer|organization)\s*[:]\s*/i, "").trim();
+    return labeled
+      .replace(/^(company|employer|organization|virksomhed)\s*[:]\s*/i, "")
+      .trim();
   }
 
-  const pipeMatch = lines[0]?.match(/^(.+?)\s+[|–-]\s+(.+?)$/);
+  const pipeMatch = contentLines[0]?.match(/^(.+?)\s+[|–-]\s+(.+?)$/);
   if (pipeMatch?.[2]) {
     const company = pipeMatch[2].trim();
     if (company.length >= 2 && company.length <= 50) {
@@ -176,13 +254,27 @@ function extractCompany(text: string, lines: string[], sourceUrl?: string): stri
     }
   }
 
-  for (const line of lines.slice(0, 3)) {
+  for (const line of contentLines.slice(0, 8)) {
     const fromMeta = extractCompanyFromMetaLine(line);
     if (fromMeta) return fromMeta;
   }
 
+  for (let i = 0; i < Math.min(contentLines.length - 1, 8); i++) {
+    const line = contentLines[i].trim();
+    const next = contentLines[i + 1]?.trim() ?? "";
+    if (
+      line.length >= 2 &&
+      line.length <= 40 &&
+      !/[·•|]/.test(line) &&
+      !looksLikeRoleTitle(line) &&
+      (looksLikeRoleTitle(next) || /join\s+/i.test(next))
+    ) {
+      return line;
+    }
+  }
+
   const joinMatch = text.match(
-    /(?:join|at)\s+([A-Z][A-Za-z0-9&.'-]{2,45})(?:\.|,|\s+as\b|\s+team)/i
+    /(?:join|at)\s+([A-Za-z0-9][A-Za-z0-9&.'-]{1,45})(?:\.|,|\s+as\b|\s+team)/i
   );
   if (joinMatch?.[1]) return joinMatch[1].trim();
 
@@ -195,7 +287,12 @@ function extractCompany(text: string, lines: string[], sourceUrl?: string): stri
     try {
       const hostname = new URL(sourceUrl).hostname.replace(/^www\./, "");
       const segment = hostname.split(".")[0];
-      if (segment && segment !== "jobs" && segment !== "careers") {
+      if (
+        segment &&
+        segment !== "jobs" &&
+        segment !== "careers" &&
+        segment !== "apply"
+      ) {
         return segment.charAt(0).toUpperCase() + segment.slice(1);
       }
     } catch {
@@ -206,16 +303,27 @@ function extractCompany(text: string, lines: string[], sourceUrl?: string): stri
   return "Not detected";
 }
 
-function extractLocation(text: string): string {
+function extractLocation(text: string, lines?: string[]): string {
   const labeled = text.match(
-    /(?:location|based in|office location)\s*[:]\s*([A-Za-z0-9,\s-]{3,60})/i
+    /(?:location|based in|office location|lokation|arbejdssted)\s*[:]\s*([A-Za-z0-9,\sÆØÅæøå-]{3,60})/i
   );
   if (labeled?.[1]) return labeled[1].trim().replace(/\.$/, "");
+
+  const contentLines = meaningfulLines(lines ?? splitLines(text));
+  for (const line of contentLines.slice(0, 12)) {
+    const fromDot = extractLocationFromDotLine(line);
+    if (fromDot) return fromDot;
+  }
+
+  const dkCity = text.match(/\b(?:DK\s*-\s*)?(København|Copenhagen|Aarhus|Odense|Aalborg)\b/i);
+  if (dkCity?.[1]) return dkCity[1];
 
   const cityState = text.match(
     /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?,\s*[A-Z]{2})\b/
   );
-  if (cityState?.[1]) return cityState[1];
+  if (cityState?.[1] && !/^Unite,\s*DX$/i.test(cityState[1])) {
+    return cityState[1];
+  }
 
   if (/\bremote\b/i.test(text) && /\bhybrid\b/i.test(text)) return "Hybrid";
   if (/\bremote\b/i.test(text)) return "Remote";
@@ -284,7 +392,7 @@ export function parseJob(input: string, sourceUrl?: string): ParsedJob {
   return {
     title: extractTitle(lines),
     company: extractCompany(rawText, lines, sourceUrl),
-    location: extractLocation(rawText),
+    location: extractLocation(rawText, lines),
     responsibilities,
     requirements,
     tools,
@@ -301,5 +409,15 @@ export function isLikelyUrl(value: string): boolean {
     return url.protocol === "http:" || url.protocol === "https:";
   } catch {
     return false;
+  }
+}
+
+/** Re-run parser on stored raw text (e.g. after parser improvements). */
+export function refreshParsedJob(job: ParsedJob): ParsedJob {
+  if (!job.rawText?.trim()) return job;
+  try {
+    return parseJob(job.rawText, job.sourceUrl);
+  } catch {
+    return job;
   }
 }

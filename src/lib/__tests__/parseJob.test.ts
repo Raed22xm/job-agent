@@ -98,6 +98,27 @@ describe("parseJob", () => {
     expect(job.company).toBe("Acme Corp");
   });
 
+  it("parses scraped career page text with navigation boilerplate", () => {
+    const job = parseJob(`Skip to main content
+
+
+CAREER MENU
+3Shape
+Share page
+PORTFOLIO & PRODUCT STRATEGY · DK - COPENHAGEN
+UX Lead
+Join 3Shape as UX Lead!
+
+Apply now
+ 
+About the role
+We are looking for an experienced and people-focused UX Lead to drive the user experience vision across our software platform, Unite, and leadership teams.`);
+
+    expect(job.title).toBe("UX Lead");
+    expect(job.company).toBe("3Shape");
+    expect(job.location).toMatch(/Copenhagen|COPENHAGEN/i);
+  });
+
   it("preserves rawText", () => {
     const job = parseJob(MINIMAL_JOB);
     expect(job.rawText).toBe(MINIMAL_JOB.trim());

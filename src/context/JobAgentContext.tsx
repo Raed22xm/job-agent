@@ -15,7 +15,7 @@ import {
   normalizeMatchResult,
   normalizeParsedJob,
 } from "@/lib/normalizeStoredData";
-import { isLikelyUrl } from "@/lib/parseJob";
+import { isLikelyUrl, refreshParsedJob } from "@/lib/parseJob";
 import {
   createApplicationId,
   getApplications,
@@ -130,7 +130,8 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       setJobDescription(
         typeof saved.jobDescription === "string" ? saved.jobDescription : ""
       );
-      setParsedJob(normalizeParsedJob(saved.parsedJob));
+      const normalizedJob = normalizeParsedJob(saved.parsedJob);
+      setParsedJob(normalizedJob ? refreshParsedJob(normalizedJob) : null);
       setMatchResult(normalizeMatchResult(saved.matchResult));
       setGeneratedCV(normalizeGeneratedCV(saved.generatedCV));
       setGeneratedCoverLetter(

@@ -12,6 +12,7 @@ import {
   resolveJobnetSelection,
   SESSION_CURRENT_ID,
 } from "@/lib/jobnet/sessionApplication";
+import { enrichApplicationWithJobMeta } from "@/lib/jobnet/enrichApplicationMeta";
 import { filterApplicationsNeedingJobnetLog } from "@/lib/jobnet/trackerJobnet";
 import { updateApplication } from "@/lib/storage";
 import type { Application } from "@/types";
@@ -70,7 +71,7 @@ export default function JobnetPage() {
       });
     }
 
-    return app;
+    return enrichApplicationWithJobMeta(app);
   }, [
     applications,
     selectedId,

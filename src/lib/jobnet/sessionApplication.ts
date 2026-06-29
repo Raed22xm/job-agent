@@ -5,6 +5,8 @@ import type {
   MatchResult,
   ParsedJob,
 } from "@/types";
+import { enrichApplicationWithJobMeta } from "@/lib/jobnet/enrichApplicationMeta";
+import { refreshParsedJob } from "@/lib/parseJob";
 
 export const SESSION_CURRENT_ID = "__session_current__";
 
@@ -32,21 +34,22 @@ export function buildDraftApplicationFromSession(
   } = {}
 ): Application {
   const now = new Date().toISOString();
-  return {
+  const job = refreshParsedJob(parsedJob);
+  return enrichApplicationWithJobMeta({
     id: SESSION_CURRENT_ID,
     createdAt: now,
     updatedAt: now,
-    job: parsedJob,
+    job,
     match: matchResult,
     status: "draft",
-    company: parsedJob.company,
-    jobTitle: parsedJob.title,
-    link: parsedJob.sourceUrl,
-    location: parsedJob.location,
+    company: job.company,
+    jobTitle: job.title,
+    link: job.sourceUrl,
+    location: job.location,
     matchScore: matchResult.score,
     cvVersion: options.generatedCV ? `session-${now.slice(0, 10)}` : undefined,
     coverLetterStatus: options.generatedCoverLetter ? "draft" : "none",
-  };
+  });
 }
 
 /** Overlay latest analyzer session onto a saved tracker row (same job). */
@@ -62,15 +65,16 @@ export function mergeApplicationWithSession(
   } = {}
 ): Application {
   const now = new Date().toISOString();
-  return {
+  const job = refreshParsedJob(parsedJob);
+  return enrichApplicationWithJobMeta({
     ...saved,
     updatedAt: now,
-    job: parsedJob,
+    job,
     match: matchResult,
-    company: parsedJob.company,
-    jobTitle: parsedJob.title,
-    link: parsedJob.sourceUrl,
-    location: parsedJob.location,
+    company: job.company,
+    jobTitle: job.title,
+    link: job.sourceUrl,
+    location: job.location,
     matchScore: matchResult.score,
     cvVersion: options.cvOutputPath ?? saved.cvVersion,
     coverLetterOutputPath:
@@ -80,7 +84,7 @@ export function mergeApplicationWithSession(
         ? "draft"
         : saved.coverLetterStatus
       : saved.coverLetterStatus,
-  };
+  });
 }
 
 export function resolveJobnetSelection(
