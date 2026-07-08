@@ -134,3 +134,12 @@ export function parseMasterCV(data: unknown) {
 export function parseParsedJob(data: unknown) {
   return ParsedJobSchema.safeParse(data);
 }
+
+export const AppliedFeedbackSchema = z.object({
+  updatedSection: z.enum(["summary", "skills", "experience", "overall"]),
+  summary: z.string().nullable(),
+  skills: z.array(z.string()).nullable(),
+  experience: z.array(ExperienceSchema).nullable(),
+});
+
+export type AppliedFeedbackOutput = z.infer<typeof AppliedFeedbackSchema>;

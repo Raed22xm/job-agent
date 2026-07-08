@@ -5,6 +5,7 @@ import Link from "next/link";
 import ATSKeywordCoverage from "@/components/ATSKeywordCoverage";
 import CVEditor from "@/components/CVEditor";
 import CVFeedbackPanel from "@/components/CVFeedbackPanel";
+import { type FeedbackItem } from "@/lib/cv/cvFeedback";
 import CVImpactScore from "@/components/CVImpactScore";
 import CVPreview from "@/components/CVPreview";
 import CVValidationPanel from "@/components/CVValidationPanel";
@@ -34,6 +35,7 @@ export default function CVGeneratorPage() {
   const [preSendOpen, setPreSendOpen] = useState(false);
   const [isExporting, setIsExporting] = useState<"pdf" | "docx" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [isApplyingFix, setIsApplyingFix] = useState(false);
 
   // Fetch master CV metadata (languages + certifications) once on mount
   useEffect(() => {
@@ -152,6 +154,41 @@ export default function CVGeneratorPage() {
     }
   };
 
+  const handleApplyFix = async (item: FeedbackItem) => {
+    if (!generatedCV || !parsedJob) return;
+    setIsApplyingFix(true);
+    try {
+      const res = await fetch("/api/apply-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cv: generatedCV, job: parsedJob, feedbackItem: item }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to apply fix");
+      }
+
+      const updatedData = await res.json();
+      
+      const newCV = { ...generatedCV };
+      if (updatedData.updatedSection === "summary" && updatedData.summary) {
+        newCV.sections.summary = updatedData.summary;
+      } else if (updatedData.updatedSection === "skills" && updatedData.skills) {
+        newCV.sections.skills = updatedData.skills;
+      } else if (updatedData.updatedSection === "experience" && updatedData.experience) {
+        newCV.sections.experience = updatedData.experience;
+      }
+      
+      updateGeneratedCV(newCV);
+    } catch (err) {
+      console.error("Failed to apply feedback fix:", err);
+      alert(err instanceof Error ? err.message : "Failed to apply feedback fix");
+    } finally {
+      setIsApplyingFix(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page header + export buttons */}
@@ -197,7 +234,11 @@ export default function CVGeneratorPage() {
       {keywordCoverage && <ATSKeywordCoverage coverage={keywordCoverage} />}
 
       {/* ── Per-section feedback ──────────────────────────────────────────── */}
-      <CVFeedbackPanel cv={generatedCV} />
+      <CVFeedbackPanel 
+        cv={generatedCV} 
+        onApplyFix={handleApplyFix}
+        isApplying={isApplyingFix}
+      />
 
       <PreSendReviewModal
         open={preSendOpen}

@@ -59,3 +59,28 @@ For each, classify as "gap" (not in CV) or "transferable" (related verified skil
 Master CV:
 ${masterCVJson}`;
 }
+
+export function applyFeedbackPrompt(
+  cvJson: string,
+  jobJson: string,
+  feedbackSection: string,
+  feedbackMessage: string,
+  feedbackSuggestion: string
+): string {
+  return `${SYSTEM_TRUTHFULNESS}
+
+You are an expert CV editor. You need to apply a specific feedback fix to the provided CV based on the job requirements.
+Only return the updated section requested (summary, skills, or experience). Do NOT alter other sections.
+
+Feedback Section: ${feedbackSection}
+Feedback Issue: ${feedbackMessage}
+Suggested Fix: ${feedbackSuggestion}
+
+Current CV:
+${cvJson}
+
+Parsed Job Context:
+${jobJson}
+
+Please return the updated CV section reflecting the suggested fix. Make sure the tone is professional and truthful.`;
+}

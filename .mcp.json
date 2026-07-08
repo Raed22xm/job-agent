@@ -51,7 +51,50 @@
         "scripts/mcp-launcher.js",
         "sqlite"
       ],
-      "autoStart": false
+      "autoStart": true
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "env": {
+        "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
+      },
+      "autoStart": true
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "autoStart": true
+    },
+    "memory": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "autoStart": true
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@hisma/server-puppeteer"
+      ],
+      "autoStart": true
+    },
+    "fetch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-fetch-server"
+      ],
+      "autoStart": true
     }
   }
 }

@@ -14,7 +14,7 @@ export function getProvider() {
 
   // Fallback to OpenAI
   return {
-    model: openai("gpt-4o") as any,
+    model: openai("gpt-4o-mini") as any,
     embeddingModel: openai.embedding("text-embedding-3-small") as any,
   };
 }

@@ -6,6 +6,8 @@ import { analyseCVFeedback, type FeedbackItem, type FeedbackSeverity } from "@/l
 
 interface CVFeedbackPanelProps {
   cv: GeneratedCV;
+  onApplyFix?: (item: FeedbackItem) => Promise<void>;
+  isApplying?: boolean;
 }
 
 const SEVERITY_CONFIG: Record<
@@ -39,30 +41,73 @@ const SECTION_LABELS: Record<FeedbackItem["section"], string> = {
   overall: "Overall",
 };
 
-function FeedbackRow({ item }: { item: FeedbackItem }) {
+function FeedbackRow({ 
+  item, 
+  onApplyFix, 
+  isApplying 
+}: { 
+  item: FeedbackItem;
+  onApplyFix?: (item: FeedbackItem) => Promise<void>;
+  isApplying?: boolean;
+}) {
   const cfg = SEVERITY_CONFIG[item.severity];
+  const [loading, setLoading] = useState(false);
+
+  const handleFix = async () => {
+    if (!onApplyFix) return;
+    setLoading(true);
+    try {
+      await onApplyFix(item);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <li className={`rounded-xl border px-4 py-3 ${cfg.row}`}>
-      <div className="flex flex-wrap items-start gap-2">
-        <span
-          className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.badge}`}
-        >
-          {SECTION_LABELS[item.section]}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground">{item.message}</p>
-          {item.suggestion && (
-            <p className="mt-1 text-xs leading-relaxed text-foreground-secondary">
-              {item.suggestion}
-            </p>
-          )}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-1 flex-wrap items-start gap-2">
+          <span
+            className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${cfg.badge}`}
+          >
+            {SECTION_LABELS[item.section]}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-foreground">{item.message}</p>
+            {item.suggestion && (
+              <p className="mt-1 text-xs leading-relaxed text-foreground-secondary">
+                {item.suggestion}
+              </p>
+            )}
+          </div>
         </div>
+        
+        {onApplyFix && item.section !== "overall" && (
+          <button
+            type="button"
+            onClick={handleFix}
+            disabled={loading || isApplying}
+            className="shrink-0 rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20 disabled:opacity-50 transition-colors flex items-center gap-1.5"
+          >
+            {loading ? (
+              <>
+                <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Fixing...
+              </>
+            ) : (
+              <>✨ Fix automatically</>
+            )}
+          </button>
+        )}
       </div>
     </li>
   );
 }
 
-export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
+export default function CVFeedbackPanel({ cv, onApplyFix, isApplying }: CVFeedbackPanelProps) {
   const [open, setOpen] = useState(true);
   const [filter, setFilter] = useState<FeedbackSeverity | "all">("all");
 
@@ -153,7 +198,7 @@ export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
           {/* Feedback list */}
           <ul className="space-y-2">
             {visible.map((item, i) => (
-              <FeedbackRow key={`${item.section}-${i}`} item={item} />
+              <FeedbackRow key={`${item.section}-${i}`} item={item} onApplyFix={onApplyFix} isApplying={isApplying} />
             ))}
           </ul>
         </div>
