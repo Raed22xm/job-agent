@@ -16,16 +16,16 @@ function wordCount(text: string): number {
 
 function summaryCountLabel(text: string): { label: string; color: string } {
   const wc = wordCount(text);
-  if (wc === 0) return { label: "0 words", color: "text-slate-400" };
-  if (wc < 40) return { label: `${wc} words — too short`, color: "text-rose-500" };
-  if (wc <= 120) return { label: `${wc} words — good`, color: "text-emerald-600" };
-  return { label: `${wc} words — trim it`, color: "text-amber-600" };
+  if (wc === 0) return { label: "0 words", color: "text-foreground-tertiary" };
+  if (wc < 40) return { label: `${wc} words — too short`, color: "text-danger" };
+  if (wc <= 120) return { label: `${wc} words — good`, color: "text-success" };
+  return { label: `${wc} words — trim it`, color: "text-warning" };
 }
 
 const QUALITY_DOT: Record<BulletQuality, { color: string; title: string }> = {
-  strong: { color: "bg-emerald-500", title: "Strong — action verb + metric" },
-  moderate: { color: "bg-amber-400", title: "Moderate — could add a metric or stronger verb" },
-  weak: { color: "bg-rose-500", title: "Weak — consider adding a strong action verb and a number" },
+  strong: { color: "bg-success", title: "Strong — action verb + metric" },
+  moderate: { color: "bg-warning", title: "Moderate — could add a metric or stronger verb" },
+  weak: { color: "bg-danger", title: "Weak — consider adding a strong action verb and a number" },
 };
 
 function BulletQualityDots({ bullets }: { bullets: string[] }) {
@@ -44,7 +44,7 @@ function BulletQualityDots({ bullets }: { bullets: string[] }) {
           />
         );
       })}
-      <span className="text-[11px] text-slate-400 ml-1">
+      <span className="text-[11px] text-foreground-tertiary ml-1">
         {active.filter((b) => bulletQuality(b) === "strong").length}/{active.length} strong
       </span>
     </div>
@@ -64,11 +64,11 @@ function SummaryTip({ text }: { text: string }) {
 
   if (tips.length === 0) return null;
   return (
-    <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">Tip</p>
+    <div className="mt-2 rounded-lg px-3 py-2" style={{ background: "rgba(16, 185, 129, 0.06)", border: "1px solid rgba(16, 185, 129, 0.15)" }}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Tip</p>
       <ul className="mt-1 space-y-0.5">
         {tips.map((tip, i) => (
-          <li key={i} className="text-xs text-blue-800">• {tip}</li>
+          <li key={i} className="text-xs text-foreground-secondary">• {tip}</li>
         ))}
       </ul>
     </div>
@@ -105,12 +105,12 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
   const activeSkills = cv.sections.skills.filter((s) => s.trim()).length;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="glass-panel rounded-xl">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-6 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 px-6 py-4" style={{ borderBottom: "1px solid var(--surface-border)" }}>
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Edit CV</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-foreground">Edit CV</h2>
+          <p className="mt-1 text-sm text-foreground-secondary">
             Adjust wording and emphasis. Contact info and education stay from
             your verified master CV.
           </p>
@@ -119,7 +119,7 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
           <button
             type="button"
             onClick={onReset}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="btn-secondary text-sm px-3 py-1.5"
           >
             Reset to generated
           </button>
@@ -132,7 +132,7 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
             <label
               htmlFor="cv-summary"
-              className="block text-xs font-semibold uppercase tracking-wide text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wide text-foreground-secondary"
             >
               Professional summary
             </label>
@@ -155,17 +155,17 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
           <div className="mb-1.5 flex items-baseline justify-between gap-2">
             <label
               htmlFor="cv-skills"
-              className="block text-xs font-semibold uppercase tracking-wide text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wide text-foreground-secondary"
             >
               Skills
             </label>
             <span
               className={`text-[11px] font-medium ${
                 activeSkills < 5
-                  ? "text-rose-500"
+                  ? "text-danger"
                   : activeSkills <= 15
-                  ? "text-emerald-600"
-                  : "text-amber-600"
+                  ? "text-success"
+                  : "text-warning"
               }`}
             >
               {activeSkills} skill{activeSkills !== 1 ? "s" : ""}
@@ -183,21 +183,21 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
             rows={6}
             className="field-textarea"
           />
-          <p className="mt-1.5 text-xs text-slate-500">
+          <p className="mt-1.5 text-xs text-foreground-tertiary">
             One skill per line · ranked by job relevance.
           </p>
         </div>
 
         {/* Experience bullets */}
         <div className="space-y-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
             Experience bullets
           </p>
           {cv.sections.experience.map((role) => (
-            <div key={role.id} className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div key={role.id} className="rounded-xl p-4" style={{ background: "var(--background-secondary)", border: "1px solid var(--surface-border)" }}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-900">{role.title}</p>
-                <span className="text-xs text-slate-500">
+                <p className="text-sm font-semibold text-foreground">{role.title}</p>
+                <span className="text-xs text-foreground-tertiary">
                   {role.company} · {role.location}
                 </span>
               </div>
@@ -209,7 +209,7 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
                 className="field-textarea mt-3"
               />
               <div className="mt-1.5 flex items-start justify-between gap-2">
-                <p className="text-xs text-slate-500">One bullet per line.</p>
+                <p className="text-xs text-foreground-tertiary">One bullet per line.</p>
                 <BulletQualityDots bullets={role.bullets} />
               </div>
             </div>

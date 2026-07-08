@@ -72,7 +72,7 @@ export default function ApplicationHeatmap({ applications }: ApplicationHeatmapP
         <div className="flex gap-4 text-sm">
           <div>
             <span className="text-foreground-secondary text-xs mr-1">Current Streak:</span>
-            <span className="font-bold text-emerald-600">{currentStreak} {currentStreak === 1 ? 'day' : 'days'}</span>
+            <span className="font-bold text-success">{currentStreak} {currentStreak === 1 ? 'day' : 'days'}</span>
           </div>
           <div>
             <span className="text-foreground-secondary text-xs mr-1">Longest Streak:</span>

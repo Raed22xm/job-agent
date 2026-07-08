@@ -9,24 +9,24 @@ interface CVAuditReportProps {
 }
 
 const gradeColors: Record<string, string> = {
-  A: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  B: "text-blue-600 bg-blue-50 border-blue-200",
-  C: "text-amber-600 bg-amber-50 border-amber-200",
+  A: "text-success bg-success/10 border-success/20",
+  B: "text-primary bg-primary/10 border-primary/20",
+  C: "text-warning bg-warning/10 border-warning/20",
   D: "text-orange-600 bg-orange-50 border-orange-200",
-  F: "text-rose-600 bg-rose-50 border-rose-200",
+  F: "text-danger bg-danger/10 border-danger/20",
 };
 
 const labelColors: Record<string, string> = {
-  Strong: "bg-emerald-100 text-emerald-700",
+  Strong: "bg-success/15 text-success",
   Good: "bg-blue-100 text-blue-700",
-  "Needs Work": "bg-amber-100 text-amber-700",
-  Weak: "bg-rose-100 text-rose-700",
+  "Needs Work": "bg-amber-100 text-warning",
+  Weak: "bg-rose-100 text-danger",
 };
 
 const riskColors: Record<string, string> = {
-  Low: "text-emerald-600 bg-emerald-50",
-  Medium: "text-amber-600 bg-amber-50",
-  High: "text-rose-600 bg-rose-50",
+  Low: "text-success bg-success/10",
+  Medium: "text-warning bg-warning/10",
+  High: "text-danger bg-danger/10",
 };
 
 export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
@@ -88,7 +88,7 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
               <ul className="space-y-1">
                 {result.topPriorities.slice(0, 3).map((p, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-foreground-secondary">
-                    <span className="mt-0.5 text-rose-400 shrink-0">▲</span>
+                    <span className="mt-0.5 text-danger shrink-0">▲</span>
                     {p}
                   </li>
                 ))}
@@ -132,7 +132,7 @@ export default function CVAuditReport({ result, mode }: CVAuditReportProps) {
               {section.issues.length > 0 && (
                 <ul className="mb-2 space-y-0.5">
                   {section.issues.map((issue, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-xs text-rose-700">
+                    <li key={i} className="flex items-start gap-1.5 text-xs text-danger">
                       <span className="shrink-0">✗</span> {issue}
                     </li>
                   ))}

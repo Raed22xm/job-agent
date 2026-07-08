@@ -26,15 +26,15 @@ export default function BoardroomPage() {
     const lines = text.split("\n");
     return lines.map((line, i) => {
       if (line.startsWith("**Recruiter**")) {
-        return <div key={i} className="my-2 p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 shadow-sm"><span className="font-bold">Recruiter:</span> {line.replace("**Recruiter**:", "")}</div>;
+        return <div key={i} className="my-2 p-4 rounded-xl bg-primary/10 border border-primary/20 text-blue-900 shadow-sm"><span className="font-bold">Recruiter:</span> {line.replace("**Recruiter**:", "")}</div>;
       }
       if (line.startsWith("**Hiring Manager**")) {
-        return <div key={i} className="my-2 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 shadow-sm"><span className="font-bold">Hiring Manager:</span> {line.replace("**Hiring Manager**:", "")}</div>;
+        return <div key={i} className="my-2 p-4 rounded-xl bg-success/10 border border-success/20 text-emerald-900 shadow-sm"><span className="font-bold">Hiring Manager:</span> {line.replace("**Hiring Manager**:", "")}</div>;
       }
       if (line.startsWith("**Reviewer**")) {
         return <div key={i} className="my-2 p-4 rounded-xl bg-violet-50 border border-violet-200 text-violet-900 shadow-sm font-medium"><span className="font-bold">Reviewer:</span> {line.replace("**Reviewer**:", "")}</div>;
       }
-      return <p key={i} className="my-1 text-slate-700">{line}</p>;
+      return <p key={i} className="my-1 text-foreground-secondary">{line}</p>;
     });
   };
 
@@ -72,7 +72,7 @@ export default function BoardroomPage() {
               </button>
             </div>
             {error && (
-              <div className="rounded-lg bg-rose-50 p-4 border border-rose-200 text-sm text-rose-600">
+              <div className="rounded-lg bg-danger/10 p-4 border border-danger/20 text-sm text-danger">
                 Error starting debate: {error.message}
               </div>
             )}

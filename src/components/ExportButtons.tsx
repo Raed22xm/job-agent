@@ -54,11 +54,11 @@ export default function ExportButtons({
   if (mode === "review-first") {
     return (
       <div className="flex flex-col items-end gap-2">
-        <p className="max-w-sm text-right text-xs text-slate-500">
+        <p className="max-w-sm text-right text-xs text-foreground-secondary">
           {helpText ?? defaultHelp}
         </p>
         {disabledReason && (
-          <p className="max-w-sm text-right text-xs font-medium text-rose-600">
+          <p className="max-w-sm text-right text-xs font-medium text-danger">
             {disabledReason}
           </p>
         )}
@@ -66,7 +66,7 @@ export default function ExportButtons({
           type="button"
           disabled={isDisabled}
           onClick={() => void onExportDocx()}
-          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
           {primaryLabel}
         </button>
@@ -76,11 +76,11 @@ export default function ExportButtons({
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <p className="max-w-sm text-right text-xs text-slate-500">
+      <p className="max-w-sm text-right text-xs text-foreground-secondary">
         {helpText ?? defaultHelp}
       </p>
       {disabledReason && (
-        <p className="max-w-sm text-right text-xs font-medium text-rose-600">
+        <p className="max-w-sm text-right text-xs font-medium text-danger">
           {disabledReason}
         </p>
       )}
@@ -89,7 +89,7 @@ export default function ExportButtons({
           type="button"
           disabled={isDisabled}
           onClick={() => handleExport("pdf")}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground-secondary transition hover:bg-background-secondary disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isExporting === "pdf" ? "Exporting PDF…" : "Export PDF"}
         </button>
@@ -97,13 +97,13 @@ export default function ExportButtons({
           type="button"
           disabled={isDisabled}
           onClick={() => handleExport("docx")}
-          className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isExporting === "docx" ? "Exporting DOCX…" : primaryLabel}
         </button>
       </div>
       {error && (
-        <p role="alert" className="max-w-xs text-right text-xs text-rose-600">
+        <p role="alert" className="max-w-xs text-right text-xs text-danger">
           {error}
         </p>
       )}

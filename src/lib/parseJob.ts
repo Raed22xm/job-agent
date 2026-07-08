@@ -27,6 +27,7 @@ function extractJoinAsTitle(text: string): string | null {
   );
   const title = match?.[2]?.trim();
   if (title && title.length >= 3 && title.length <= 70) {
+    if (title.toLowerCase().startsWith("soon as")) return null;
     return title.replace(/\s+/g, " ");
   }
   return null;
@@ -38,6 +39,7 @@ function extractJoinAsCompany(text: string): string | null {
   );
   const company = match?.[1]?.trim();
   if (company && company.length >= 2 && company.length <= 50) {
+    if (company.toLowerCase() === "us") return null;
     return company;
   }
   return null;

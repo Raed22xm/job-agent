@@ -37,13 +37,13 @@ export default function GeoAuditPage() {
       {/* Page header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary">
             Job Agent · Geo Audit
           </p>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">
+          <h1 className="mt-1 text-2xl font-bold text-foreground">
             Geographic Job Market Audit
           </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-foreground-secondary">
             Scores your CV skills against job market demand across Danish cities and
             remote tiers — so you know exactly where to focus your search.
           </p>
@@ -53,13 +53,13 @@ export default function GeoAuditPage() {
           <button
             onClick={() => void runAudit()}
             disabled={status === "loading"}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50 transition-colors"
           >
             {status === "loading" ? "Running…" : "↻ Re-run Audit"}
           </button>
           <Link
             href="/"
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground-secondary hover:bg-background-secondary transition-colors"
           >
             ← Home
           </Link>
@@ -68,9 +68,9 @@ export default function GeoAuditPage() {
 
       {/* Loading state */}
       {status === "loading" && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-20 shadow-sm">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-surface py-20 shadow-sm">
           <div className="relative h-14 w-14">
-            <svg className="h-14 w-14 animate-spin text-brand-600" viewBox="0 0 50 50">
+            <svg className="h-14 w-14 animate-spin text-primary" viewBox="0 0 50 50">
               <circle
                 cx="25" cy="25" r="20"
                 fill="none"
@@ -82,10 +82,10 @@ export default function GeoAuditPage() {
               />
             </svg>
           </div>
-          <p className="mt-4 text-sm font-medium text-slate-700">
+          <p className="mt-4 text-sm font-medium text-foreground-secondary">
             Analysing job markets…
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-foreground-secondary">
             Scoring Copenhagen, Aarhus, Odense, Aalborg, Remote EU &amp; Global
           </p>
         </div>
@@ -93,8 +93,8 @@ export default function GeoAuditPage() {
 
       {/* Error state */}
       {status === "error" && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center">
-          <p className="text-sm font-medium text-rose-800">
+        <div className="rounded-xl border border-danger/20 bg-danger/10 p-6 text-center">
+          <p className="text-sm font-medium text-danger">
             {error ?? "Something went wrong."}
           </p>
           <button
@@ -112,13 +112,13 @@ export default function GeoAuditPage() {
       )}
 
       {/* Info footer */}
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-500 leading-relaxed">
-        <strong className="text-slate-700">Data note:</strong> Demand scores are
+      <div className="rounded-xl border border-border bg-background-secondary p-4 text-xs text-foreground-secondary leading-relaxed">
+        <strong className="text-foreground-secondary">Data note:</strong> Demand scores are
         derived from aggregated Danish and European job board signals (Jobnet, Jobindex,
         LinkedIn, Adzuna) and Eurostat tech hiring indices for 2024–25. Role estimates
         and salary bands are indicative ranges, not guarantees. All data is based on
         verified skills in{" "}
-        <code className="rounded bg-slate-200 px-1">data/master-cv.json</code>.
+        <code className="rounded bg-background-secondary px-1">data/master-cv.json</code>.
       </div>
     </div>
   );

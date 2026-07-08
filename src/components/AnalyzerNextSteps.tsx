@@ -12,11 +12,11 @@ export default function AnalyzerNextSteps({
   const steps = buildAnalyzerNextSteps(score, missingKeywords);
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="glass-card p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-slate-900">What to do next</h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <h3 className="text-base font-semibold text-foreground">What to do next</h3>
+          <p className="mt-1 text-sm text-foreground-secondary">
             Clear guidance for turning this match into a stronger application.
           </p>
         </div>
@@ -26,10 +26,10 @@ export default function AnalyzerNextSteps({
         {steps.map((step) => (
           <div
             key={step.title}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+            className="rounded-xl border border-border bg-background-secondary p-3"
           >
-            <p className="text-sm font-semibold text-slate-900">{step.title}</p>
-            <p className="mt-1 text-sm leading-relaxed text-slate-600">
+            <p className="text-sm font-semibold text-foreground">{step.title}</p>
+            <p className="mt-1 text-sm leading-relaxed text-foreground-secondary">
               {step.description}
             </p>
           </div>

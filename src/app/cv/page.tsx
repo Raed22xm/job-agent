@@ -109,14 +109,14 @@ export default function CVGeneratorPage() {
   // ── Empty state ────────────────────────────────────────────────────────────
   if (!generatedCV || !parsedJob) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-        <h1 className="text-xl font-semibold text-slate-900">CV Generator</h1>
-        <p className="mt-2 text-sm text-slate-600">
+      <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center">
+        <h1 className="text-xl font-semibold text-foreground">CV Generator</h1>
+        <p className="mt-2 text-sm text-foreground-secondary">
           Analyze a job first to generate a tailored ATS-friendly CV preview.
         </p>
         <Link
           href="/analyzer"
-          className="mt-4 inline-flex rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
         >
           Go to Job Analyzer
         </Link>
@@ -157,8 +157,8 @@ export default function CVGeneratorPage() {
       {/* Page header + export buttons */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">CV Generator</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-bold text-foreground">CV Generator</h1>
+          <p className="mt-1 text-sm text-foreground-secondary">
             Tailored for{" "}
             <span className="font-medium">{parsedJob.title}</span> at{" "}
             <span className="font-medium">{parsedJob.company}</span>. Edit
@@ -188,7 +188,7 @@ export default function CVGeneratorPage() {
       {/* ── Validation issues ─────────────────────────────────────────────── */}
       {validation && <CVValidationPanel issues={validation.issues} />}
       {!validation && (
-        <p className="text-sm font-medium text-slate-500">
+        <p className="text-sm font-medium text-foreground-secondary">
           Checking CV validation…
         </p>
       )}

@@ -165,9 +165,7 @@ export function mergeAIEnhancement(
     job,
     match,
     generatedCV: validation.valid ? generatedCV : baseline.generatedCV,
-    generatedCoverLetter: validation.valid
-      ? generatedCoverLetter
-      : baseline.generatedCoverLetter,
+    generatedCoverLetter: generatedCoverLetter,
     validation: validation.valid
       ? validation
       : validateGeneratedCV(baseline.generatedCV, cv),

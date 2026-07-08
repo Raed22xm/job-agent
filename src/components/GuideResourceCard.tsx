@@ -7,8 +7,8 @@ const badgeStyles: Record<
   NonNullable<GuideResource["badge"]>,
   string
 > = {
-  recommended: "bg-brand-50 text-brand-700",
-  "supported-import": "bg-emerald-50 text-emerald-700",
+  recommended: "bg-primary/10 text-primary-dark",
+  "supported-import": "bg-success/10 text-success",
   danish: "bg-sky-50 text-sky-700",
 };
 
@@ -24,9 +24,9 @@ interface GuideResourceCardProps {
 
 export default function GuideResourceCard({ resource }: GuideResourceCardProps) {
   return (
-    <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-200 hover:shadow-md">
+    <article className="flex h-full flex-col glass-card p-5 rounded-xl transition hover:border-primary/20 hover:shadow-lg">
       <div className="flex flex-wrap items-start gap-2">
-        <h3 className="flex-1 text-base font-semibold text-slate-900">
+        <h3 className="flex-1 text-base font-semibold text-foreground">
           {resource.title}
         </h3>
         {resource.badge && (
@@ -38,12 +38,12 @@ export default function GuideResourceCard({ resource }: GuideResourceCardProps) 
         )}
       </div>
 
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-600">
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-foreground-secondary">
         {resource.description}
       </p>
 
       {resource.steps && resource.steps.length > 0 && (
-        <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-slate-600">
+        <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-foreground-secondary">
           {resource.steps.map((step) => (
             <li key={step}>{step}</li>
           ))}
@@ -54,18 +54,18 @@ export default function GuideResourceCard({ resource }: GuideResourceCardProps) 
         {resource.tags.slice(0, 4).map((tag) => (
           <span
             key={tag}
-            className="rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
+            className="rounded-md bg-background-secondary px-2 py-0.5 text-xs text-foreground-secondary"
           >
             {tag}
           </span>
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
+      <div className="mt-4 flex flex-wrap gap-3 border-t border-border pt-4">
         {resource.appLink && (
           <Link
             href={resource.appLink}
-            className="text-sm font-medium text-brand-600 hover:text-brand-700"
+            className="text-sm font-medium text-primary hover:text-primary-dark"
           >
             Open in app →
           </Link>
@@ -75,7 +75,7 @@ export default function GuideResourceCard({ resource }: GuideResourceCardProps) 
             href={resource.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-slate-600 hover:text-slate-900"
+            className="text-sm font-medium text-foreground-secondary hover:text-foreground"
           >
             Visit site ↗
           </a>

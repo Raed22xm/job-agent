@@ -21,7 +21,7 @@ export default function CoverLetterPreview({
 
       <article
         ref={exportRef}
-        className="export-document mx-auto max-w-2xl bg-white px-8 py-8 text-[11pt] leading-relaxed text-[#111111]"
+        className="export-document mx-auto max-w-2xl bg-surface px-8 py-8 text-[11pt] leading-relaxed text-[#111111]"
       >
         <p>{letter.greeting}</p>
         {letter.paragraphs.map((paragraph, index) => (

@@ -155,12 +155,9 @@ function buildDescription(
     parts.push("Ansøgningen er sendt online med CV.");
   }
 
-  const focus = application.match.recommendedFocusAreas.slice(0, 6);
-  if (focus.length > 0) {
-    parts.push(`Stillingen matcher især ${focus.join(", ")}.`);
-  } else if (application.match.matchedKeywords.length > 0) {
+  if (application.match.matchedKeywords.length > 0) {
     parts.push(
-      `Stillingen matcher især ${application.match.matchedKeywords.slice(0, 6).join(", ")}.`
+      `Stillingen matcher især på kompetencer som: ${application.match.matchedKeywords.slice(0, 6).join(", ")}.`
     );
   }
 

@@ -66,14 +66,14 @@ export default function NetworkPage() {
             </button>
           </div>
           {isLoading && (
-            <p className="mt-3 text-xs text-brand-600 font-medium animate-pulse">
+            <p className="mt-3 text-xs text-primary font-medium animate-pulse">
               Opening LinkedIn. Please switch to the browser window and log in if prompted...
             </p>
           )}
         </div>
 
         {error && (
-          <div className="rounded-lg bg-rose-50 p-4 border border-rose-200 text-sm text-rose-600 font-medium">
+          <div className="rounded-lg bg-danger/10 p-4 border border-danger/20 text-sm text-danger font-medium">
             Error: {error}
           </div>
         )}
@@ -90,7 +90,7 @@ export default function NetworkPage() {
                     <h3 className="font-bold text-foreground text-sm">{profile.name}</h3>
                     <p className="text-xs text-foreground-secondary mt-1">{profile.title}</p>
                     {profile.url && (
-                      <a href={profile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-xs mt-2 inline-block">
+                      <a href={profile.url} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs mt-2 inline-block">
                         View Profile ↗
                       </a>
                     )}
@@ -99,16 +99,16 @@ export default function NetworkPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+            <div className="rounded-xl border border-success/20 bg-success/10 p-6 shadow-sm">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-emerald-800 mb-4">
                 AI Coffee Chat Script
               </h2>
-              <div className="bg-white p-4 rounded-lg border border-emerald-100 shadow-inner">
-                <p className="text-sm text-slate-700 whitespace-pre-wrap font-serif leading-relaxed">
+              <div className="bg-surface p-4 rounded-lg border border-emerald-100 shadow-inner">
+                <p className="text-sm text-foreground-secondary whitespace-pre-wrap font-serif leading-relaxed">
                   {result.suggestedScript}
                 </p>
               </div>
-              <p className="text-xs text-emerald-600 mt-4">
+              <p className="text-xs text-success mt-4">
                 Tip: Copy this message and send it as a LinkedIn connection request note to the top profile.
               </p>
             </div>

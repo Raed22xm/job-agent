@@ -34,12 +34,23 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
-      <header className="border-b border-border bg-background-secondary">
+      {/* Glassmorphic Header */}
+      <header
+        className="sticky top-0 z-50 border-b backdrop-blur-xl"
+        style={{
+          borderColor: "var(--surface-border)",
+          background: "color-mix(in srgb, var(--background) 80%, transparent)",
+        }}
+      >
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="flex items-center justify-between sm:justify-start sm:gap-4 w-full sm:w-auto">
             <div>
-              <Link href="/" className="text-xl font-semibold tracking-tight text-primary">
-                Job Agent
+              <Link
+                href="/"
+                className="text-xl font-semibold tracking-tight text-foreground"
+                style={{ letterSpacing: "-0.01em" }}
+              >
+                Job <span className="text-primary">Agent</span>
               </Link>
               <p className="text-sm text-foreground-secondary">
                 Tailor applications from verified CV data — human approval required.
@@ -47,13 +58,14 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             </div>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-lg p-2 hover:bg-border transition-colors sm:ml-4"
+              className="rounded-xl p-2.5 transition-all duration-200 hover:bg-surface-hover"
+              style={{ border: "1px solid var(--surface-border)" }}
               aria-label="Toggle Dark Mode"
             >
               {mounted ? (theme === "dark" ? "☀️" : "🌙") : "🌙"}
             </button>
           </div>
-          <nav className="flex flex-wrap gap-2">
+          <nav className="flex flex-wrap gap-1.5">
             {navItems.map((item) => {
               const isActive =
                 mounted &&
@@ -65,10 +77,10 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-primary text-white"
-                      : "text-foreground-secondary hover:bg-border hover:text-foreground"
+                      ? "bg-primary/15 text-primary"
+                      : "text-foreground-secondary hover:text-foreground hover:bg-surface-hover"
                   }`}
                 >
                   {item.label}
@@ -79,12 +91,23 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 animate-fade-in">
+        {children}
+      </main>
 
-      <footer className="border-t border-border bg-background-secondary">
+      {/* Premium Footer */}
+      <footer
+        className="border-t"
+        style={{
+          borderColor: "var(--surface-border)",
+          background: "var(--background-secondary)",
+        }}
+      >
         <div className="mx-auto max-w-6xl px-4 py-4 text-center text-xs text-foreground-tertiary sm:px-6 flex items-center justify-center gap-2">
           <span>Local-first full-stack v0.4 — no auto-apply. Review all outputs before submitting applications.</span>
-          <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-2">Daemon Active</span>
+          <span className="badge-success ml-2 text-[10px]">
+            Daemon Active
+          </span>
         </div>
       </footer>
       <AutoScoutDaemon />

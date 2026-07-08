@@ -57,19 +57,19 @@ export default function GapHonestyPanel({ missingKeywords }: GapHonestyPanelProp
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-slate-900">Gap honesty</h2>
-      <p className="mt-1 text-sm text-slate-600">
+    <section className="glass-card">
+      <h2 className="text-lg font-semibold text-foreground">Gap honesty</h2>
+      <p className="mt-1 text-sm text-foreground-secondary">
         How to handle missing keywords in your cover letter — verified facts only,
         no fabrication.
       </p>
 
       {error ? (
-        <p role="alert" className="mt-4 text-sm font-medium text-rose-600">
+        <p role="alert" className="mt-4 text-sm font-medium text-danger">
           {error}
         </p>
       ) : suggestions.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">Checking verified overlap...</p>
+        <p className="mt-4 text-sm text-foreground-secondary">Checking verified overlap...</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {suggestions.map((item) => (
@@ -77,8 +77,8 @@ export default function GapHonestyPanel({ missingKeywords }: GapHonestyPanelProp
               key={item.missing}
               className={`rounded-xl border px-4 py-3 text-sm ${
                 item.status === "gap"
-                  ? "border-amber-200 bg-amber-50 text-amber-950"
-                  : "border-brand-100 bg-brand-50 text-brand-950"
+                  ? "border-warning/20 bg-warning/10 text-amber-950"
+                  : "border-primary/15 bg-primary/10 text-primary-dark"
               }`}
             >
               <p className="font-semibold">{item.missing}</p>

@@ -5,15 +5,15 @@ interface ATSKeywordCoverageProps {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
-  return "text-rose-600";
+  if (score >= 75) return "text-success";
+  if (score >= 50) return "text-warning";
+  return "text-danger";
 }
 
 function ringColor(score: number): string {
-  if (score >= 75) return "stroke-emerald-500";
-  if (score >= 50) return "stroke-amber-500";
-  return "stroke-rose-500";
+  if (score >= 75) return "stroke-success";
+  if (score >= 50) return "stroke-warning";
+  return "stroke-danger";
 }
 
 export default function ATSKeywordCoverage({ coverage }: ATSKeywordCoverageProps) {
@@ -24,7 +24,7 @@ export default function ATSKeywordCoverage({ coverage }: ATSKeywordCoverageProps
   const offset = circumference - (coverage.score / 100) * circumference;
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="glass-card p-5 rounded-xl">
       <div className="flex flex-wrap items-start gap-6">
         <div className="relative h-24 w-24 shrink-0">
           <svg className="h-24 w-24 -rotate-90" viewBox="0 0 88 88">
@@ -34,7 +34,7 @@ export default function ATSKeywordCoverage({ coverage }: ATSKeywordCoverageProps
               r={radius}
               fill="none"
               strokeWidth="8"
-              className="stroke-slate-100"
+              className="stroke-border"
             />
             <circle
               cx="44"
@@ -57,10 +57,10 @@ export default function ATSKeywordCoverage({ coverage }: ATSKeywordCoverageProps
 
         <div className="min-w-0 flex-1 space-y-3">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">
+            <h2 className="text-base font-semibold text-foreground">
               ATS keyword coverage
             </h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-foreground-secondary">
               {coverage.matched.length} of {coverage.total} job keywords appear in
               your CV text. Reorder bullets or add matched terms naturally where
               truthful.
@@ -69,20 +69,20 @@ export default function ATSKeywordCoverage({ coverage }: ATSKeywordCoverageProps
 
           {coverage.matched.length > 0 ? (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+              <p className="text-xs font-medium uppercase tracking-wide text-success">
                 In CV ({coverage.matched.length})
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {coverage.matched.slice(0, 12).map((term) => (
                   <span
                     key={term}
-                    className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"
+                    className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-emerald-800"
                   >
                     {term}
                   </span>
                 ))}
                 {coverage.matched.length > 12 ? (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-foreground-secondary">
                     +{coverage.matched.length - 12} more
                   </span>
                 ) : null}
@@ -92,20 +92,20 @@ export default function ATSKeywordCoverage({ coverage }: ATSKeywordCoverageProps
 
           {coverage.missing.length > 0 ? (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-amber-700">
+              <p className="text-xs font-medium uppercase tracking-wide text-warning">
                 Missing from CV ({coverage.missing.length})
               </p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {coverage.missing.slice(0, 10).map((term) => (
                   <span
                     key={term}
-                    className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-900"
+                    className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning"
                   >
                     {term}
                   </span>
                 ))}
                 {coverage.missing.length > 10 ? (
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-foreground-secondary">
                     +{coverage.missing.length - 10} more — gap or transferable
                   </span>
                 ) : null}

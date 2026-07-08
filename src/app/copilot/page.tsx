@@ -128,7 +128,7 @@ export default function CopilotPage() {
           </button>
           
           {isAnalyzing && (
-            <span className="text-sm font-medium text-brand-600 animate-pulse">
+            <span className="text-sm font-medium text-primary animate-pulse">
               Analyzing question...
             </span>
           )}
@@ -148,31 +148,31 @@ export default function CopilotPage() {
           </div>
 
           {/* AI Insights Box */}
-          <div className="rounded-xl border border-brand-200 bg-brand-50 shadow-sm p-6 flex flex-col h-[500px]">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-brand-700 mb-4">
+          <div className="rounded-xl border border-primary/20 bg-primary/10 shadow-sm p-6 flex flex-col h-[500px]">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-primary-dark mb-4">
               AI Talking Points (STAR)
             </h2>
             <div className="flex-1 overflow-y-auto">
               {!insight ? (
                 <div className="flex h-full items-center justify-center text-center">
-                  <p className="text-brand-600/60 text-sm">
+                  <p className="text-primary/60 text-sm">
                     Waiting for interviewer to ask a question...
                   </p>
                 </div>
               ) : (
                 <div className="space-y-6 animate-fade-in">
                   <div>
-                    <h3 className="font-semibold text-brand-900">Detected Question:</h3>
-                    <p className="text-brand-800 italic mt-1">&quot;{insight.detectedQuestion}&quot;</p>
+                    <h3 className="font-semibold text-primary-dark">Detected Question:</h3>
+                    <p className="text-primary-dark italic mt-1">&quot;{insight.detectedQuestion}&quot;</p>
                   </div>
                   
                   <div className="space-y-3">
                     {insight.starPoints.map((point, i) => (
-                      <div key={i} className="flex gap-3 items-start bg-white p-3 rounded-lg border border-brand-100 shadow-sm">
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
+                      <div key={i} className="flex gap-3 items-start bg-surface p-3 rounded-lg border border-primary/15 shadow-sm">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary-dark">
                           {i + 1}
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed">{point}</p>
+                        <p className="text-sm text-foreground-secondary leading-relaxed">{point}</p>
                       </div>
                     ))}
                   </div>

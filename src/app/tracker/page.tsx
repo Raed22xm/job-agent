@@ -157,10 +157,10 @@ export default function TrackerPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Application Tracker
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-foreground-secondary">
             Saved on the server in{" "}
             <code className="text-xs">data/applications.sqlite</code>. After each
             application, use <strong className="font-medium">Jobnet</strong> to copy
@@ -192,7 +192,7 @@ export default function TrackerPage() {
             type="button"
             onClick={handleExport}
             disabled={applications.length === 0}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground-secondary hover:bg-background-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             Export JSON
           </button>
@@ -200,14 +200,14 @@ export default function TrackerPage() {
             type="button"
             onClick={() => void handleExportCsv()}
             disabled={applications.length === 0}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground-secondary hover:bg-background-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             Export CSV
           </button>
           <button
             type="button"
             onClick={handleImportClick}
-            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground-secondary hover:bg-background-secondary"
           >
             Import JSON
           </button>
@@ -223,7 +223,7 @@ export default function TrackerPage() {
       </div>
 
       {importError && (
-        <p role="alert" className="text-sm text-rose-600">
+        <p role="alert" className="text-sm text-danger">
           {importError}
         </p>
       )}
@@ -250,9 +250,9 @@ export default function TrackerPage() {
               { label: "Rejected", value: rejected, color: "rose" },
               { label: "Avg Match", value: `${avgScore}%`, color: overdue > 0 ? "amber" : "slate" },
             ].map(stat => (
-              <div key={stat.label} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm">
-                <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{stat.label}</p>
+              <div key={stat.label} className="rounded-xl border border-border bg-surface px-4 py-3 text-center shadow-sm">
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-foreground-secondary mt-0.5">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -280,25 +280,25 @@ export default function TrackerPage() {
         if (entries.length === 0) return null;
 
         return (
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-slate-900 mb-3">CV A/B Testing Analytics</h2>
+          <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-foreground mb-3">CV A/B Testing Analytics</h2>
             <div className="space-y-3">
               {entries.map(([pId, stats]) => {
                 const conversion = Math.round((stats.interviews / stats.total) * 100);
                 return (
                   <div key={pId} className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-slate-700">Persona: {pId}</p>
-                      <p className="text-xs text-slate-500">{stats.interviews} interviews / {stats.total} applied</p>
+                      <p className="text-sm font-medium text-foreground-secondary">Persona: {pId}</p>
+                      <p className="text-xs text-foreground-secondary">{stats.interviews} interviews / {stats.total} applied</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-32 h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="w-32 h-2 bg-background-secondary rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-indigo-500 rounded-full" 
                           style={{ width: `${conversion}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm font-bold text-slate-900 w-12 text-right">{conversion}%</span>
+                      <span className="text-sm font-bold text-foreground w-12 text-right">{conversion}%</span>
                     </div>
                   </div>
                 );
@@ -313,7 +313,7 @@ export default function TrackerPage() {
           isOverdue(a.deadline) || isOverdue(a.followUpDate)
         ).length;
         return overdue > 0 ? (
-          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-medium text-rose-700">
+          <div className="rounded-lg border border-danger/20 bg-danger/10 px-4 py-2 text-xs font-medium text-danger">
             ⚠️ {overdue} application{overdue > 1 ? "s" : ""} overdue — check your deadlines
           </div>
         ) : null;
@@ -327,7 +327,7 @@ export default function TrackerPage() {
             <div className="flex-1">
               <label
                 htmlFor="tracker-search"
-                className="text-sm font-medium text-slate-700"
+                className="text-sm font-medium text-foreground-secondary"
               >
                 Search
               </label>
@@ -337,13 +337,13 @@ export default function TrackerPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by title, company, location, or notes"
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none ring-primary focus:ring-2"
               />
             </div>
             <div>
               <label
                 htmlFor="tracker-status"
-                className="text-sm font-medium text-slate-700"
+                className="text-sm font-medium text-foreground-secondary"
               >
                 Status
               </label>
@@ -353,7 +353,7 @@ export default function TrackerPage() {
                 onChange={(e) =>
                   setStatusFilter(e.target.value as ApplicationStatus | "all" | "due" | "jobnet")
                 }
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2 sm:w-44"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none ring-primary focus:ring-2 sm:w-44"
               >
                 {statusFilterOptions.map((status) => (
                   <option key={status} value={status}>

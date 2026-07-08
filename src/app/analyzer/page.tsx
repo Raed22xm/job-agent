@@ -156,13 +156,13 @@ export default function AnalyzerPage() {
   return (
     <div className="space-y-8">
       <header>
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
           v0.4 · {modeLabel}
         </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
           Job Analyzer
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-foreground-secondary">
           Instant local match score and keywords. Optional AI enhancement for
           tailored summary and cover letter — you choose when to spend tokens.
         </p>
@@ -198,7 +198,7 @@ export default function AnalyzerPage() {
           {error && (
             <div
               role="alert"
-              className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-800"
+              className="rounded-2xl border border-danger/20 bg-danger/10 px-5 py-4 text-sm text-danger"
             >
               <p className="font-semibold">
                 {showResults ? "AI enhancement failed" : "Analysis failed"}

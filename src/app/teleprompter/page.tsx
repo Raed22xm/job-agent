@@ -91,7 +91,7 @@ export default function TeleprompterPage() {
             </div>
             
             {error && (
-              <div className="rounded-lg bg-rose-50 p-4 border border-rose-200 text-sm text-rose-600">
+              <div className="rounded-lg bg-danger/10 p-4 border border-danger/20 text-sm text-danger">
                 Error: {error}
               </div>
             )}
@@ -111,7 +111,7 @@ export default function TeleprompterPage() {
                       setIsPlaying(false);
                       if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
                     }}
-                    className="rounded-lg bg-slate-200 px-4 py-2 font-bold text-slate-800 hover:bg-slate-300"
+                    className="rounded-lg bg-background-secondary px-4 py-2 font-bold text-foreground hover:bg-surface-hover"
                   >
                     Reset
                   </button>
@@ -135,9 +135,9 @@ export default function TeleprompterPage() {
           </div>
 
           <div className="lg:col-span-2">
-            <div className="rounded-xl border-4 border-slate-900 bg-slate-950 p-8 shadow-2xl relative overflow-hidden h-[600px]">
+            <div className="rounded-xl border-4 border-foreground bg-background p-8 shadow-2xl relative overflow-hidden h-[600px]">
               {/* Teleprompter Focus Line */}
-              <div className="absolute top-1/2 left-0 right-0 h-16 -mt-8 bg-white/10 pointer-events-none z-10 border-y border-white/20"></div>
+              <div className="absolute top-1/2 left-0 right-0 h-16 -mt-8 bg-surface/10 pointer-events-none z-10 border-y border-white/20"></div>
               
               <div 
                 ref={scrollContainerRef}
@@ -146,7 +146,7 @@ export default function TeleprompterPage() {
               >
                 {!script ? (
                   <div className="flex h-full items-center justify-center">
-                    <p className="text-slate-500 text-xl font-bold text-center">
+                    <p className="text-foreground-secondary text-xl font-bold text-center">
                       Your script will appear here.<br/>Generate it first.
                     </p>
                   </div>

@@ -22,28 +22,28 @@ export default function CVPreview({
   const { header, summary, skills, experience, education, projects } = cv.sections;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-slate-900">ATS CV Preview</h2>
-        <p className="mt-1 text-sm text-slate-500">
+    <div className="glass-panel rounded-xl">
+      <div className="border-b border-border px-6 py-4">
+        <h2 className="text-lg font-semibold text-foreground">ATS CV Preview</h2>
+        <p className="mt-1 text-sm text-foreground-secondary">
           One-column layout using verified master CV data only.
         </p>
       </div>
 
-      <div className="relative mx-auto w-full max-w-[210mm] bg-white">
+      <div className="relative mx-auto w-full max-w-[210mm] bg-surface">
         <div
-          className="cv-export-hide pointer-events-none absolute left-0 right-0 border-t border-dashed border-slate-200"
+          className="cv-export-hide pointer-events-none absolute left-0 right-0 border-t border-dashed border-border"
           style={{ top: `${PAGE_BREAK_PX}px` }}
           title="Approximate A4 page break"
         >
-          <span className="absolute right-2 -top-5 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
+          <span className="absolute right-2 -top-5 rounded bg-background-secondary px-1.5 py-0.5 text-[10px] font-medium text-foreground-tertiary">
             ≈ page break
           </span>
         </div>
 
         <article
           ref={exportRef}
-          className="cv-document bg-white px-[10mm] py-[8mm]"
+          className="cv-document bg-surface px-[10mm] py-[8mm]"
           style={{ width: "210mm", maxWidth: "100%" }}
         >
           <header className="border-b border-slate-400 pb-1.5 text-center">
@@ -157,11 +157,11 @@ export default function CVPreview({
       </div>
 
       {cv.atsNotes.length > 0 && (
-        <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="border-t border-border bg-background-secondary px-6 py-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
             ATS Notes
           </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-600">
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-foreground-secondary">
             {cv.atsNotes.map((note) => (
               <li key={note}>{note}</li>
             ))}

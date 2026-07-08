@@ -44,8 +44,8 @@ function FieldRow({
 }) {
   if (field.fieldType === "info") {
     return (
-      <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-        <span className="font-medium text-slate-700">{field.label}:</span>{" "}
+      <div className="rounded-lg bg-background-secondary px-3 py-2 text-xs text-foreground-secondary">
+        <span className="font-medium text-foreground-secondary">{field.label}:</span>{" "}
         {field.value}
       </div>
     );
@@ -53,12 +53,12 @@ function FieldRow({
 
   if (field.fieldType === "upload") {
     return (
-      <div className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2">
+      <div className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-dashed border-border bg-background-secondary px-3 py-2">
         <div>
-          <p className="text-xs font-medium text-slate-700">{field.label}</p>
-          <p className="mt-0.5 text-sm text-slate-600">{field.value}</p>
+          <p className="text-xs font-medium text-foreground-secondary">{field.label}</p>
+          <p className="mt-0.5 text-sm text-foreground-secondary">{field.value}</p>
         </div>
-        <span className="rounded bg-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase text-slate-600">
+        <span className="rounded bg-background-secondary px-2 py-0.5 text-[10px] font-semibold uppercase text-foreground-secondary">
           Upload på Jobnet
         </span>
       </div>
@@ -73,7 +73,7 @@ function FieldRow({
   return (
     <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto]">
       <div>
-        <dt className="text-xs font-medium text-slate-700">
+        <dt className="text-xs font-medium text-foreground-secondary">
           {field.label}
           {field.required ? " *" : ""}
         </dt>
@@ -84,8 +84,8 @@ function FieldRow({
                 key={option}
                 className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                   option === field.value
-                    ? "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-300"
-                    : "bg-slate-100 text-slate-500"
+                    ? "bg-success/15 text-emerald-800 ring-1 ring-emerald-300"
+                    : "bg-background-secondary text-foreground-secondary"
                 }`}
               >
                 {option}
@@ -94,19 +94,19 @@ function FieldRow({
             ))}
           </dd>
         ) : (
-          <dd className="mt-0.5 whitespace-pre-wrap break-words text-sm text-slate-900">
-            {field.value || <span className="text-slate-400">— udfyld på Jobnet</span>}
+          <dd className="mt-0.5 whitespace-pre-wrap break-words text-sm text-foreground">
+            {field.value || <span className="text-foreground-tertiary">— udfyld på Jobnet</span>}
           </dd>
         )}
         {field.hint && (
-          <p className="mt-1 text-xs text-amber-700">{field.hint}</p>
+          <p className="mt-1 text-xs text-warning">{field.hint}</p>
         )}
       </div>
       {copyValue && field.fieldType !== "radio" && (
         <button
           type="button"
           onClick={() => onCopy(field.key, copyValue)}
-          className="self-start rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+          className="self-start rounded border border-border px-2 py-1 text-xs font-medium text-foreground-secondary hover:bg-background-secondary"
         >
           {copiedKey === field.key ? "Kopieret" : "Kopiér"}
         </button>
@@ -115,7 +115,7 @@ function FieldRow({
         <button
           type="button"
           onClick={() => onCopy(field.key, field.value)}
-          className="self-start rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50"
+          className="self-start rounded border border-border px-2 py-1 text-xs font-medium text-foreground-secondary hover:bg-background-secondary"
         >
           {copiedKey === field.key ? "Kopieret" : "Kopiér valg"}
         </button>
@@ -195,7 +195,7 @@ export default function JobnetLogPanel({
   };
 
   return (
-    <div className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+    <div className="space-y-4 rounded-xl border border-success/20 bg-success/10/60 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-emerald-950">
@@ -218,7 +218,7 @@ export default function JobnetLogPanel({
       {entry.missingRequired.length > 0 && (
         <div
           role="status"
-          className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+          className="rounded-lg border border-warning/20 bg-warning/10 px-3 py-2 text-xs text-warning"
         >
           <p className="font-semibold">Mangler — udfyld manuelt på Jobnet:</p>
           <ul className="mt-1 list-inside list-disc">
@@ -237,7 +237,7 @@ export default function JobnetLogPanel({
           return (
             <section
               key={section}
-              className="rounded-lg border border-emerald-100 bg-white p-3"
+              className="rounded-lg border border-emerald-100 bg-surface p-3"
             >
               <h4 className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
                 {section}
@@ -257,13 +257,13 @@ export default function JobnetLogPanel({
         })}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-emerald-100 bg-white p-3">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-emerald-100 bg-surface p-3">
+        <label className="flex items-center gap-2 text-sm text-foreground-secondary">
           <input
             type="checkbox"
             checked={logged}
             onChange={(e) => setLogged(e.target.checked)}
-            className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            className="rounded border-border text-success focus:ring-emerald-500"
           />
           Logget på Jobnet
         </label>
@@ -271,7 +271,7 @@ export default function JobnetLogPanel({
           <div>
             <label
               htmlFor={`jobnet-date-${application.id}`}
-              className="text-xs font-medium text-slate-700"
+              className="text-xs font-medium text-foreground-secondary"
             >
               Dato logget
             </label>
@@ -280,7 +280,7 @@ export default function JobnetLogPanel({
               type="date"
               value={loggedDate}
               onChange={(e) => setLoggedDate(e.target.value)}
-              className="mt-1 block rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none ring-emerald-500 focus:ring-2"
+              className="mt-1 block rounded-lg border border-border px-3 py-1.5 text-sm outline-none ring-emerald-500 focus:ring-2"
             />
           </div>
         )}

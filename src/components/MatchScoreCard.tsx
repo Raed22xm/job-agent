@@ -9,15 +9,15 @@ interface MatchScoreCardProps {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
-  return "text-rose-600";
+  if (score >= 75) return "text-success";
+  if (score >= 50) return "text-warning";
+  return "text-danger";
 }
 
 function scoreRingColor(score: number): string {
-  if (score >= 75) return "stroke-emerald-500";
-  if (score >= 50) return "stroke-amber-500";
-  return "stroke-rose-500";
+  if (score >= 75) return "stroke-success";
+  if (score >= 50) return "stroke-warning";
+  return "stroke-danger";
 }
 
 function hasValidBreakdown(
@@ -60,22 +60,25 @@ function CategoryBar({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-xs">
-        <span className="font-medium text-slate-700">
+        <span className="font-medium text-foreground">
           {label}{" "}
-          <span className="font-normal text-slate-400">({weight} pts)</span>
+          <span className="font-normal text-foreground-tertiary">({weight} pts)</span>
         </span>
-        <span className="text-slate-500">
+        <span className="text-foreground-secondary">
           {matched}/{total} · {score}%
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+      <div
+        className="h-1.5 overflow-hidden rounded-full"
+        style={{ background: "var(--surface-border)" }}
+      >
         <div
           className={`h-full rounded-full transition-all ${
             score >= 75
-              ? "bg-emerald-500"
+              ? "bg-success"
               : score >= 50
-                ? "bg-amber-500"
-                : "bg-rose-400"
+                ? "bg-warning"
+                : "bg-danger"
           }`}
           style={{ width: `${score}%` }}
         />
@@ -96,21 +99,21 @@ export default function MatchScoreCard({
   const offset = circumference - (score / 100) * circumference;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="glass-card">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Match Score</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-foreground">Match Score</h2>
+          <p className="mt-1 text-sm text-foreground-secondary">
             Weighted comparison between the job posting and your verified master CV.
           </p>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
             score >= 75
-              ? "bg-emerald-50 text-emerald-700"
+              ? "badge-success"
               : score >= 50
-                ? "bg-amber-50 text-amber-700"
-                : "bg-rose-50 text-rose-700"
+                ? "badge-warning"
+                : "badge-danger"
           }`}
         >
           {scoreLabel(score)}
@@ -125,7 +128,7 @@ export default function MatchScoreCard({
               cy="50"
               r={radius}
               fill="none"
-              stroke="#e2e8f0"
+              style={{ stroke: "var(--surface-border)" }}
               strokeWidth="8"
             />
             <circle
@@ -151,16 +154,16 @@ export default function MatchScoreCard({
         </div>
 
         <div className="flex-1 space-y-3">
-          <p className="text-sm leading-relaxed text-slate-700">{summary}</p>
+          <p className="text-sm leading-relaxed text-foreground-secondary">{summary}</p>
           {(matchedCount !== undefined || missingCount !== undefined) && (
             <div className="flex flex-wrap gap-3 text-xs font-medium">
               {matchedCount !== undefined && (
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                <span className="badge-success">
                   {matchedCount} matching keywords
                 </span>
               )}
               {missingCount !== undefined && (
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                <span className="badge-warning">
                   {missingCount} missing keywords
                 </span>
               )}
@@ -168,7 +171,7 @@ export default function MatchScoreCard({
           )}
 
           {hasValidBreakdown(scoreBreakdown) && (
-            <div className="space-y-2 border-t border-slate-100 pt-3">
+            <div className="space-y-2 border-t pt-3" style={{ borderColor: "var(--surface-border)" }}>
               <CategoryBar label="Skills Match" {...scoreBreakdown.skillsMatch} />
               <CategoryBar
                 label="Experience Match"

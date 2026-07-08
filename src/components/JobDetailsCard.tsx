@@ -9,7 +9,7 @@ interface JobDetailsCardProps {
 
 function TagList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
   if (items.length === 0) {
-    return <p className="text-sm text-slate-500">{emptyLabel}</p>;
+    return <p className="text-sm text-foreground-secondary">{emptyLabel}</p>;
   }
 
   return (
@@ -17,7 +17,7 @@ function TagList({ items, emptyLabel }: { items: string[]; emptyLabel: string })
       {items.map((item) => (
         <li
           key={item}
-          className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700"
+          className="rounded-full border border-border bg-background-secondary px-3 py-1 text-xs font-medium text-foreground-secondary"
         >
           {item}
         </li>
@@ -28,14 +28,14 @@ function TagList({ items, emptyLabel }: { items: string[]; emptyLabel: string })
 
 function BulletList({ items, emptyLabel }: { items: string[]; emptyLabel: string }) {
   if (items.length === 0) {
-    return <p className="text-sm text-slate-500">{emptyLabel}</p>;
+    return <p className="text-sm text-foreground-secondary">{emptyLabel}</p>;
   }
 
   return (
     <ul className="space-y-2">
       {items.map((item) => (
-        <li key={item} className="flex gap-2 text-sm leading-relaxed text-slate-700">
-          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+        <li key={item} className="flex gap-2 text-sm leading-relaxed text-foreground-secondary">
+          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
           <span>{item}</span>
         </li>
       ))}
@@ -45,20 +45,20 @@ function BulletList({ items, emptyLabel }: { items: string[]; emptyLabel: string
 
 export default function JobDetailsCard({ job, onSave, isSaving = false, savedMessage }: JobDetailsCardProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-6 py-5">
+    <div className="rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="border-b border-border px-6 py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
               Extracted Job Details
             </p>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">{job.title}</h2>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+            <h2 className="mt-1 text-xl font-bold text-foreground">{job.title}</h2>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-foreground-secondary">
               <span>
-                <span className="font-medium text-slate-700">Company:</span> {job.company}
+                <span className="font-medium text-foreground-secondary">Company:</span> {job.company}
               </span>
               <span>
-                <span className="font-medium text-slate-700">Location:</span> {job.location}
+                <span className="font-medium text-foreground-secondary">Location:</span> {job.location}
               </span>
             </div>
           </div>
@@ -67,14 +67,14 @@ export default function JobDetailsCard({ job, onSave, isSaving = false, savedMes
               type="button"
               onClick={() => void onSave()}
               disabled={isSaving}
-              className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary-dark transition hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSaving ? "Saving…" : "Save to Tracker"}
             </button>
           )}
         </div>
         {savedMessage && (
-          <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <p className="mt-3 rounded-lg bg-success/10 px-3 py-2 text-sm text-success">
             {savedMessage}
           </p>
         )}
@@ -82,7 +82,7 @@ export default function JobDetailsCard({ job, onSave, isSaving = false, savedMes
 
       <div className="grid gap-6 p-6 lg:grid-cols-2">
         <section>
-          <h3 className="text-sm font-semibold text-slate-900">Required Skills</h3>
+          <h3 className="text-sm font-semibold text-foreground">Required Skills</h3>
           <div className="mt-3">
             <TagList
               items={job.skills}
@@ -92,7 +92,7 @@ export default function JobDetailsCard({ job, onSave, isSaving = false, savedMes
         </section>
 
         <section>
-          <h3 className="text-sm font-semibold text-slate-900">Tools & Technologies</h3>
+          <h3 className="text-sm font-semibold text-foreground">Tools & Technologies</h3>
           <div className="mt-3">
             <TagList
               items={job.tools}
@@ -102,7 +102,7 @@ export default function JobDetailsCard({ job, onSave, isSaving = false, savedMes
         </section>
 
         <section>
-          <h3 className="text-sm font-semibold text-slate-900">Responsibilities</h3>
+          <h3 className="text-sm font-semibold text-foreground">Responsibilities</h3>
           <div className="mt-3">
             <BulletList
               items={job.responsibilities}
@@ -112,7 +112,7 @@ export default function JobDetailsCard({ job, onSave, isSaving = false, savedMes
         </section>
 
         <section>
-          <h3 className="text-sm font-semibold text-slate-900">Requirements</h3>
+          <h3 className="text-sm font-semibold text-foreground">Requirements</h3>
           <div className="mt-3">
             <BulletList
               items={job.requirements}
@@ -122,7 +122,7 @@ export default function JobDetailsCard({ job, onSave, isSaving = false, savedMes
         </section>
 
         <section className="lg:col-span-2">
-          <h3 className="text-sm font-semibold text-slate-900">ATS Keywords</h3>
+          <h3 className="text-sm font-semibold text-foreground">ATS Keywords</h3>
           <div className="mt-3">
             <TagList
               items={job.atsKeywords}

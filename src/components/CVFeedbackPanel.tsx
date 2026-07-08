@@ -15,20 +15,20 @@ const SEVERITY_CONFIG: Record<
   error: {
     label: "Error",
     icon: "✕",
-    badge: "bg-rose-100 text-rose-700",
-    row: "border-rose-200 bg-rose-50/60",
+    badge: "bg-rose-100 text-danger",
+    row: "border-danger/20 bg-danger/10/60",
   },
   warning: {
     label: "Warning",
     icon: "⚠",
-    badge: "bg-amber-100 text-amber-700",
-    row: "border-amber-200 bg-amber-50/60",
+    badge: "bg-amber-100 text-warning",
+    row: "border-warning/20 bg-warning/10/60",
   },
   tip: {
     label: "Tip",
     icon: "💡",
     badge: "bg-blue-100 text-blue-700",
-    row: "border-blue-200 bg-blue-50/40",
+    row: "border-primary/20 bg-primary/10/40",
   },
 };
 
@@ -50,9 +50,9 @@ function FeedbackRow({ item }: { item: FeedbackItem }) {
           {SECTION_LABELS[item.section]}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-800">{item.message}</p>
+          <p className="text-sm font-medium text-foreground">{item.message}</p>
           {item.suggestion && (
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">
+            <p className="mt-1 text-xs leading-relaxed text-foreground-secondary">
               {item.suggestion}
             </p>
           )}
@@ -76,11 +76,11 @@ export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
 
   if (allItems.length === 0) {
     return (
-      <section className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+      <section className="rounded-xl border border-success/20 bg-success/10 px-5 py-4">
         <p className="text-sm font-semibold text-emerald-800">
           ✓ No CV feedback issues detected
         </p>
-        <p className="mt-1 text-xs text-emerald-700">
+        <p className="mt-1 text-xs text-success">
           All sections look solid. Review the ATS keyword coverage above and
           export when ready.
         </p>
@@ -89,7 +89,7 @@ export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="glass-panel rounded-xl">
       {/* Header */}
       <button
         type="button"
@@ -97,17 +97,17 @@ export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
         className="flex w-full flex-wrap items-center justify-between gap-3 px-5 py-4 text-left"
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-base font-semibold text-slate-900">
+          <h2 className="text-base font-semibold text-foreground">
             CV Feedback
           </h2>
           <div className="flex gap-1.5">
             {errors.length > 0 && (
-              <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+              <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-semibold text-danger">
                 {errors.length} error{errors.length > 1 ? "s" : ""}
               </span>
             )}
             {warnings.length > 0 && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-warning">
                 {warnings.length} warning{warnings.length > 1 ? "s" : ""}
               </span>
             )}
@@ -118,13 +118,13 @@ export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
             )}
           </div>
         </div>
-        <span className="text-xs font-medium text-slate-500">
+        <span className="text-xs font-medium text-foreground-secondary">
           {open ? "Collapse ▲" : "Expand ▼"}
         </span>
       </button>
 
       {open && (
-        <div className="border-t border-slate-100 px-5 pb-5 pt-4">
+        <div className="border-t border-border px-5 pb-5 pt-4">
           {/* Filter tabs */}
           <div className="mb-4 flex flex-wrap gap-1.5">
             {(["all", "error", "warning", "tip"] as const).map((f) => {
@@ -140,8 +140,8 @@ export default function CVFeedbackPanel({ cv }: CVFeedbackPanelProps) {
                   onClick={() => setFilter(f)}
                   className={`rounded-full px-3 py-1 text-xs font-medium transition ${
                     filter === f
-                      ? "bg-slate-800 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-foreground text-white"
+                      : "bg-background-secondary text-foreground-secondary hover:bg-surface-hover"
                   }`}
                 >
                   {f === "all" ? `All (${count})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${count})`}

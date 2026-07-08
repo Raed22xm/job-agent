@@ -69,7 +69,7 @@ export default function InterviewPrepModal({ application, onClose }: InterviewPr
               <p className="text-sm text-foreground-tertiary mt-2">Generating customized questions</p>
             </div>
           ) : error ? (
-            <div className="rounded-lg bg-rose-500/10 p-4 text-rose-500 text-center">
+            <div className="rounded-lg bg-danger/10 p-4 text-danger text-center">
               {error}
             </div>
           ) : prep ? (
@@ -94,15 +94,15 @@ export default function InterviewPrepModal({ application, onClose }: InterviewPr
                       <span className="font-semibold text-foreground-secondary block mb-1">Suggested Answer (STAR):</span>
                       <p className="text-foreground-secondary leading-relaxed">{q.suggestedAnswerFramework}</p>
                     </div>
-                    <div className="text-xs font-medium text-emerald-600 bg-emerald-500/10 inline-block px-2 py-1 rounded">
+                    <div className="text-xs font-medium text-success bg-success/10 inline-block px-2 py-1 rounded">
                       CV Ref: {q.cvReference}
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 mt-6">
-                <h3 className="font-bold text-amber-600 mb-2">Weakness Strategy</h3>
+              <div className="rounded-xl border border-amber-500/20 bg-warning/5 p-5 mt-6">
+                <h3 className="font-bold text-warning mb-2">Weakness Strategy</h3>
                 <p className="text-sm text-foreground-secondary leading-relaxed">{prep.weaknessStrategy}</p>
               </div>
             </>

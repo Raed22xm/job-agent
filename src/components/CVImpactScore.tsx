@@ -19,15 +19,15 @@ interface SubScore {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 75) return "text-emerald-600";
-  if (score >= 50) return "text-amber-600";
-  return "text-rose-600";
+  if (score >= 75) return "text-success";
+  if (score >= 50) return "text-warning";
+  return "text-danger";
 }
 
 function barColor(score: number): string {
-  if (score >= 75) return "bg-emerald-500";
-  if (score >= 50) return "bg-amber-500";
-  return "bg-rose-500";
+  if (score >= 75) return "bg-success";
+  if (score >= 50) return "bg-warning";
+  return "bg-danger";
 }
 
 function label(score: number): string {
@@ -42,14 +42,14 @@ function SubScoreBar({ name, desc, score }: { name: string; desc: string; score:
     <div>
       <div className="flex items-baseline justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold text-slate-700">{name}</p>
-          <p className="text-[11px] text-slate-500">{desc}</p>
+          <p className="text-xs font-semibold text-foreground-secondary">{name}</p>
+          <p className="text-[11px] text-foreground-secondary">{desc}</p>
         </div>
         <span className={`shrink-0 text-sm font-bold ${scoreColor(score)}`}>
           {score}%
         </span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-background-secondary">
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor(score)}`}
           style={{ width: `${score}%` }}
@@ -75,7 +75,7 @@ export default function CVImpactScore({ cv, parsedJob }: CVImpactScoreProps) {
   const offset = circumference - (composite / 100) * circumference;
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="glass-panel rounded-xl">
       <div className="flex flex-wrap items-start gap-6 px-6 py-5">
         {/* Composite ring */}
         <div className="relative h-28 w-28 shrink-0">
@@ -83,7 +83,7 @@ export default function CVImpactScore({ cv, parsedJob }: CVImpactScoreProps) {
             <circle
               cx="50" cy="50" r={radius}
               fill="none" strokeWidth="8"
-              className="stroke-slate-100"
+              className="stroke-border"
             />
             <circle
               cx="50" cy="50" r={radius}
@@ -93,10 +93,10 @@ export default function CVImpactScore({ cv, parsedJob }: CVImpactScoreProps) {
               strokeDashoffset={offset}
               className={
                 composite >= 75
-                  ? "stroke-emerald-500"
+                  ? "stroke-success"
                   : composite >= 50
-                  ? "stroke-amber-500"
-                  : "stroke-rose-500"
+                  ? "stroke-warning"
+                  : "stroke-danger"
               }
               style={{ transition: "stroke-dashoffset 0.6s ease" }}
             />
@@ -105,7 +105,7 @@ export default function CVImpactScore({ cv, parsedJob }: CVImpactScoreProps) {
             <span className={`text-2xl font-bold leading-none ${scoreColor(composite)}`}>
               {composite}
             </span>
-            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-foreground-tertiary">
               Impact
             </span>
           </div>
@@ -114,7 +114,7 @@ export default function CVImpactScore({ cv, parsedJob }: CVImpactScoreProps) {
         {/* Sub-scores */}
         <div className="min-w-0 flex-1 space-y-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">CV Impact Score</h2>
+            <h2 className="text-base font-semibold text-foreground">CV Impact Score</h2>
             <p className={`mt-0.5 text-sm font-medium ${scoreColor(composite)}`}>
               {label(composite)} · {composite}/100
             </p>
@@ -139,8 +139,8 @@ export default function CVImpactScore({ cv, parsedJob }: CVImpactScoreProps) {
       </div>
 
       {composite < 65 && (
-        <div className="border-t border-slate-100 bg-slate-50 px-6 py-3">
-          <p className="text-xs text-slate-600">
+        <div className="border-t border-border bg-background-secondary px-6 py-3">
+          <p className="text-xs text-foreground-secondary">
             <span className="font-semibold">Priority:</span>{" "}
             {bulletScore < atsScore && bulletScore < summaryScore
               ? "Improve experience bullets — add strong action verbs and at least one metric per bullet."

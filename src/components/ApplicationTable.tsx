@@ -114,12 +114,12 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
   };
 
   return (
-    <div className="space-y-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <div className="space-y-4 rounded-lg p-4" style={{ background: "var(--background-secondary)", border: "1px solid var(--surface-border)" }}>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <label
             htmlFor={`cv-version-${app.id}`}
-            className="text-xs font-medium text-slate-700"
+            className="text-xs font-medium text-foreground-secondary"
           >
             CV version
           </label>
@@ -135,7 +135,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
         <div>
           <label
             htmlFor={`cover-letter-${app.id}`}
-            className="text-xs font-medium text-slate-700"
+            className="text-xs font-medium text-foreground-secondary"
           >
             Cover letter status
           </label>
@@ -157,7 +157,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
         <div>
           <label
             htmlFor={`recruiter-${app.id}`}
-            className="text-xs font-medium text-slate-700"
+            className="text-xs font-medium text-foreground-secondary"
           >
             Recruiter contact
           </label>
@@ -173,7 +173,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
         <div>
           <label
             htmlFor={`deadline-${app.id}`}
-            className="text-xs font-medium text-slate-700"
+            className="text-xs font-medium text-foreground-secondary"
           >
             Deadline
           </label>
@@ -188,7 +188,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
         <div>
           <label
             htmlFor={`applied-${app.id}`}
-            className="text-xs font-medium text-slate-700"
+            className="text-xs font-medium text-foreground-secondary"
           >
             Applied date
           </label>
@@ -203,7 +203,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
         <div>
           <label
             htmlFor={`followup-${app.id}`}
-            className="text-xs font-medium text-slate-700"
+            className="text-xs font-medium text-foreground-secondary"
           >
             Follow-up date
           </label>
@@ -219,7 +219,7 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
       <div>
         <label
           htmlFor={`notes-${app.id}`}
-          className="text-xs font-medium text-slate-700"
+          className="text-xs font-medium text-foreground-secondary"
         >
           Notes
         </label>
@@ -236,14 +236,14 @@ function EditFields({ app, onUpdate, onClose }: EditFieldsProps) {
         <button
           type="button"
           onClick={handleSave}
-          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700"
+          className="btn-primary text-xs px-3 py-1.5"
         >
           Save details
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-white"
+          className="btn-secondary text-xs px-3 py-1.5"
         >
           Cancel
         </button>
@@ -317,11 +317,11 @@ export default function ApplicationTable({
 
   if (applications.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-        <p className="text-sm font-medium text-slate-700">
+      <div className="glass-panel rounded-xl border-dashed p-10 text-center">
+        <p className="text-sm font-medium text-foreground">
           No saved applications yet.
         </p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-foreground-secondary">
           Analyze a job and save it from the Job Analyzer page.
         </p>
       </div>
@@ -329,70 +329,70 @@ export default function ApplicationTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="glass-panel overflow-hidden rounded-xl">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
+        <table className="min-w-full divide-y text-sm" style={{ borderColor: "var(--surface-border)" }}>
           <caption className="sr-only">
             Saved job applications with match scores, status, and follow-up dates
           </caption>
-          <thead className="bg-slate-50">
+          <thead style={{ background: "var(--background-secondary)" }}>
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Job Title
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Company
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Location
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Match
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 CV Version
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Cover Letter
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Status
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Applied
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Follow-up
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Link
               </th>
-              <th className="px-4 py-3 text-left font-semibold text-slate-700">
+              <th className="px-4 py-3 text-left font-semibold text-foreground-secondary">
                 Jobnet
               </th>
-              <th className="px-4 py-3 text-right font-semibold text-slate-700">
+              <th className="px-4 py-3 text-right font-semibold text-foreground-secondary">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y" style={{ borderColor: "var(--surface-border)" }}>
             {applications.map((app) => (
               <Fragment key={app.id}>
-                <tr className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                <tr className="transition-colors" style={{ cursor: "default" }} onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {app.jobTitle}
                   </td>
-                  <td className="px-4 py-3 text-slate-700">{app.company}</td>
-                  <td className="px-4 py-3 text-slate-600">{app.location}</td>
+                  <td className="px-4 py-3 text-foreground-secondary">{app.company}</td>
+                  <td className="px-4 py-3 text-foreground-secondary">{app.location}</td>
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                    <span className="badge-success">
                       {app.matchScore}%
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {app.cvVersion ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {coverLetterLabels[app.coverLetterStatus]}
                   </td>
                   <td className="px-4 py-3">
@@ -405,7 +405,7 @@ export default function ApplicationTable({
                         )
                       }
                       aria-label={`Status for ${app.jobTitle} at ${app.company}`}
-                      className="rounded-lg border border-slate-300 px-2 py-1 text-xs outline-none ring-brand-500 focus:ring-2"
+                      className="field-input-compact text-xs px-2 py-1"
                     >
                       {statusOptions.map((status) => (
                         <option key={status} value={status}>
@@ -414,10 +414,10 @@ export default function ApplicationTable({
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {formatDate(app.appliedDate)}
                   </td>
-                  <td className="px-4 py-3 text-slate-600">
+                  <td className="px-4 py-3 text-foreground-secondary">
                     {formatDate(app.followUpDate)}
                   </td>
                   <td className="px-4 py-3">
@@ -426,25 +426,25 @@ export default function ApplicationTable({
                         href={app.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                        className="text-xs font-medium text-primary hover:text-primary-dark"
                       >
                         Open
                       </a>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-foreground-tertiary">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3">
                     {app.jobnetLogged ? (
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                      <span className="badge-success text-[11px]">
                         Logget
                       </span>
                     ) : app.status === "applied" || app.status === "interview" ? (
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      <span className="badge-warning text-[11px]">
                         Mangler
                       </span>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-foreground-tertiary">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -452,7 +452,7 @@ export default function ApplicationTable({
                       <button
                         type="button"
                         onClick={() => setPrepApp(app)}
-                        className="text-xs font-medium text-purple-600 hover:text-purple-700"
+                        className="text-xs font-medium text-primary hover:text-primary-dark"
                       >
                         Prep
                       </button>
@@ -461,7 +461,7 @@ export default function ApplicationTable({
                           type="button"
                           disabled={autoApplying === app.id}
                           onClick={() => handleAutoApply(app)}
-                          className="text-xs font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 flex items-center gap-1"
+                          className="text-xs font-medium text-primary hover:text-primary-dark disabled:opacity-50 flex items-center gap-1"
                         >
                           {autoApplying === app.id ? (
                             <>
@@ -477,7 +477,7 @@ export default function ApplicationTable({
                         type="button"
                         disabled={loggingJobnet === app.id}
                         onClick={() => handleJobnetLog(app)}
-                        className="text-xs font-medium text-emerald-700 hover:text-emerald-800 disabled:opacity-50 flex items-center gap-1"
+                        className="text-xs font-medium text-success hover:opacity-80 disabled:opacity-50 flex items-center gap-1"
                       >
                         {loggingJobnet === app.id ? (
                           <>
@@ -493,14 +493,14 @@ export default function ApplicationTable({
                         onClick={() =>
                           setExpandedId(expandedId === app.id ? null : app.id)
                         }
-                        className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                        className="text-xs font-medium text-primary hover:text-primary-dark"
                       >
                         {expandedId === app.id ? "Close" : "Edit"}
                       </button>
                       <button
                         type="button"
                         onClick={() => onDelete(app.id)}
-                        className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                        className="text-xs font-medium text-danger hover:opacity-80"
                       >
                         Delete
                       </button>

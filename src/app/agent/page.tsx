@@ -278,13 +278,13 @@ export default function AgentPage() {
     <div className="space-y-8">
       {/* Header */}
       <header>
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
           AI Agent · Level 2 — You review every output
         </p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
           Job Search Agent
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-foreground-secondary">
           Your autonomous job search partner. Audits the job market + your CV,
           hunts live job listings ranked by your match score, and drafts
           personalised outreach — you review and approve everything before acting.
@@ -296,28 +296,28 @@ export default function AgentPage() {
         <button
           onClick={() => void runAll()}
           disabled={isRunning}
-          className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-sm"
+          className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50 transition-colors shadow-sm"
         >
           {isRunning ? "Agent running…" : "▶ Run Full Pipeline"}
         </button>
         <button
           onClick={() => { setActiveTab("geo"); void runGeoAudit(); }}
           disabled={isRunning}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground-secondary hover:bg-background-secondary disabled:opacity-50 transition-colors"
         >
           🗺️ Geo Audit only
         </button>
         <button
           onClick={() => { setActiveTab("audit"); void runCVAudit(); }}
           disabled={isRunning}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground-secondary hover:bg-background-secondary disabled:opacity-50 transition-colors"
         >
           🩺 Audit CV only
         </button>
         <button
           onClick={() => { setActiveTab("scout"); void runJobScout(); }}
           disabled={isRunning}
-          className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          className="rounded-lg border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground-secondary hover:bg-background-secondary disabled:opacity-50 transition-colors"
         >
           🔍 Search jobs only
         </button>
@@ -325,10 +325,10 @@ export default function AgentPage() {
 
       {/* Pipeline progress bar */}
       {isRunning && pipelineStep > 0 && (
-        <div className="rounded-xl border border-brand-100 bg-brand-50 px-5 py-4">
+        <div className="rounded-xl border border-primary/15 bg-primary/10 px-5 py-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-brand-700 uppercase tracking-wide">Pipeline</p>
-            <p className="text-xs text-brand-600">Step {pipelineStep} of 3</p>
+            <p className="text-xs font-semibold text-primary-dark uppercase tracking-wide">Pipeline</p>
+            <p className="text-xs text-primary">Step {pipelineStep} of 3</p>
           </div>
           <div className="flex gap-2">
             {[
@@ -338,12 +338,12 @@ export default function AgentPage() {
             ].map(({ n, label }) => (
               <div key={n} className="flex-1">
                 <div className={`h-1.5 rounded-full transition-all duration-500 ${
-                  pipelineStep > n ? "bg-emerald-500" :
-                  pipelineStep === n ? "bg-brand-500 animate-pulse" :
-                  "bg-brand-100"
+                  pipelineStep > n ? "bg-success" :
+                  pipelineStep === n ? "bg-primary animate-pulse" :
+                  "bg-primary/15"
                 }`} />
                 <p className={`mt-1 text-xs text-center ${
-                  pipelineStep >= n ? "text-brand-700 font-medium" : "text-slate-400"
+                  pipelineStep >= n ? "text-primary-dark font-medium" : "text-foreground-tertiary"
                 }`}>{label}</p>
               </div>
             ))}
@@ -356,20 +356,20 @@ export default function AgentPage() {
 
       {/* Tabs */}
       <div>
-        <nav className="flex gap-1 border-b border-slate-200 mb-6">
+        <nav className="flex gap-1 border-b border-border mb-6">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === tab.id
-                  ? "border-brand-600 text-brand-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-foreground-secondary hover:text-foreground-secondary"
               }`}
             >
               {tab.icon} {tab.label}
               {tab.id === "geo" && geoResult && (
-                <span className="ml-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
+                <span className="ml-1.5 rounded-full bg-success/15 px-1.5 py-0.5 text-xs font-semibold text-success">
                   {geoResult.topRecommendation.demandScore}
                 </span>
               )}
@@ -381,16 +381,16 @@ export default function AgentPage() {
         {activeTab === "geo" && (
           <div>
             {!geoResult && !isRunning && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+              <div className="rounded-2xl border border-dashed border-border bg-background-secondary p-10 text-center">
                 <p className="text-4xl mb-3">🗺️</p>
-                <p className="text-slate-600 font-medium">Geo Audit ready</p>
-                <p className="text-slate-400 text-sm mt-1 mb-4">
+                <p className="text-foreground-secondary font-medium">Geo Audit ready</p>
+                <p className="text-foreground-tertiary text-sm mt-1 mb-4">
                   Scores your CV skills against job market demand in Copenhagen,
                   Aarhus, Odense, Aalborg, Remote EU &amp; Global
                 </p>
                 <button
                   onClick={() => void runGeoAudit()}
-                  className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
+                  className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark transition-colors"
                 >
                   Run Geo Audit
                 </button>
@@ -404,15 +404,15 @@ export default function AgentPage() {
         {activeTab === "audit" && (
           <div>
             {!auditResult && !isRunning && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+              <div className="rounded-2xl border border-dashed border-border bg-background-secondary p-10 text-center">
                 <p className="text-4xl mb-3">🩺</p>
-                <p className="text-slate-600 font-medium">CV Doctor ready</p>
-                <p className="text-slate-400 text-sm mt-1 mb-4">
+                <p className="text-foreground-secondary font-medium">CV Doctor ready</p>
+                <p className="text-foreground-tertiary text-sm mt-1 mb-4">
                   Scores every section of your CV and gives ranked, actionable improvements
                 </p>
                 <button
                   onClick={() => void runCVAudit()}
-                  className="rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 transition-colors"
+                  className="rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary-dark transition-colors"
                 >
                   Audit my CV
                 </button>
@@ -429,7 +429,7 @@ export default function AgentPage() {
           <div className="space-y-4">
             {/* Markets toggle */}
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-2">Markets to search</label>
+              <label className="block text-xs font-medium text-foreground-secondary mb-2">Markets to search</label>
               <div className="flex flex-wrap gap-2">
                 {([
                   { id: "remote" as Market, label: "🌍 Remote (global)", color: "purple" },
@@ -441,7 +441,7 @@ export default function AgentPage() {
                     ? color === "purple" ? "bg-purple-600 text-white border-purple-600"
                     : color === "red" ? "bg-red-600 text-white border-red-600"
                     : "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50";
+                    : "bg-surface text-foreground-secondary border-border hover:bg-background-secondary";
                   return (
                     <button
                       key={id}
@@ -458,7 +458,7 @@ export default function AgentPage() {
             {/* Search fields */}
             <div className="flex flex-wrap gap-3 items-end">
               <div className="flex-1 min-w-40">
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-foreground-secondary mb-1">
                   Role / keywords (optional — inferred from CV if blank)
                 </label>
                 <input
@@ -466,11 +466,11 @@ export default function AgentPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="e.g. Frontend developer React"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                 />
               </div>
               <div className="w-48">
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-foreground-secondary mb-1">
                   Location (optional)
                 </label>
                 <input
@@ -478,23 +478,23 @@ export default function AgentPage() {
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
                   placeholder="e.g. København, Remote"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                 />
               </div>
               <button
                 onClick={() => void runJobScout()}
                 disabled={isRunning}
-                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50 transition-colors"
               >
                 {isRunning ? "Searching…" : "Search"}
               </button>
             </div>
 
             {!scoutResult && !isRunning && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+              <div className="rounded-2xl border border-dashed border-border bg-background-secondary p-10 text-center">
                 <p className="text-4xl mb-3">🔍</p>
-                <p className="text-slate-600 font-medium">Job Scout ready</p>
-                <p className="text-slate-400 text-sm mt-1">
+                <p className="text-foreground-secondary font-medium">Job Scout ready</p>
+                <p className="text-foreground-tertiary text-sm mt-1">
                   Searches {selectedMarkets.includes("dk") ? "🇩🇰 Jobnet.dk + Jobindex.dk" : ""}
                   {selectedMarkets.includes("remote") ? (selectedMarkets.includes("dk") ? " + RemoteOK" : "RemoteOK") : ""}
                   {" "} and scores each job against your CV
@@ -517,8 +517,8 @@ export default function AgentPage() {
         {/* Action Plan tab */}
         {activeTab === "plan" && (
           <div className="space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <h2 className="text-base font-semibold text-slate-900 mb-4">Your Weekly Action Plan</h2>
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <h2 className="text-base font-semibold text-foreground mb-4">Your Weekly Action Plan</h2>
               <div className="space-y-3">
                 {[
                   { day: "Mon", task: "Run Full Pipeline → Geo Audit shows best market, CV Doctor flags improvements", icon: "▶" },
@@ -530,26 +530,26 @@ export default function AgentPage() {
                 ].map((item) => (
                   <div
                     key={item.day}
-                    className="flex items-start gap-3 rounded-lg bg-slate-50 p-3"
+                    className="flex items-start gap-3 rounded-lg bg-background-secondary p-3"
                   >
                     <span className="text-lg shrink-0">{item.icon}</span>
                     <div>
-                      <span className="text-xs font-bold text-brand-600 uppercase tracking-wide">{item.day}</span>
-                      <p className="text-sm text-slate-700">{item.task}</p>
+                      <span className="text-xs font-bold text-primary uppercase tracking-wide">{item.day}</span>
+                      <p className="text-sm text-foreground-secondary">{item.task}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-8 border-t border-slate-200 pt-6">
-                <h3 className="text-sm font-semibold text-slate-900 mb-2">Advanced Sync</h3>
-                <p className="text-xs text-slate-500 mb-3">
+              <div className="mt-8 border-t border-border pt-6">
+                <h3 className="text-sm font-semibold text-foreground mb-2">Advanced Sync</h3>
+                <p className="text-xs text-foreground-secondary mb-3">
                   Sync your recent GitHub commits into the RAG Knowledge Base to dynamically inject live coding activity into your Cover Letters.
                 </p>
                 <button
                   onClick={runGithubSync}
                   disabled={isSyncingGithub}
-                  className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+                  className="rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-colors flex items-center gap-2"
                 >
                   {isSyncingGithub ? (
                     <>
@@ -562,9 +562,9 @@ export default function AgentPage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-sm font-semibold text-amber-900 mb-1">Important rules</p>
-              <ul className="space-y-1 text-xs text-amber-800 list-disc pl-4">
+            <div className="rounded-xl border border-warning/20 bg-warning/10 p-4">
+              <p className="text-sm font-semibold text-warning mb-1">Important rules</p>
+              <ul className="space-y-1 text-xs text-warning list-disc pl-4">
                 <li>Never apply without reviewing the generated CV and cover letter first</li>
                 <li>All outputs use only verified facts from your master CV</li>
                 <li>Outreach messages are drafts — personalise before sending</li>

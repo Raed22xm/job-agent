@@ -36,11 +36,11 @@ export default function NegotiationPanel({ jobDescription, matchScore }: Negotia
   };
 
   return (
-    <div className="rounded-2xl border border-brand-200 bg-brand-50 p-6 shadow-sm mt-6">
+    <div className="rounded-2xl border border-primary/20 bg-primary/10 p-6 shadow-sm mt-6">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-bold text-brand-900">Market Salary & Negotiation</h2>
-          <p className="mt-1 text-sm text-brand-700">
+          <h2 className="text-lg font-bold text-primary-dark">Market Salary & Negotiation</h2>
+          <p className="mt-1 text-sm text-primary-dark">
             Use AI to predict the Danish market rate and generate a leverage-based negotiation script.
           </p>
         </div>
@@ -48,7 +48,7 @@ export default function NegotiationPanel({ jobDescription, matchScore }: Negotia
           <button
             onClick={handlePredict}
             disabled={isLoading}
-            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary disabled:opacity-50"
           >
             {isLoading ? "Predicting..." : "Predict Salary"}
           </button>
@@ -56,26 +56,26 @@ export default function NegotiationPanel({ jobDescription, matchScore }: Negotia
       </div>
 
       {error && (
-        <p className="mt-4 text-sm text-rose-600 font-medium">Error: {error}</p>
+        <p className="mt-4 text-sm text-danger font-medium">Error: {error}</p>
       )}
 
       {result && (
-        <div className="mt-6 space-y-6 border-t border-brand-200 pt-6 animate-fade-in">
+        <div className="mt-6 space-y-6 border-t border-primary/20 pt-6 animate-fade-in">
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-700">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-primary-dark">
               Estimated Monthly Salary (DKK)
             </h3>
-            <p className="mt-2 text-2xl font-black text-emerald-600">{result.estimatedSalaryRangeDKK}</p>
+            <p className="mt-2 text-2xl font-black text-success">{result.estimatedSalaryRangeDKK}</p>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-700">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-primary-dark">
               Your Negotiation Leverage
             </h3>
             <ul className="mt-3 space-y-2">
               {result.leveragePoints.map((point: string, i: number) => (
-                <li key={i} className="flex gap-2 text-sm text-slate-700">
-                  <span className="text-emerald-500 font-bold">✓</span>
+                <li key={i} className="flex gap-2 text-sm text-foreground-secondary">
+                  <span className="text-success font-bold">✓</span>
                   {point}
                 </li>
               ))}
@@ -83,11 +83,11 @@ export default function NegotiationPanel({ jobDescription, matchScore }: Negotia
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-brand-700">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-primary-dark">
               Negotiation Script
             </h3>
-            <div className="mt-2 rounded-lg bg-white p-4 border border-brand-100 shadow-inner">
-              <p className="whitespace-pre-wrap text-sm text-slate-700 font-serif leading-relaxed">
+            <div className="mt-2 rounded-lg bg-surface p-4 border border-primary/15 shadow-inner">
+              <p className="whitespace-pre-wrap text-sm text-foreground-secondary font-serif leading-relaxed">
                 {result.negotiationScript}
               </p>
             </div>

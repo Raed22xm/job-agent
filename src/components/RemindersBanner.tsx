@@ -26,7 +26,7 @@ export default function RemindersBanner() {
         </div>
         <Link
           href="/tracker?filter=due"
-          className="rounded-lg border border-violet-300 bg-white px-3 py-1.5 text-sm font-medium text-violet-800 hover:bg-violet-100"
+          className="rounded-lg border border-violet-300 bg-surface px-3 py-1.5 text-sm font-medium text-violet-800 hover:bg-violet-100"
         >
           Open tracker
         </Link>
@@ -35,7 +35,7 @@ export default function RemindersBanner() {
         {reminders.slice(0, 5).map((item) => (
           <li
             key={`${item.application.id}-${item.kind}`}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/70 px-3 py-2 text-sm"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface/70 px-3 py-2 text-sm"
           >
             <span className="font-medium text-violet-950">
               {item.application.jobTitle} · {item.application.company}

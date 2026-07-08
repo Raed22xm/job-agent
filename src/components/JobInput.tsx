@@ -49,11 +49,11 @@ export default function JobInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      className="glass-card"
     >
       <div className="mb-5">
-        <h2 className="text-lg font-semibold text-slate-900">Job Description</h2>
-        <p className="mt-1 text-sm leading-relaxed text-slate-500">
+        <h2 className="text-lg font-semibold text-foreground">Job Description</h2>
+        <p className="mt-1 text-sm leading-relaxed text-foreground-secondary">
           Paste a posting or import from URL. Local scoring runs instantly; use
           Enhance with AI only when you want tailored summary and cover letter.
         </p>
@@ -63,7 +63,7 @@ export default function JobInput({
         <div className="mb-4">
           <label
             htmlFor="job-url"
-            className="mb-1.5 block text-xs font-medium text-slate-600"
+            className="mb-1.5 block text-xs font-medium text-foreground-secondary"
           >
             Job URL
           </label>
@@ -81,17 +81,17 @@ export default function JobInput({
                 type="button"
                 onClick={onImportUrl}
                 disabled={!canImport || isImporting || isLoading}
-                className="inline-flex shrink-0 items-center justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-secondary shrink-0"
               >
                 {isImporting ? "Importing…" : "Import URL"}
               </button>
             )}
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-foreground-tertiary">
             Supported: thehub.io, jobindex.dk, linkedin.com/jobs/view/…
           </p>
           {importMessage && (
-            <p className="mt-2 text-xs font-medium text-brand-700">{importMessage}</p>
+            <p className="mt-2 text-xs font-medium text-primary">{importMessage}</p>
           )}
         </div>
       )}
@@ -109,20 +109,21 @@ export default function JobInput({
           placeholder={`Example:\n\nSenior Full-Stack Developer\nAcme Corp · San Francisco, CA (Hybrid)\n\nRequirements:\n- 5+ years experience with TypeScript, React, and Node.js\n- Experience with PostgreSQL and Docker\n- Strong communication and Agile experience\n\nResponsibilities:\n- Build customer-facing web applications\n- Design REST APIs and collaborate with product teams`}
           className={`field-textarea resize-y ${
             validationError
-              ? "border-rose-300 ring-rose-200 focus:border-rose-400"
-              : "border-slate-300 ring-brand-500 focus:border-brand-400"
+              ? "border-danger"
+              : ""
           }`}
+          style={validationError ? { boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.15)" } : undefined}
           aria-invalid={Boolean(validationError)}
           aria-describedby={validationError ? "job-description-error" : "job-description-hint"}
         />
         <div className="mt-2 flex items-center justify-between gap-3">
-          <p id="job-description-hint" className="text-xs text-slate-500">
+          <p id="job-description-hint" className="text-xs text-foreground-tertiary">
             {isEmpty
               ? "Paste a posting or import from URL."
               : `${charCount.toLocaleString()} characters`}
           </p>
           {validationError && (
-            <p id="job-description-error" className="text-xs font-medium text-rose-600">
+            <p id="job-description-error" className="text-xs font-medium text-danger">
               {validationError}
             </p>
           )}
@@ -131,8 +132,8 @@ export default function JobInput({
 
       <div className="mt-5 flex flex-wrap items-center gap-3">
         {isAutoAnalyzing && (
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-600">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500" />
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
             Scoring locally…
           </span>
         )}
@@ -141,11 +142,12 @@ export default function JobInput({
             type="button"
             disabled={isEnhancing || isLoading || isImporting}
             onClick={onEnhanceWithAI}
-            className="inline-flex items-center gap-2 rounded-xl border border-brand-300 bg-brand-50 px-5 py-2.5 text-sm font-semibold text-brand-800 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-secondary"
+            style={{ borderColor: "rgba(16, 185, 129, 0.3)", color: "var(--primary)" }}
           >
             {isEnhancing ? (
               <>
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-400/30 border-t-brand-700" />
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
                 Enhancing…
               </>
             ) : (
@@ -156,7 +158,7 @@ export default function JobInput({
         <button
           type="submit"
           disabled={isLoading || isImporting || isEnhancing}
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary"
         >
           {isLoading && !isEnhancing ? (
             <>
@@ -171,7 +173,7 @@ export default function JobInput({
           <button
             type="button"
             onClick={() => onJobDescriptionChange("")}
-            className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="btn-ghost"
           >
             Clear
           </button>

@@ -14,11 +14,12 @@ _Kilde: Raed Ibrahim - Resume4.pdf (feb. 2026)_
 
 **Jan 2023 – Sep 2023**
 
-- Gennemførte brugerinterviews med 25+ laboratorieteknikere.
+- Gennemførte brugerinterviews og kommunikerede findings til tværfaglige teams med 25+ laboratorieteknikere.
 - Byggede 5 interaktive Power BI-dashboards, der reducerede rapporteringstid med 30 %.
 - Designede Figma-wireframes, der sparede 10+ timer ugentligt per team.
 - Opnåede 90 % brugertilfredshed i usability tests.
-- Faciliterede design-workshops med tværfaglige teams.
+- Faciliterede design-workshops og præsenterede løsninger for både tekniske og ikke-tekniske interessenter.
+- Udarbejdede teknisk dokumentation og statusrapporter på tværs af afdelinger (Communication).
 
 ## Data Assistant — DHL Express, Danmark
 

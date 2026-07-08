@@ -23,14 +23,14 @@ export default function GuidePage() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">
+      <section className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 to-surface p-6 shadow-sm sm:p-8">
+        <p className="text-sm font-semibold uppercase tracking-wide text-primary">
           Job search hub
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl">
+        <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
           Methods, tools & search agent guide
         </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
+        <p className="mt-3 max-w-3xl text-sm leading-relaxed text-foreground-secondary sm:text-base">
           Curated ways to find jobs in Denmark, create an ATS-friendly CV from
           verified data, and use Job Agent plus Cursor chat in the right order.
           Search below to filter platforms, methods, and workflow tips.
@@ -42,7 +42,7 @@ export default function GuidePage() {
           <div className="flex-1">
             <label
               htmlFor="guide-search"
-              className="text-sm font-medium text-slate-700"
+              className="text-sm font-medium text-foreground-secondary"
             >
               Search guide
             </label>
@@ -52,10 +52,10 @@ export default function GuidePage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="e.g. jobindex, ATS, React, cursor, tracker…"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-brand-500 focus:ring-2"
+              className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none ring-primary focus:ring-2"
             />
           </div>
-          <p className="text-sm text-slate-500 lg:pb-2">
+          <p className="text-sm text-foreground-secondary lg:pb-2">
             {filteredResources.length} result
             {filteredResources.length === 1 ? "" : "s"}
           </p>
@@ -70,8 +70,8 @@ export default function GuidePage() {
               aria-pressed={category === item.id}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 category === item.id
-                  ? "bg-brand-600 text-white"
-                  : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                  ? "bg-primary text-white"
+                  : "border border-border bg-surface text-foreground-secondary hover:bg-background-secondary"
               }`}
             >
               {item.label}
@@ -80,15 +80,15 @@ export default function GuidePage() {
         </div>
 
         {activeCategory && (
-          <p className="text-sm text-slate-600">{activeCategory.description}</p>
+          <p className="text-sm text-foreground-secondary">{activeCategory.description}</p>
         )}
       </section>
 
       <section>
         {filteredResources.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-            <p className="text-sm font-medium text-slate-700">No matches found.</p>
-            <p className="mt-1 text-sm text-slate-500">
+          <div className="rounded-xl border border-dashed border-border bg-surface p-10 text-center">
+            <p className="text-sm font-medium text-foreground-secondary">No matches found.</p>
+            <p className="mt-1 text-sm text-foreground-secondary">
               Try a broader search or switch category.
             </p>
           </div>
@@ -102,11 +102,11 @@ export default function GuidePage() {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-foreground">
             Recommended workflow
           </h2>
-          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-600">
+          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-foreground-secondary">
             <li>Find jobs on Jobindex, The Hub, or company pages.</li>
             <li>Import or paste into Job Analyzer — check match score.</li>
             <li>Edit CV and cover letter — export DOCX.</li>
@@ -115,21 +115,21 @@ export default function GuidePage() {
           </ol>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-foreground">
             Updates & tips
           </h2>
           <ul className="mt-3 space-y-3">
             {GUIDE_UPDATES.map((update) => (
               <li
                 key={update.date + update.title}
-                className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+                className="border-b border-border pb-3 last:border-0 last:pb-0"
               >
-                <p className="text-xs font-medium text-slate-500">{update.date}</p>
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-xs font-medium text-foreground-secondary">{update.date}</p>
+                <p className="text-sm font-semibold text-foreground">
                   {update.title}
                 </p>
-                <p className="mt-0.5 text-sm text-slate-600">{update.summary}</p>
+                <p className="mt-0.5 text-sm text-foreground-secondary">{update.summary}</p>
               </li>
             ))}
           </ul>

@@ -25,11 +25,11 @@ export default function CoverLetterEditor({
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+    <div className="glass-panel rounded-xl  ">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-6 py-4 ">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Edit Cover Letter</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="text-lg font-semibold text-foreground ">Edit Cover Letter</h2>
+          <p className="mt-1 text-sm text-foreground-secondary dark:text-foreground-tertiary">
             Refine the draft before export. Use only verified facts from your CV.
           </p>
         </div>
@@ -37,7 +37,7 @@ export default function CoverLetterEditor({
           <button
             type="button"
             onClick={onReset}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-foreground-secondary transition hover:bg-background-secondary"
           >
             Reset to generated
           </button>
@@ -48,7 +48,7 @@ export default function CoverLetterEditor({
         <div>
           <label
             htmlFor="letter-greeting"
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-foreground-secondary dark:text-foreground-tertiary"
           >
             Greeting
           </label>
@@ -64,7 +64,7 @@ export default function CoverLetterEditor({
         <div>
           <label
             htmlFor="letter-body"
-            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-foreground-secondary dark:text-foreground-tertiary"
           >
             Body
           </label>
@@ -77,7 +77,7 @@ export default function CoverLetterEditor({
             rows={12}
             className="field-textarea"
           />
-          <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1.5 text-xs text-foreground-secondary dark:text-foreground-tertiary">
             Separate paragraphs with a blank line.
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function CoverLetterEditor({
           <div>
             <label
               htmlFor="letter-closing"
-              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-foreground-secondary dark:text-foreground-tertiary"
             >
               Closing
             </label>
@@ -101,7 +101,7 @@ export default function CoverLetterEditor({
           <div>
             <label
               htmlFor="letter-signature"
-              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-foreground-secondary dark:text-foreground-tertiary"
             >
               Signature
             </label>

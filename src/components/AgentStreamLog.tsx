@@ -29,8 +29,8 @@ export default function AgentStreamLog({ entries, isRunning }: AgentStreamLogPro
           agent — job-search-pipeline
         </h3>
         {isRunning && (
-          <span className="text-xs text-amber-500 animate-pulse flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          <span className="text-xs text-warning animate-pulse flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-warning" />
             running
           </span>
         )}
@@ -46,11 +46,11 @@ export default function AgentStreamLog({ entries, isRunning }: AgentStreamLogPro
             <span className="shrink-0 mt-0.5">
               {entry.type === "info" && <span className="text-blue-500">ℹ️</span>}
               {entry.type === "thinking" && <span className="text-purple-500 animate-pulse">⚙️</span>}
-              {entry.type === "success" && <span className="text-emerald-500">✓</span>}
-              {entry.type === "error" && <span className="text-rose-500">❌</span>}
+              {entry.type === "success" && <span className="text-success">✓</span>}
+              {entry.type === "error" && <span className="text-danger">❌</span>}
             </span>
             <span className={`leading-relaxed ${
-              entry.type === "error" ? "text-rose-600 font-medium" : 
+              entry.type === "error" ? "text-danger font-medium" : 
               entry.type === "success" ? "text-foreground font-medium" : 
               "text-foreground-secondary"
             }`}>
@@ -60,10 +60,10 @@ export default function AgentStreamLog({ entries, isRunning }: AgentStreamLogPro
         ))}
         {isRunning && (
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-amber-500 w-4 text-center">
+            <span className="text-warning w-4 text-center">
               <span className="inline-block animate-spin">⟳</span>
             </span>
-            <span className="text-slate-500 animate-pulse">Working…</span>
+            <span className="text-foreground-secondary animate-pulse">Working…</span>
           </div>
         )}
 
