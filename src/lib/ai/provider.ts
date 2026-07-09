@@ -13,8 +13,9 @@ export function getProvider() {
   }
 
   // Fallback to OpenAI
+  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
   return {
-    model: openai("gpt-4o-mini") as any,
+    model: openai(modelName) as any,
     embeddingModel: openai.embedding("text-embedding-3-small") as any,
   };
 }

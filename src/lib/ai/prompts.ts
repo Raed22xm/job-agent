@@ -82,5 +82,5 @@ ${cvJson}
 Parsed Job Context:
 ${jobJson}
 
-Please return the updated CV section reflecting the suggested fix. Make sure the tone is professional and truthful.`;
+Please return the updated CV section reflecting the suggested fix. Make sure the tone is professional and truthful. CRITICAL: You MUST keep the text in the exact same language as the Current CV. Do NOT translate it to the language of the Job Context.`;
 }

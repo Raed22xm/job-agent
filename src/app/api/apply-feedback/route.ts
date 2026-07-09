@@ -46,7 +46,6 @@ export async function POST(request: Request) {
       schema: AppliedFeedbackSchema,
       system: SYSTEM_TRUTHFULNESS,
       prompt,
-      temperature: 0.1,
     });
 
     return NextResponse.json(object);

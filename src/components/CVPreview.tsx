@@ -74,8 +74,8 @@ export default function CVPreview({
 
           <Section title="Experience">
             <div className="mt-1 space-y-1.5">
-              {experience.map((role) => (
-                <div key={role.id}>
+              {experience.map((role, roleIndex) => (
+                <div key={`${role.id}-${roleIndex}`}>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0">
                     <h3 className="text-[10pt] font-bold text-[#111111]">
                       {role.title}
@@ -88,8 +88,8 @@ export default function CVPreview({
                     {role.company} · {role.location}
                   </p>
                   <ul className="list-disc space-y-0.5 pl-[1.1em] text-[10pt] leading-snug text-[#111111]">
-                    {role.bullets.map((bullet, index) => (
-                      <li key={`${role.id}-${index}`}>{bullet}</li>
+                    {role.bullets.map((bullet, bulletIndex) => (
+                      <li key={`${role.id}-${roleIndex}-${bulletIndex}`}>{bullet}</li>
                     ))}
                   </ul>
                 </div>

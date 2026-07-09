@@ -193,8 +193,8 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
           <p className="text-xs font-semibold uppercase tracking-wide text-foreground-secondary">
             Experience bullets
           </p>
-          {cv.sections.experience.map((role) => (
-            <div key={role.id} className="rounded-xl p-4" style={{ background: "var(--background-secondary)", border: "1px solid var(--surface-border)" }}>
+          {cv.sections.experience.map((role, roleIdx) => (
+            <div key={`${role.id}-${roleIdx}`} className="rounded-xl p-4" style={{ background: "var(--background-secondary)", border: "1px solid var(--surface-border)" }}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="text-sm font-semibold text-foreground">{role.title}</p>
                 <span className="text-xs text-foreground-tertiary">

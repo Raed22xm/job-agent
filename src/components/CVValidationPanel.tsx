@@ -28,9 +28,9 @@ export default function CVValidationPanel({ issues }: CVValidationPanelProps) {
           : "CV review warnings"}
       </p>
       <ul className="mt-2 space-y-1.5 text-sm">
-        {[...errors, ...warnings].map((issue) => (
+        {[...errors, ...warnings].map((issue, index) => (
           <li
-            key={`${issue.field}-${issue.message}`}
+            key={`${issue.field}-${index}`}
             className={
               issue.severity === "error" ? "text-danger" : "text-warning/90"
             }

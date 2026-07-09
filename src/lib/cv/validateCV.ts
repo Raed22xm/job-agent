@@ -83,10 +83,11 @@ export function validateGeneratedCV(
 
     for (const bullet of exp.bullets) {
       if (!verifiedBullets.has(normalizeTerm(bullet))) {
+        const snippet = bullet.length > 60 ? bullet.slice(0, 57) + "…" : bullet;
         issues.push({
           field: `experience.${exp.id}.bullets`,
           message:
-            `Edited bullet under "${exp.title}" is not an exact verified master CV bullet. Remove it or add it to the master CV first.`,
+            `Bullet "${snippet}" under "${exp.title}" is not an exact verified master CV bullet. Remove it or add it to the master CV first.`,
           severity: "error",
         });
       }

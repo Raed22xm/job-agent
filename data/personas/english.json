@@ -1,0 +1,174 @@
+{
+  "personalInfo": {
+    "fullName": "Raed Ibrahim",
+    "email": "Raedibri@hotmail.com",
+    "phone": "+45 42 79 74 00",
+    "location": "Sirgræsvej 68, Kastrup 2770",
+    "linkedin": "https://www.linkedin.com/in/raed-ibrahim-3013a320b",
+    "portfolio": "https://readibrahim.netlify.app",
+    "summary": "Full-stack developer with a focus on React, Next.js, and TypeScript. Built production-ready checkout flows with 15% lower dropout rates, 12+ REST APIs with 99.9% uptime, and 40% fewer production errors. Experience from Novo Nordisk and BS Technologies with measurable results across frontend, backend, and UX."
+  },
+  "skills": [
+    "Go",
+    "Golang",
+    "Java",
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "Spring Boot",
+    "Kotlin (Android)",
+    "HTML",
+    "CSS",
+    "Tailwind CSS",
+    "SQL",
+    "PostgreSQL",
+    "Prisma",
+    "Python",
+    "Power BI",
+    "Excel",
+    "REST API",
+    "UI/UX Design",
+    "Front-end development",
+    "Full-stack development",
+    "Digitalization",
+    "Data analysis",
+    "Agile",
+    "Scrum",
+    "User Testing",
+    "Design Systems"
+  ],
+  "tools": [
+    "Git",
+    "GitHub",
+    "Figma",
+    "MariaDB",
+    "PostgreSQL",
+    "Power BI",
+    "Docker",
+    "CI/CD",
+    "Azure DevOps",
+    "PowerApps",
+    "Power Automate",
+    "SharePoint",
+    "Dataverse",
+    "Miro",
+    "Zod",
+    "EV3",
+    "MicroPython"
+  ],
+  "experience": [
+    {
+      "id": "exp-3",
+      "company": "BS Technologies",
+      "title": "Software Developer Intern",
+      "location": "Denmark",
+      "startDate": "2025-04",
+      "endDate": "2025-09",
+      "bullets": [
+        "Improved React/Next.js checkout flows, reducing dropout rates by 15%.",
+        "Built 12+ Spring Boot REST endpoints with 99.9% uptime.",
+        "Reduced production errors by 40% through extensive testing and quality assurance."
+      ]
+    },
+    {
+      "id": "exp-1",
+      "company": "Novo Nordisk",
+      "title": "Student Assistant, UX/UI & Digitalization",
+      "location": "Denmark",
+      "startDate": "2023-01",
+      "endDate": "2023-09",
+      "bullets": [
+        "Conducted user interviews with 25+ laboratory technicians.",
+        "Built 5 interactive Power BI dashboards, reducing reporting time by 30%.",
+        "Designed Figma wireframes, saving 10+ hours weekly per team.",
+        "Achieved 90% user satisfaction in usability tests.",
+        "Facilitated design workshops with cross-disciplinary teams."
+      ]
+    },
+    {
+      "id": "exp-2",
+      "company": "DHL Express",
+      "title": "Data Assistant",
+      "location": "Denmark",
+      "startDate": "2022-08",
+      "endDate": "2022-12",
+      "bullets": [
+        "Optimized operations for 500+ daily shipments.",
+        "Created automation that reduced manual data entry by 60%."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "id": "edu-1",
+      "institution": "Danmarks Tekniske Universitet (DTU)",
+      "degree": "Diplomingeniør",
+      "field": "IT-Economics",
+      "startDate": "2021",
+      "endDate": "2026",
+      "details": [
+        "Courses: Financial Management, Software Processing, Database Management",
+        "Focus: Software development, data analysis, digitalization, and strategic economic management",
+        "Bachelor project: ResizeHub (image processing service) — grade 12"
+      ]
+    }
+  ],
+  "certifications": [],
+  "projects": [
+    {
+      "id": "proj-5",
+      "name": "ResizeHub — Image Rescaling Service (Bachelor Project)",
+      "description": "Scalable on-demand image processing service with cloud infrastructure. JWT-based authentication, CDN delivery, and CI/CD. Grade 12 (A) at DTU."
+    },
+    {
+      "id": "proj-6",
+      "name": "Frisør Glostrup — Salon Booking System",
+      "description": "Full-stack booking system with real-time availability and Neon cloud database. Zod validation, modular component architecture, deployed on Netlify."
+    },
+    {
+      "id": "proj-7",
+      "name": "RoboRally Game Server",
+      "description": "RESTful multiplayer game server with HAL controllers in Java/Spring Boot. 100% automated test coverage (96/96 tests)."
+    },
+    {
+      "id": "proj-1",
+      "name": "Front-End Project",
+      "description": "Responsive web application with React and CSS, focusing on intuitive navigation and user-friendliness."
+    },
+    {
+      "id": "proj-2",
+      "name": "CDO AI Robot Project",
+      "description": "AI-based robot with EV3 and MicroPython for navigation in complex environments."
+    },
+    {
+      "id": "proj-3",
+      "name": "Aviuz Chat Project",
+      "description": "Intelligent chatbot focusing on user experience and AI integration."
+    },
+    {
+      "id": "proj-4",
+      "name": "Supply Chain Management Project",
+      "description": "Analysis and optimization of supply chains in the automotive industry."
+    }
+  ],
+  "languages": [
+    {
+      "language": "Danish",
+      "level": "Fluent"
+    },
+    {
+      "language": "English",
+      "level": "Conversational"
+    },
+    {
+      "language": "Arabic",
+      "level": "Fluent"
+    },
+    {
+      "language": "Kurmanci",
+      "level": "Fluent"
+    }
+  ]
+}
