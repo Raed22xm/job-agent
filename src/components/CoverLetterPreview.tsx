@@ -1,21 +1,26 @@
 import type { RefObject } from "react";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import type { GeneratedCoverLetter } from "@/types";
 
 interface CoverLetterPreviewProps {
   letter: GeneratedCoverLetter;
   exportRef?: RefObject<HTMLElement | null>;
+  language?: CvLanguage;
 }
 
 export default function CoverLetterPreview({
   letter,
   exportRef,
+  language = "english",
 }: CoverLetterPreviewProps) {
+  const languageLabel = language === "danish" ? "Dansk" : "English";
+
   return (
     <div className="rounded-xl border border-border bg-background shadow-sm">
       <div className="border-b border-border px-6 py-4">
         <h2 className="text-lg font-semibold text-foreground">Cover Letter Preview</h2>
         <p className="mt-1 text-sm text-foreground-secondary">
-          Draft generated from verified CV facts. Review and edit before sending.
+          {languageLabel} draft from verified CV facts. Review and edit before sending.
         </p>
       </div>
 

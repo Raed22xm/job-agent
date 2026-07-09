@@ -119,8 +119,8 @@
   "projects": [
     {
       "id": "proj-5",
-      "name": "ResizeHub — Image Rescaling Service (Bachelor Project)",
-      "description": "Scalable on-demand image processing service with cloud infrastructure. JWT-based authentication, CDN delivery, and CI/CD. Grade 12 (A) at DTU."
+      "name": "ResizeHub — On-Demand Image Rescaling Service",
+      "description": "Scalable cloud-based backend for on-demand image processing. Designed REST APIs with JWT authentication, high-performance server-side rescaling, cloud storage, CDN delivery, and CI/CD pipelines with automated testing. Received grade 12 (A) at DTU."
     },
     {
       "id": "proj-6",
@@ -131,11 +131,6 @@
       "id": "proj-7",
       "name": "RoboRally Game Server",
       "description": "RESTful multiplayer game server with HAL controllers in Java/Spring Boot. 100% automated test coverage (96/96 tests)."
-    },
-    {
-      "id": "proj-1",
-      "name": "Front-End Project",
-      "description": "Responsive web application with React and CSS, focusing on intuitive navigation and user-friendliness."
     },
     {
       "id": "proj-2",

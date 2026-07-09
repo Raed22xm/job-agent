@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import LanguageToggle from "@/components/LanguageToggle";
 import CoverLetterEditor from "@/components/CoverLetterEditor";
 import CoverLetterPreview from "@/components/CoverLetterPreview";
 import ExportButtons from "@/components/ExportButtons";
@@ -17,6 +18,8 @@ export default function CoverLetterPage() {
   const {
     generatedCoverLetter,
     parsedJob,
+    cvLanguage,
+    setCvLanguage,
     updateGeneratedCoverLetter,
     resetGeneratedCoverLetter,
     applications,
@@ -24,6 +27,8 @@ export default function CoverLetterPage() {
   } = useJobAgent();
   const exportRef = useRef<HTMLElement>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [isSwitchingLanguage, setIsSwitchingLanguage] = useState(false);
+  const [languageError, setLanguageError] = useState<string | null>(null);
 
   if (!generatedCoverLetter || !parsedJob) {
     return (
@@ -86,11 +91,40 @@ export default function CoverLetterPage() {
     }
   };
 
+  const handleLanguageChange = async (language: typeof cvLanguage) => {
+    setLanguageError(null);
+    setIsSwitchingLanguage(true);
+    try {
+      await setCvLanguage(language);
+    } catch (err) {
+      setLanguageError(
+        err instanceof Error ? err.message : "Could not switch cover letter language."
+      );
+    } finally {
+      setIsSwitchingLanguage(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Cover Letter</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground">Cover Letter</h1>
+            <LanguageToggle
+              value={cvLanguage}
+              onChange={(language) => void handleLanguageChange(language)}
+              disabled={isSwitchingLanguage}
+            />
+          </div>
+          {isSwitchingLanguage && (
+            <p className="mt-2 text-sm text-foreground-secondary">
+              Switching language…
+            </p>
+          )}
+          {languageError && (
+            <p className="mt-2 text-sm text-error">{languageError}</p>
+          )}
           <p className="mt-1 text-sm text-foreground-secondary">
             Draft for {parsedJob.title} at {parsedJob.company}. Edit the text,
             preview live, then export — no auto-submit.
@@ -124,6 +158,7 @@ export default function CoverLetterPage() {
         <CoverLetterPreview
           letter={generatedCoverLetter}
           exportRef={exportRef}
+          language={cvLanguage}
         />
       </div>
     </div>

@@ -214,8 +214,8 @@ export async function semanticMatchCV(
   };
 }
 
-export function getMasterCV(): MasterCV {
-  const cv = getPersona();
+export function getMasterCV(personaId?: string): MasterCV {
+  const cv = getPersona(personaId);
   if (!cv) throw new Error("No default CV found");
   return cv;
 }

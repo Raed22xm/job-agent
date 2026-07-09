@@ -1,7 +1,12 @@
+import {
+  personaIdToLanguage,
+  resolvePersonaId,
+} from "@/lib/cvLanguage";
 import { validateGeneratedCV } from "@/lib/cv/validateCV";
 import { generateCoverLetter } from "@/lib/generateCoverLetter";
 import { generateCV } from "@/lib/generateCV";
 import { getMasterCV, matchCV } from "@/lib/matchCV";
+import { getPersona } from "@/lib/personaManager";
 import { parseJob } from "@/lib/parseJob";
 import type {
   CVValidationResult,
@@ -29,13 +34,18 @@ export interface AnalyzeJobResult {
 export function analyzeJobLocally(
   jobDescription: string,
   sourceUrl?: string,
-  cv: MasterCV = getMasterCV()
+  cv: MasterCV = getMasterCV(),
+  personaId?: string
 ): AnalyzeJobResult {
+  const resolvedPersonaId = resolvePersonaId(personaId);
+  const masterCv = cv ?? getPersona(resolvedPersonaId) ?? getMasterCV();
+  const language = personaIdToLanguage(resolvedPersonaId);
+
   const job = parseJob(jobDescription, sourceUrl);
-  const match = matchCV(job, cv);
-  const generatedCV = generateCV(cv, job, match);
-  const generatedCoverLetter = generateCoverLetter(cv, job);
-  const validation = validateGeneratedCV(generatedCV, cv);
+  const match = matchCV(job, masterCv);
+  const generatedCV = generateCV(masterCv, job, match);
+  const generatedCoverLetter = generateCoverLetter(masterCv, job, language);
+  const validation = validateGeneratedCV(generatedCV, masterCv);
 
   return {
     mode: "local",

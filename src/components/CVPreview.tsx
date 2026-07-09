@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { CV_SECTION_LABELS, type CvLanguage } from "@/lib/cvLanguage";
 import type { GeneratedCV, Language } from "@/types";
 
 interface CVPreviewProps {
@@ -8,6 +9,7 @@ interface CVPreviewProps {
   languages?: Language[];
   /** Full master CV certifications */
   certifications?: string[];
+  language?: CvLanguage;
 }
 
 /** Approximate A4 content height at preview scale (210mm width). */
@@ -18,8 +20,10 @@ export default function CVPreview({
   exportRef,
   languages,
   certifications,
+  language = "english",
 }: CVPreviewProps) {
   const { header, summary, skills, experience, education, projects } = cv.sections;
+  const labels = CV_SECTION_LABELS[language];
 
   return (
     <div className="glass-panel rounded-xl">
@@ -62,17 +66,17 @@ export default function CVPreview({
             )}
           </header>
 
-          <Section title="Professional Summary">
+          <Section title={labels.summary}>
             <p className="text-[10pt] leading-snug text-[#111111]">{summary}</p>
           </Section>
 
-          <Section title="Skills">
+          <Section title={labels.skills}>
             <p className="text-[10pt] leading-snug text-[#111111]">
               {skills.join(" · ")}
             </p>
           </Section>
 
-          <Section title="Experience">
+          <Section title={labels.experience}>
             <div className="mt-1 space-y-1.5">
               {experience.map((role, roleIndex) => (
                 <div key={`${role.id}-${roleIndex}`}>
@@ -98,7 +102,7 @@ export default function CVPreview({
           </Section>
 
           {projects && projects.length > 0 && (
-            <Section title="Projects">
+            <Section title={labels.projects}>
               <div className="mt-1 space-y-1">
                 {projects.map((project) => (
                   <div key={project.id}>
@@ -114,7 +118,7 @@ export default function CVPreview({
             </Section>
           )}
 
-          <Section title="Education">
+          <Section title={labels.education}>
             <div className="mt-1 space-y-1">
               {education.map((edu) => (
                 <div key={edu.id}>
@@ -137,7 +141,7 @@ export default function CVPreview({
           </Section>
 
           {certifications && certifications.length > 0 && (
-            <Section title="Certifications">
+            <Section title={labels.certifications}>
               <ul className="mt-1 list-disc space-y-0 pl-[1.1em] text-[10pt] leading-snug text-[#111111]">
                 {certifications.map((cert) => (
                   <li key={cert}>{cert}</li>
@@ -147,7 +151,7 @@ export default function CVPreview({
           )}
 
           {languages && languages.length > 0 && (
-            <Section title="Languages">
+            <Section title={labels.languages}>
               <p className="text-[10pt] leading-snug text-[#111111]">
                 {languages.map(({ language, level }) => `${language} (${level})`).join(" · ")}
               </p>

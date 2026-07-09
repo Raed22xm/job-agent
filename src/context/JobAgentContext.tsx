@@ -10,6 +10,11 @@ import {
 } from "react";
 import type { AnalysisMode } from "@/lib/analyzeJobLocal";
 import {
+  detectCvLanguageFromJob,
+  languageToPersonaId,
+  type CvLanguage,
+} from "@/lib/cvLanguage";
+import {
   normalizeGeneratedCoverLetter,
   normalizeGeneratedCV,
   normalizeMatchResult,
@@ -50,9 +55,11 @@ interface JobAgentContextValue {
   generatedCV: GeneratedCV | null;
   generatedCoverLetter: GeneratedCoverLetter | null;
   analysisMode: AnalysisMode | null;
+  cvLanguage: CvLanguage;
   applications: Application[];
   setJobUrl: (value: string) => void;
   setJobDescription: (value: string) => void;
+  setCvLanguage: (language: CvLanguage) => Promise<void>;
   updateGeneratedCV: (cv: GeneratedCV) => void;
   updateGeneratedCoverLetter: (letter: GeneratedCoverLetter) => void;
   resetGeneratedCV: () => void;
@@ -82,6 +89,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
   const [originalCoverLetter, setOriginalCoverLetter] =
     useState<GeneratedCoverLetter | null>(null);
   const [analysisMode, setAnalysisMode] = useState<AnalysisMode | null>(null);
+  const [cvLanguage, setCvLanguageState] = useState<CvLanguage>("danish");
   const [applications, setApplications] = useState<Application[]>([]);
 
   const refreshApplications = useCallback(async () => {
@@ -104,6 +112,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         originalCV,
         originalCoverLetter,
         analysisMode,
+        cvLanguage,
         ...overrides,
       });
     },
@@ -117,6 +126,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       originalCV,
       originalCoverLetter,
       analysisMode,
+      cvLanguage,
     ]
   );
 
@@ -144,6 +154,9 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         )
       );
       setAnalysisMode(saved.analysisMode ?? null);
+      if (saved.cvLanguage === "english" || saved.cvLanguage === "danish") {
+        setCvLanguageState(saved.cvLanguage);
+      }
     });
   }, [refreshApplications]);
 
@@ -210,6 +223,8 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         );
       }
 
+      const languageForAnalysis = detectCvLanguageFromJob(description);
+
       const response = await fetch("/api/analyze-job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -217,6 +232,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
           jobDescription: description,
           sourceUrl,
           enhanceWithAI,
+          personaId: languageToPersonaId(languageForAnalysis),
         }),
       });
 
@@ -242,6 +258,8 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Analysis returned incomplete data.");
       }
 
+      const detectedLanguage = detectCvLanguageFromJob(job.rawText);
+      setCvLanguageState(detectedLanguage);
       setParsedJob(job);
       setMatchResult(match);
       setGeneratedCV(tailoredCV);
@@ -270,6 +288,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
         originalCV: nextOriginalCV,
         originalCoverLetter: nextOriginalCoverLetter,
         analysisMode: mode,
+        cvLanguage: languageForAnalysis,
       });
     },
     [
@@ -279,6 +298,66 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       originalCV,
       originalCoverLetter,
     ]
+  );
+
+  const regenerateForLanguage = useCallback(
+    async (language: CvLanguage) => {
+      if (!parsedJob) {
+        setCvLanguageState(language);
+        return;
+      }
+
+      const personaId = languageToPersonaId(language);
+      const response = await fetch("/api/regenerate-documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parsedJob, personaId }),
+      });
+
+      const data = (await response.json()) as {
+        error?: string;
+        match?: unknown;
+        generatedCV?: unknown;
+        generatedCoverLetter?: unknown;
+      };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? `Language switch failed (${response.status})`);
+      }
+
+      const match = normalizeMatchResult(data.match);
+      const tailoredCV = normalizeGeneratedCV(data.generatedCV);
+      const coverLetter = normalizeGeneratedCoverLetter(data.generatedCoverLetter);
+
+      if (!match || !tailoredCV || !coverLetter) {
+        throw new Error("Language switch returned incomplete data.");
+      }
+
+      setCvLanguageState(language);
+      setMatchResult(match);
+      setGeneratedCV(tailoredCV);
+      setGeneratedCoverLetter(coverLetter);
+      setOriginalCV(tailoredCV);
+      setOriginalCoverLetter(coverLetter);
+
+      persistSnapshot({
+        cvLanguage: language,
+        matchResult: match,
+        generatedCV: tailoredCV,
+        generatedCoverLetter: coverLetter,
+        originalCV: tailoredCV,
+        originalCoverLetter: coverLetter,
+      });
+    },
+    [parsedJob, persistSnapshot]
+  );
+
+  const setCvLanguage = useCallback(
+    async (language: CvLanguage) => {
+      if (language === cvLanguage) return;
+      await regenerateForLanguage(language);
+    },
+    [cvLanguage, regenerateForLanguage]
   );
 
   const analyzeJob = useCallback(
@@ -392,6 +471,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
           coverLetterOutputPath,
           recruiterContact,
           deadline,
+          personaIdUsed: languageToPersonaId(cvLanguage),
         };
 
     await saveApplication(application);
@@ -403,6 +483,7 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
     generatedCV,
     generatedCoverLetter,
     refreshApplications,
+    cvLanguage,
   ]);
 
   const value = useMemo(
@@ -414,9 +495,11 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       generatedCV,
       generatedCoverLetter,
       analysisMode,
+      cvLanguage,
       applications,
       setJobUrl,
       setJobDescription,
+      setCvLanguage,
       updateGeneratedCV,
       updateGeneratedCoverLetter,
       resetGeneratedCV,
@@ -435,11 +518,13 @@ export function JobAgentProvider({ children }: { children: React.ReactNode }) {
       generatedCV,
       generatedCoverLetter,
       analysisMode,
+      cvLanguage,
       applications,
       updateGeneratedCV,
       updateGeneratedCoverLetter,
       resetGeneratedCV,
       resetGeneratedCoverLetter,
+      setCvLanguage,
       importJobFromUrl,
       analyzeJob,
       enhanceWithAI,

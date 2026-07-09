@@ -18,9 +18,8 @@ RESTful multiplayer game server med HAL-kontroller i Java/Spring Boot. 100 % aut
 
 **Tech:** Java, Spring Boot, REST API
 
-## Front-End Projekt
 
-Responsiv webapplikation med React og CSS, fokus på intuitiv navigation og brugervenlighed.
+Full-stack webapplikation med React og CSS, fokus på intuitiv navigation og brugervenlighed.
 
 ## CDO AI Robot Projekt
 

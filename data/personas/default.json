@@ -119,8 +119,8 @@
   "projects": [
     {
       "id": "proj-5",
-      "name": "ResizeHub — Image Rescaling Service (Bachelorprojekt)",
-      "description": "Skalerbar on-demand billedbehandlingsservice med cloud-infrastruktur. JWT-baseret autentificering, CDN-levering og CI/CD. Karakter 12 (A) ved DTU."
+      "name": "ResizeHub — On-Demand Image Rescaling Service (Bachelorprojekt)",
+      "description": "Skalerbar cloud-baseret backend til on-demand billedbehandling. Designede REST API'er med JWT-autentificering, højtydende server-side skalering, cloud-lagring, CDN-levering og CI/CD-pipelines med automatiseret test. Modtog karakteren 12 (A) ved DTU."
     },
     {
       "id": "proj-6",
@@ -131,11 +131,6 @@
       "id": "proj-7",
       "name": "RoboRally Game Server",
       "description": "RESTful multiplayer game server med HAL-kontroller i Java/Spring Boot. 100 % automatiseret testdækning (96/96 tests)."
-    },
-    {
-      "id": "proj-1",
-      "name": "Front-End Projekt",
-      "description": "Responsiv webapplikation med React og CSS, fokus på intuitiv navigation og brugervenlighed."
     },
     {
       "id": "proj-2",
@@ -154,9 +149,21 @@
     }
   ],
   "languages": [
-    { "language": "Dansk", "level": "Flydende" },
-    { "language": "Engelsk", "level": "Konversation" },
-    { "language": "Arabisk", "level": "Flydende" },
-    { "language": "Kurmanci", "level": "Flydende" }
+    {
+      "language": "Dansk",
+      "level": "Flydende"
+    },
+    {
+      "language": "Engelsk",
+      "level": "Konversation"
+    },
+    {
+      "language": "Arabisk",
+      "level": "Flydende"
+    },
+    {
+      "language": "Kurmanci",
+      "level": "Flydende"
+    }
   ]
 }

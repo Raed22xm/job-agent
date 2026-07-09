@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import LanguageToggle from "@/components/LanguageToggle";
 import ATSKeywordCoverage from "@/components/ATSKeywordCoverage";
 import CVEditor from "@/components/CVEditor";
 import CVFeedbackPanel from "@/components/CVFeedbackPanel";
@@ -13,6 +14,7 @@ import ExportButtons from "@/components/ExportButtons";
 import PreSendReviewModal from "@/components/PreSendReviewModal";
 import { useJobAgent } from "@/context/JobAgentContext";
 import { scoreCVKeywordCoverage } from "@/lib/cv/scoreCVKeywords";
+import { languageToPersonaId } from "@/lib/cvLanguage";
 import { exportCVToDocx, exportCVToPdf } from "@/lib/export/exportCV";
 import type { CVValidationResult, Language } from "@/types";
 
@@ -25,6 +27,8 @@ export default function CVGeneratorPage() {
   const {
     generatedCV,
     parsedJob,
+    cvLanguage,
+    setCvLanguage,
     updateGeneratedCV,
     resetGeneratedCV,
   } = useJobAgent();
@@ -36,10 +40,14 @@ export default function CVGeneratorPage() {
   const [isExporting, setIsExporting] = useState<"pdf" | "docx" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [isApplyingFix, setIsApplyingFix] = useState(false);
+  const [isSwitchingLanguage, setIsSwitchingLanguage] = useState(false);
+  const [languageError, setLanguageError] = useState<string | null>(null);
 
-  // Fetch master CV metadata (languages + certifications) once on mount
+  const personaId = languageToPersonaId(cvLanguage);
+
+  // Fetch master CV metadata (languages + certifications) for active persona
   useEffect(() => {
-    void fetch("/api/cv-meta")
+    void fetch(`/api/cv-meta?personaId=${encodeURIComponent(personaId)}`)
       .then((r) => r.json())
       .then((data: unknown) => {
         if (
@@ -52,7 +60,7 @@ export default function CVGeneratorPage() {
         }
       })
       .catch(() => {/* non-critical — preview still works without */});
-  }, []);
+  }, [personaId]);
 
   // ATS keyword coverage (memoised)
   const keywordCoverage = useMemo(() => {
@@ -73,7 +81,7 @@ export default function CVGeneratorPage() {
     void fetch("/api/validate-cv", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ generatedCV }),
+      body: JSON.stringify({ generatedCV, personaId }),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -106,7 +114,7 @@ export default function CVGeneratorPage() {
       });
 
     return () => controller.abort();
-  }, [generatedCV]);
+  }, [generatedCV, personaId]);
 
   // ── Empty state ────────────────────────────────────────────────────────────
   if (!generatedCV || !parsedJob) {
@@ -140,9 +148,9 @@ export default function CVGeneratorPage() {
     setIsExporting(type);
     try {
       if (type === "pdf") {
-        await exportCVToPdf(generatedCV, parsedJob.company, parsedJob.title);
+        await exportCVToPdf(generatedCV, parsedJob.company, parsedJob.title, cvLanguage);
       } else {
-        await exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title);
+        await exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title, cvLanguage);
       }
       setPreSendOpen(false);
     } catch (err) {
@@ -189,12 +197,41 @@ export default function CVGeneratorPage() {
     }
   };
 
+  const handleLanguageChange = async (language: typeof cvLanguage) => {
+    setLanguageError(null);
+    setIsSwitchingLanguage(true);
+    try {
+      await setCvLanguage(language);
+    } catch (err) {
+      setLanguageError(
+        err instanceof Error ? err.message : "Could not switch CV language."
+      );
+    } finally {
+      setIsSwitchingLanguage(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page header + export buttons */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">CV Generator</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground">CV Generator</h1>
+            <LanguageToggle
+              value={cvLanguage}
+              onChange={(language) => void handleLanguageChange(language)}
+              disabled={isSwitchingLanguage}
+            />
+          </div>
+          {isSwitchingLanguage && (
+            <p className="mt-2 text-sm text-foreground-secondary">
+              Switching language…
+            </p>
+          )}
+          {languageError && (
+            <p className="mt-2 text-sm text-error">{languageError}</p>
+          )}
           <p className="mt-1 text-sm text-foreground-secondary">
             Tailored for{" "}
             <span className="font-medium">{parsedJob.title}</span> at{" "}
@@ -266,6 +303,7 @@ export default function CVGeneratorPage() {
           exportRef={exportRef}
           languages={cvMeta.languages}
           certifications={cvMeta.certifications}
+          language={cvLanguage}
         />
       </div>
     </div>

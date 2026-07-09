@@ -64,12 +64,26 @@ function selectRelevantProjects(
     )
   );
 
-  const relevant = projects.filter((project) => {
+  // Score each project based on how many job keywords it matches
+  const scoredProjects = projects.map((project) => {
     const text = `${project.name} ${project.description}`.toLowerCase();
-    return [...jobTerms].some(
-      (term) => term.length > 2 && text.includes(term)
-    );
+    let score = 0;
+    
+    for (const term of jobTerms) {
+      if (term.length > 2 && text.includes(term)) {
+        score++;
+      }
+    }
+    
+    return { project, score };
   });
+
+  // Sort projects by score (highest match first)
+  scoredProjects.sort((a, b) => b.score - a.score);
+
+  // Return all projects that have at least one keyword match.
+  // If no projects match any keywords, return the top 2 default projects.
+  const relevant = scoredProjects.filter((p) => p.score > 0).map((p) => p.project);
 
   return relevant.length > 0 ? relevant : projects.slice(0, 2);
 }

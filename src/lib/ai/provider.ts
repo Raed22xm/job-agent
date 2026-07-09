@@ -1,5 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { ollama } from "ollama-ai-provider";
+import { resolveOpenAIModel } from "@/lib/ai/providers";
 
 export function getProvider() {
   const providerType = process.env.AI_PROVIDER || "openai";
@@ -12,8 +13,7 @@ export function getProvider() {
     };
   }
 
-  // Fallback to OpenAI
-  const modelName = process.env.OPENAI_MODEL || "gpt-4o";
+  const modelName = resolveOpenAIModel();
   return {
     model: openai(modelName) as any,
     embeddingModel: openai.embedding("text-embedding-3-small") as any,

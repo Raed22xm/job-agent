@@ -1,6 +1,7 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { AnalysisMode } from "@/lib/analyzeJobLocal";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import type {
   GeneratedCoverLetter,
   GeneratedCV,
@@ -20,6 +21,7 @@ export interface AnalysisSessionSnapshot {
   originalCV: GeneratedCV | null;
   originalCoverLetter: GeneratedCoverLetter | null;
   analysisMode: AnalysisMode | null;
+  cvLanguage?: CvLanguage | null;
   updatedAt: string;
 }
 
@@ -83,6 +85,7 @@ export async function clearSessionOnDisk(workspaceRoot = process.cwd()): Promise
           originalCV: null,
           originalCoverLetter: null,
           analysisMode: null,
+          cvLanguage: null,
           updatedAt: new Date().toISOString(),
         } satisfies AnalysisSessionSnapshot,
         null,

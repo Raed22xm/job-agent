@@ -7,10 +7,17 @@
 
 export type AIProvider = "openai" | "none";
 
+/** Default model — widely available on free/tier-1 OpenAI projects. */
+export const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
+
 export interface AIConfig {
   provider: AIProvider;
   isConfigured: boolean;
   model: string;
+}
+
+export function resolveOpenAIModel(): string {
+  return process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
 }
 
 export function getAIConfig(): AIConfig {
@@ -19,7 +26,7 @@ export function getAIConfig(): AIConfig {
     return {
       provider: "openai",
       isConfigured: true,
-      model: process.env.OPENAI_MODEL?.trim() || "gpt-4o",
+      model: resolveOpenAIModel(),
     };
   }
 

@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
+import { resolvePersonaId } from "@/lib/cvLanguage";
 import { validateGeneratedCV } from "@/lib/cv/validateCV";
-import { getMasterCV } from "@/lib/matchCV";
+import { getPersona } from "@/lib/personaManager";
 import { normalizeGeneratedCV } from "@/lib/normalizeStoredData";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { generatedCV?: unknown };
+    const body = (await request.json()) as {
+      generatedCV?: unknown;
+      personaId?: string;
+    };
     const generatedCV = normalizeGeneratedCV(body.generatedCV);
+    const personaId = resolvePersonaId(body.personaId);
 
     if (!generatedCV) {
       return NextResponse.json(
@@ -15,7 +20,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const validation = validateGeneratedCV(generatedCV, getMasterCV());
+    const masterCv = getPersona(personaId);
+    if (!masterCv) {
+      return NextResponse.json(
+        { error: `No CV persona found for "${personaId}"` },
+        { status: 404 }
+      );
+    }
+
+    const validation = validateGeneratedCV(generatedCV, masterCv);
     return NextResponse.json({ validation });
   } catch (error) {
     const message =

@@ -5,6 +5,7 @@ import {
   Paragraph,
   TextRun,
 } from "docx";
+import { CV_SECTION_LABELS, type CvLanguage } from "@/lib/cvLanguage";
 import type { GeneratedCV } from "@/types";
 import { buildExportBasename, downloadBlob } from "@/lib/export/download";
 import {
@@ -43,9 +44,11 @@ function bodyParagraph(text: string): Paragraph {
 export async function exportCVToDocx(
   cv: GeneratedCV,
   company: string,
-  title: string
+  title: string,
+  language: CvLanguage = "english"
 ): Promise<void> {
   const { header, summary, skills, experience, education, projects } = cv.sections;
+  const labels = CV_SECTION_LABELS[language];
   const contactParts = [header.location, header.email, header.phone].filter(Boolean);
   const linkParts = [header.linkedin, header.portfolio].filter(Boolean);
 
@@ -79,13 +82,13 @@ export async function exportCVToDocx(
   }
 
   children.push(
-    sectionHeading("Professional Summary"),
+    sectionHeading(labels.summary),
     bodyParagraph(summary),
-    sectionHeading("Skills"),
+    sectionHeading(labels.skills),
     bodyParagraph(skills.join(" · "))
   );
 
-  children.push(sectionHeading("Experience"));
+  children.push(sectionHeading(labels.experience));
   for (const role of experience) {
     children.push(
       new Paragraph({
@@ -121,7 +124,7 @@ export async function exportCVToDocx(
   }
 
   if (projects && projects.length > 0) {
-    children.push(sectionHeading("Projects"));
+    children.push(sectionHeading(labels.projects));
     for (const project of projects) {
       children.push(
         new Paragraph({
@@ -135,7 +138,7 @@ export async function exportCVToDocx(
     }
   }
 
-  children.push(sectionHeading("Education"));
+  children.push(sectionHeading(labels.education));
   for (const edu of education) {
     children.push(
       new Paragraph({
@@ -167,12 +170,14 @@ export async function exportCVToDocx(
 export async function exportCVToPdf(
   cv: GeneratedCV,
   company: string,
-  title: string
+  title: string,
+  language: CvLanguage = "english"
 ): Promise<void> {
   const pdf = await createA4PdfAsync();
   const pageWidth = pdf.internal.pageSize.getWidth();
   const maxWidth = pdfContentWidth(pdf);
   let y = PDF_MARGIN_MM;
+  const labels = CV_SECTION_LABELS[language];
 
   const { header, summary, skills, experience, education, projects } = cv.sections;
   const contactParts = [header.location, header.email, header.phone].filter(Boolean);
@@ -199,15 +204,15 @@ export async function exportCVToPdf(
 
   pdf.setFontSize(PDF_BODY_SIZE);
 
-  y = addPdfSectionHeading(pdf, "Professional Summary", y, maxWidth);
+  y = addPdfSectionHeading(pdf, labels.summary, y, maxWidth);
   y = addPdfWrappedText(pdf, summary, PDF_MARGIN_MM, y, maxWidth);
   y += 2;
 
-  y = addPdfSectionHeading(pdf, "Skills", y, maxWidth);
+  y = addPdfSectionHeading(pdf, labels.skills, y, maxWidth);
   y = addPdfWrappedText(pdf, skills.join(" · "), PDF_MARGIN_MM, y, maxWidth);
   y += 2;
 
-  y = addPdfSectionHeading(pdf, "Experience", y, maxWidth);
+  y = addPdfSectionHeading(pdf, labels.experience, y, maxWidth);
   for (const role of experience) {
     pdf.setFont("helvetica", "bold");
     y = addPdfWrappedText(
@@ -233,7 +238,7 @@ export async function exportCVToPdf(
   }
 
   if (projects && projects.length > 0) {
-    y = addPdfSectionHeading(pdf, "Projects", y, maxWidth);
+    y = addPdfSectionHeading(pdf, labels.projects, y, maxWidth);
     for (const project of projects) {
       pdf.setFont("helvetica", "bold");
       y = addPdfWrappedText(pdf, project.name, PDF_MARGIN_MM, y, maxWidth);
@@ -243,7 +248,7 @@ export async function exportCVToPdf(
     }
   }
 
-  y = addPdfSectionHeading(pdf, "Education", y, maxWidth);
+  y = addPdfSectionHeading(pdf, labels.education, y, maxWidth);
   for (const edu of education) {
     pdf.setFont("helvetica", "bold");
     y = addPdfWrappedText(

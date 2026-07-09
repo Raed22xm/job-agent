@@ -3,7 +3,8 @@ import { analyzeJobLocally } from "@/lib/analyzeJobLocal";
 import { analyzeJobWithAI } from "@/lib/ai/analyzeJobWithAI";
 import { getAIConfig } from "@/lib/ai/providers";
 import { parseMasterCV } from "@/lib/ai/schemas";
-import { getMasterCV } from "@/lib/matchCV";
+import { resolvePersonaId } from "@/lib/cvLanguage";
+import { getPersona } from "@/lib/personaManager";
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,8 @@ export async function POST(request: Request) {
       sourceUrl?: string;
       /** When true and AI is configured, merge AI enhancements. Default: local only. */
       enhanceWithAI?: boolean;
+      /** Persona id: "danish" | "english" (defaults to danish). */
+      personaId?: string;
     };
 
     const jobDescription = body.jobDescription?.trim();
@@ -22,7 +25,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const cv = getMasterCV();
+    const personaId = resolvePersonaId(body.personaId);
+    const cv = getPersona(personaId);
+    if (!cv) {
+      return NextResponse.json(
+        { error: `No CV persona found for "${personaId}"` },
+        { status: 404 }
+      );
+    }
+
     const cvValidation = parseMasterCV(cv);
     if (!cvValidation.success) {
       return NextResponse.json(
@@ -36,7 +47,7 @@ export async function POST(request: Request) {
 
     const sourceUrl = body.sourceUrl?.trim() || undefined;
     const enhanceWithAI = body.enhanceWithAI === true;
-    const baseline = analyzeJobLocally(jobDescription, sourceUrl, cv);
+    const baseline = analyzeJobLocally(jobDescription, sourceUrl, cv, personaId);
     const aiConfig = getAIConfig();
 
     if (enhanceWithAI && !aiConfig.isConfigured) {

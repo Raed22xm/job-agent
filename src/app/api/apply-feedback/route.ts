@@ -3,7 +3,16 @@ import { generateObject } from "ai";
 import { getProvider } from "@/lib/ai/provider";
 import { applyFeedbackPrompt, SYSTEM_TRUTHFULNESS } from "@/lib/ai/prompts";
 import { AppliedFeedbackSchema } from "@/lib/ai/schemas";
-import { getAIConfig } from "@/lib/ai/providers";
+import { getAIConfig, resolveOpenAIModel } from "@/lib/ai/providers";
+
+function formatAIError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : "Apply feedback failed";
+  if (/does not have access to model/i.test(raw)) {
+    const model = resolveOpenAIModel();
+    return `Your OpenAI project cannot use "${model}". Set OPENAI_MODEL=gpt-4o-mini in .env (or another model your project supports), then restart npm run dev.`;
+  }
+  return raw;
+}
 
 export async function POST(request: Request) {
   try {
@@ -51,7 +60,6 @@ export async function POST(request: Request) {
     return NextResponse.json(object);
   } catch (error) {
     console.error("Apply feedback failed:", error);
-    const message = error instanceof Error ? error.message : "Apply feedback failed";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: formatAIError(error) }, { status: 400 });
   }
 }

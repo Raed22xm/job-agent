@@ -1,3 +1,4 @@
+import type { CvLanguage } from "@/lib/cvLanguage";
 import type { GeneratedCoverLetter, MasterCV, ParsedJob } from "@/types";
 
 /**
@@ -11,9 +12,30 @@ function displayValue(value: string, fallback: string): string {
 
 export function generateCoverLetter(
   cv: MasterCV,
-  job: ParsedJob
+  job: ParsedJob,
+  language: CvLanguage = "english"
 ): GeneratedCoverLetter {
   const recentRole = cv.experience[0];
+
+  if (language === "danish") {
+    const company = displayValue(job.company, "jeres organisation");
+    const title = displayValue(job.title, "stillingen");
+    const location = displayValue(job.location, "muligheden");
+
+    const paragraphs = [
+      `Jeg skriver for at udtrykke min interesse for stillingen som ${title}${company !== "jeres organisation" ? ` hos ${company}` : ""}. Med erfaring som ${recentRole?.title ?? "professionel"} hos ${recentRole?.company ?? "min nuværende arbejdsplads"} mener jeg, at min baggrund matcher stillingens fokusområder.`,
+      `Mit arbejde har omfattet ${cv.skills.slice(0, 4).join(", ")}, og jeg har leveret resultater i tæt samarbejde med teams. Jeg er særligt motiveret af ${location !== "muligheden" ? `muligheden i ${location}` : "denne mulighed"}.`,
+      `Jeg vil meget gerne drøfte, hvordan min dokumenterede erfaring kan styrke jeres team. Tak for jeres tid og overvejelse.`,
+    ];
+
+    return {
+      greeting: "Kære hiring manager,",
+      paragraphs,
+      closing: "Med venlig hilsen,",
+      signature: cv.personalInfo.fullName,
+    };
+  }
+
   const company = displayValue(job.company, "your organization");
   const title = displayValue(job.title, "this position");
   const location = displayValue(job.location, "this opportunity");
@@ -25,7 +47,7 @@ export function generateCoverLetter(
   ];
 
   return {
-    greeting: `Dear Hiring Manager,`,
+    greeting: "Dear Hiring Manager,",
     paragraphs,
     closing: "Sincerely,",
     signature: cv.personalInfo.fullName,

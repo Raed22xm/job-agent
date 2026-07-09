@@ -1,4 +1,5 @@
 import type { AnalysisMode } from "@/lib/analyzeJobLocal";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import type {
   GeneratedCoverLetter,
   GeneratedCV,
@@ -18,6 +19,7 @@ export interface ClientSessionSnapshot {
   originalCV: GeneratedCV | null;
   originalCoverLetter: GeneratedCoverLetter | null;
   analysisMode: AnalysisMode | null;
+  cvLanguage?: CvLanguage | null;
 }
 
 function readLegacySession(): Partial<ClientSessionSnapshot> | null {
