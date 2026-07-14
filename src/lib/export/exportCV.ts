@@ -155,6 +155,18 @@ export async function exportCVToDocx(
         `${edu.institution} · ${edu.startDate} – ${edu.endDate}`
       )
     );
+
+    if (edu.details && edu.details.length > 0) {
+      for (const detail of edu.details) {
+        children.push(
+          new Paragraph({
+            bullet: { level: 0 },
+            spacing: { after: 60 },
+            children: [new TextRun({ text: detail, size: 22 })],
+          })
+        );
+      }
+    }
   }
 
   const doc = new Document({
@@ -266,6 +278,11 @@ export async function exportCVToPdf(
       y,
       maxWidth
     );
+    if (edu.details && edu.details.length > 0) {
+      for (const detail of edu.details) {
+        y = addPdfWrappedText(pdf, `• ${detail}`, PDF_MARGIN_MM + 2, y, maxWidth - 2);
+      }
+    }
     y += PDF_LINE_MM * 0.5;
   }
 

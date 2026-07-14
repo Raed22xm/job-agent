@@ -37,7 +37,10 @@
     "Agile",
     "Scrum",
     "User Testing",
-    "Design Systems"
+    "Design Systems",
+    "AI Prompt Engineering",
+    "AI Tools",
+    "MCP"
   ],
   "tools": [
     "Git",
@@ -109,7 +112,7 @@
       "startDate": "2021",
       "endDate": "2026",
       "details": [
-        "Courses: Financial Management, Software Processing, Database Management",
+        "Courses: Artificial Intelligence and Machine Learning (02285), Introduction to Artificial Intelligence (02180), Financial Management, Software Processing, Database Management",
         "Focus: Software development, data analysis, digitalization, and strategic economic management",
         "Bachelor project: ResizeHub (image processing service) — grade 12"
       ]

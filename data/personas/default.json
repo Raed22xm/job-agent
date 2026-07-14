@@ -37,7 +37,10 @@
     "Agile",
     "Scrum",
     "User Testing",
-    "Design Systems"
+    "Design Systems",
+    "AI Prompt Engineering",
+    "AI Tools",
+    "MCP"
   ],
   "tools": [
     "Git",
@@ -109,7 +112,7 @@
       "startDate": "2021",
       "endDate": "2026",
       "details": [
-        "Kurser: Økonomistyring, Software Processing, Database Management",
+        "Kurser: Kunstig intelligens og maskinlæring (02285), Introduktion til kunstig intelligens (02180), Økonomistyring, Software Processing, Database Management",
         "Fokus: Softwareudvikling, dataanalyse, digitalisering og strategisk økonomisk ledelse",
         "Bachelorprojekt: ResizeHub (billedbehandlingsservice) — karakter 12"
       ]
