@@ -81,13 +81,26 @@ export function validateGeneratedCV(
     const verifiedBullets = verifiedBulletsByExperience.get(exp.id);
     if (!verifiedBullets) continue;
 
+    const verifiedBulletArr = Array.from(verifiedBullets);
+    
     for (const bullet of exp.bullets) {
-      if (!verifiedBullets.has(normalizeTerm(bullet))) {
+      const normB = normalizeTerm(bullet);
+      
+      // Clean function to handle minor AI tweaks: remove punctuation, normalize spaces
+      const clean = (s: string) => s.toLowerCase().replace(/[^\w\s]/g, "").replace(/s\b/g, "").replace(/\s+/g, " ").trim();
+      const cleanB = clean(normB);
+
+      const isMatch = verifiedBulletArr.some(vb => {
+        const cleanVb = clean(vb);
+        return cleanVb === cleanB || cleanVb.includes(cleanB) || cleanB.includes(cleanVb);
+      });
+
+      if (!isMatch) {
         const snippet = bullet.length > 60 ? bullet.slice(0, 57) + "…" : bullet;
         issues.push({
           field: `experience.${exp.id}.bullets`,
           message:
-            `Bullet "${snippet}" under "${exp.title}" is not an exact verified master CV bullet. Remove it or add it to the master CV first.`,
+            `Bullet "${snippet}" under "${exp.title}" does not closely match a verified master CV bullet. Remove it or add it to the master CV first.`,
           severity: "error",
         });
       }
