@@ -40,7 +40,9 @@
     "Design Systems",
     "AI Prompt Engineering",
     "AI Tools",
-    "MCP"
+    "MCP",
+    "Kubernetes",
+    "Backend"
   ],
   "tools": [
     "Git",
