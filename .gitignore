@@ -72,3 +72,6 @@ next-env.d.ts
 .agents/
 ruvector.db
 skills-lock.json
+
+# Tool cache/indexing
+.understand-anything/

@@ -3,14 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/AppShell";
 
-// TypeScript declarations for Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
 interface CopilotInsight {
   detectedQuestion: string;
   starPoints: string[];
@@ -27,7 +19,11 @@ export default function CopilotPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const speechWindow = window as typeof window & {
+        SpeechRecognition?: new () => any;
+        webkitSpeechRecognition?: new () => any;
+      };
+      const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;

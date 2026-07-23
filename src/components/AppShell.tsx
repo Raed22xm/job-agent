@@ -10,6 +10,7 @@ const navItems = [
   { href: "/", label: "Home" },
   { href: "/agent", label: "🤖 Agent" },
   { href: "/copilot", label: "🎙️ Copilot" },
+  { href: "/english", label: "English Lab" },
   { href: "/boardroom", label: "🤖 Boardroom" },
   { href: "/network", label: "🕸️ Network" },
   { href: "/teleprompter", label: "📹 Teleprompter" },
