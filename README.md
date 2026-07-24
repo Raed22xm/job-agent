@@ -31,7 +31,7 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 - Vercel AI SDK + Zod schemas for structured AI output
 - Master CV: `data/master-cv.json` (read server-side)
 - **Server persistence:** `data/applications.sqlite` (tracker), `data/session/` (current analysis), `data/jobs/`, `data/outputs/`
-- Vitest for unit tests (75+ tests)
+- Vitest for unit tests (130+ tests across 26 test suites)
 
 ### API routes (server)
 
@@ -112,7 +112,7 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npm test` | Run Vitest unit tests (79 tests) |
+| `npm test` | Run Vitest unit tests (134 tests) |
 | `npm run typecheck` | TypeScript check without emit |
 | `npm run check` | Lint, test, typecheck, and build |
 | `npm run mcp:start` | Start the local MCP-style automation bridge |

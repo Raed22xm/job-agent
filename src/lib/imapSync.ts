@@ -41,8 +41,9 @@ export async function checkInboxForReplies() {
     const parsedMessages = [];
 
     for (const item of messages) {
-      const allParts = imaps.getParts(item.attributes.struct as any);
-      let textPart: any = null;
+      const struct = item.attributes.struct as Parameters<typeof imaps.getParts>[0];
+      const allParts = imaps.getParts(struct);
+      let textPart: (typeof allParts)[number] | null = null;
 
       // Find the text part of the email
       for (const part of allParts) {

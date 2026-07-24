@@ -97,7 +97,7 @@ export default function RoleplayPractice({ focusWords }: { focusWords: string[] 
 
         <label htmlFor="roleplay-scenario" className="mt-6 block text-sm font-semibold">Choose a situation</label>
         <select id="roleplay-scenario" value={scenario} onChange={(event) => { setScenario(event.target.value); setTurns([]); }} className="field-input mt-2">
-          {SCENARIOS.map((item) => <option key={item}>{item}</option>)}
+          {SCENARIOS.map((item, index) => <option key={`${item}-${index}`}>{item}</option>)}
         </select>
 
         <div className="mt-5 rounded-xl border border-border bg-background-secondary p-4">
@@ -108,7 +108,7 @@ export default function RoleplayPractice({ focusWords }: { focusWords: string[] 
         <div className="mt-5">
           <p className="text-sm font-semibold">Words from your text</p>
           {focusWords.length ? (
-            <div className="mt-2 flex flex-wrap gap-2">{focusWords.slice(0, 5).map((word) => <span key={word} className="badge-success">{word}</span>)}</div>
+            <div className="mt-2 flex flex-wrap gap-2">{focusWords.slice(0, 5).map((word, index) => <span key={`${word}-${index}`} className="badge-success">{word}</span>)}</div>
           ) : <p className="mt-2 text-sm text-foreground-secondary">Create office vocabulary first, then the coach will encourage you to use those phrases.</p>}
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function RoleplayPractice({ focusWords }: { focusWords: string[] 
                   <p className="font-semibold text-primary">Coach note</p>
                   {turn.coach.correction && <p className="mt-2"><span className="font-medium">Try:</span> {turn.coach.correction}</p>}
                   {turn.coach.explanation && <p className="mt-1 text-foreground-secondary">{turn.coach.explanation}</p>}
-                  <div className="mt-3 flex flex-wrap gap-2">{turn.coach.suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => setMessage(suggestion)} className="rounded-full border border-primary/25 bg-surface px-3 py-1.5 text-left text-xs font-medium hover:border-primary">{suggestion}</button>)}</div>
+                  <div className="mt-3 flex flex-wrap gap-2">{turn.coach.suggestions.map((suggestion, suggestionIndex) => <button type="button" key={`${suggestion}-${suggestionIndex}`} onClick={() => setMessage(suggestion)} className="rounded-full border border-primary/25 bg-surface px-3 py-1.5 text-left text-xs font-medium hover:border-primary">{suggestion}</button>)}</div>
                 </div>
               )}
             </div>

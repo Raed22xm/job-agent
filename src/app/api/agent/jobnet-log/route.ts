@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,16 +31,17 @@ export async function POST(req: NextRequest) {
       // e.g. await page.fill('input[name="JobTitle"]', jobTitle);
       // However, Jobnet is an SPA, so we just log success for now to close the loop.
       
-      console.log(`[Jobnet Subagent] Successfully navigated to Joblog for: ${jobTitle} at ${company}`);
+      logger.info(`[Jobnet Subagent] Successfully navigated to Joblog for: ${jobTitle} at ${company}`);
       await browser.close();
       return NextResponse.json({ success: true, message: "Logged successfully in Jobnet." });
-    } catch (e) {
+    } catch {
       // User didn't navigate to Joblog in time
       await browser.close();
       return NextResponse.json({ error: "Did not reach Joblog page in time. Please log in with MitID." }, { status: 408 });
     }
-  } catch (err: any) {
-    console.error("Jobnet Subagent Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Jobnet subagent error";
+    logger.error("Jobnet Subagent Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

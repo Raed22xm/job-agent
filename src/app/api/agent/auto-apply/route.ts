@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
+import { logger } from "@/lib/logger";
 import { getPersona } from "@/lib/personaManager";
 
 export async function POST(req: NextRequest) {
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
       cv.personalInfo.portfolio || ""
     );
 
-    console.log("[Auto-Apply] Finished filling basic fields. Awaiting user review.");
+    logger.info("[Auto-Apply] Finished filling basic fields. Awaiting user review.");
 
     // We do NOT close the browser, leaving it open for the user to review and manually submit
     // Return success to the UI
@@ -87,8 +88,9 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "Browser opened and fields populated. Please review and click Submit.",
     });
-  } catch (err: any) {
-    console.error("Auto-Apply Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Auto-apply error";
+    logger.error("Auto-Apply Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

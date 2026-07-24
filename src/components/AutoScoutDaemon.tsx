@@ -3,7 +3,9 @@
 import { useEffect } from "react";
 import { useJobAgent } from "@/context/JobAgentContext";
 import { saveApplication } from "@/lib/storage";
+import { logger } from "@/lib/logger";
 import type { Application } from "@/types";
+import type { ScoutedJob } from "@/lib/agent/jobScout";
 
 export default function AutoScoutDaemon() {
   const { applications, refreshApplications } = useJobAgent();
@@ -18,7 +20,7 @@ export default function AutoScoutDaemon() {
           return;
         }
 
-        console.log("[AutoScout Daemon] Running background scout...");
+        logger.info("Running background scout...");
         
         // Find top market from Geo Audit if available, or default to remote
         const geoResultStr = localStorage.getItem("geoAuditResult");
@@ -39,8 +41,10 @@ export default function AutoScoutDaemon() {
 
         if (!res.ok) throw new Error("Daemon API failed");
         
-        const data = await res.json();
-        const highMatches = data.jobs.filter((j: any) => j.matchScore && j.matchScore >= 85);
+        const data = (await res.json()) as { jobs: ScoutedJob[] };
+        const highMatches = (data.jobs || []).filter(
+          (j: ScoutedJob) => j.matchScore && j.matchScore >= 85
+        );
         
         let newCount = 0;
         for (const job of highMatches) {

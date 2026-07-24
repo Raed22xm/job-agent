@@ -18,9 +18,9 @@ export default function CVFocusAreas({ areas }: CVFocusAreasProps) {
         </p>
       ) : (
         <ul className="mt-4 space-y-3">
-          {areas.map((area) => (
+          {areas.map((area, index) => (
             <li
-              key={area}
+              key={`${area}-${index}`}
               className="flex gap-3 rounded-xl border border-border bg-background-secondary px-4 py-3 text-sm leading-relaxed text-foreground-secondary"
             >
               <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary-dark">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
     // Wait for job cards to load
     try {
       await page.waitForSelector(".job-card", { timeout: 10000 });
-    } catch (e) {
+    } catch {
       // If no jobs found, return empty array
       await browser.close();
       return NextResponse.json({ jobs: [] });
@@ -47,8 +48,9 @@ export async function POST(req: NextRequest) {
     await browser.close();
 
     return NextResponse.json({ jobs: scrapedJobs });
-  } catch (err: any) {
-    console.error("Scraper Subagent Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Scraper error";
+    logger.error("Scraper Subagent Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

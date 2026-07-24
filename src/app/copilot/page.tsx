@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import AppShell from "@/components/AppShell";
+import { logger } from "@/lib/logger";
 
 interface CopilotInsight {
   detectedQuestion: string;
@@ -29,7 +30,7 @@ export default function CopilotPage() {
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
 
-        recognitionRef.current.onresult = (event: any) => {
+        recognitionRef.current.onresult = (event: { resultIndex: number; results: Array<Array<{ transcript: string }>> }) => {
           let currentTranscript = "";
           for (let i = event.resultIndex; i < event.results.length; ++i) {
             currentTranscript += event.results[i][0].transcript;
@@ -43,8 +44,8 @@ export default function CopilotPage() {
           }, 3000); // Analyze after 3 seconds of pause
         };
 
-        recognitionRef.current.onerror = (event: any) => {
-          console.error("Speech recognition error", event.error);
+        recognitionRef.current.onerror = (event: { error: string }) => {
+          logger.error("Speech recognition error", event.error);
           setIsListening(false);
         };
       }

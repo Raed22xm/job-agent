@@ -1,6 +1,7 @@
 import { getProvider } from "@/lib/ai/provider";
 import { streamText } from "ai";
 import { NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 import { getPersona } from "@/lib/personaManager";
 
 export async function POST(req: NextRequest) {
@@ -46,8 +47,9 @@ Begin the debate now. Let them argue a bit about the strengths and weaknesses. E
     });
 
     return result.toTextStreamResponse();
-  } catch (error: any) {
-    console.error("Boardroom AI Error:", error);
-    return new Response(error.message, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Boardroom AI error";
+    logger.error("Boardroom AI Error:", message);
+    return new Response(message, { status: 500 });
   }
 }

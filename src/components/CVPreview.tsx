@@ -143,8 +143,8 @@ export default function CVPreview({
           {certifications && certifications.length > 0 && (
             <Section title={labels.certifications}>
               <ul className="mt-1 list-disc space-y-0 pl-[1.1em] text-[10pt] leading-snug text-[#111111]">
-                {certifications.map((cert) => (
-                  <li key={cert}>{cert}</li>
+                {certifications.map((cert, index) => (
+                  <li key={`${cert}-${index}`}>{cert}</li>
                 ))}
               </ul>
             </Section>
@@ -166,8 +166,8 @@ export default function CVPreview({
             ATS Notes
           </p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-foreground-secondary">
-            {cv.atsNotes.map((note) => (
-              <li key={note}>{note}</li>
+            {cv.atsNotes.map((note, index) => (
+              <li key={`${note}-${index}`}>{note}</li>
             ))}
           </ul>
         </div>

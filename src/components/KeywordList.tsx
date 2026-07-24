@@ -34,9 +34,9 @@ export default function KeywordList({
         <p className="mt-4 text-sm text-foreground-secondary">{emptyMessage}</p>
       ) : (
         <ul className="mt-4 flex flex-wrap gap-2">
-          {keywords.map((keyword) => (
+          {keywords.map((keyword, index) => (
             <li
-              key={keyword}
+              key={`${keyword}-${index}`}
               className={`rounded-full border px-3 py-1 text-xs font-medium ${badgeStyles}`}
             >
               {keyword}

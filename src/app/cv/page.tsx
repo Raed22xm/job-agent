@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { logger } from "@/lib/logger";
 import LanguageToggle from "@/components/LanguageToggle";
 import ATSKeywordCoverage from "@/components/ATSKeywordCoverage";
 import CVEditor from "@/components/CVEditor";
@@ -190,7 +191,7 @@ export default function CVGeneratorPage() {
       
       updateGeneratedCV(newCV);
     } catch (err) {
-      console.error("Failed to apply feedback fix:", err);
+      logger.error("Failed to apply feedback fix:", err);
       alert(err instanceof Error ? err.message : "Failed to apply feedback fix");
     } finally {
       setIsApplyingFix(false);

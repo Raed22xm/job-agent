@@ -14,9 +14,9 @@ function TagList({ items, emptyLabel }: { items: string[]; emptyLabel: string })
 
   return (
     <ul className="flex flex-wrap gap-2">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <li
-          key={item}
+          key={`${item}-${index}`}
           className="rounded-full border border-border bg-background-secondary px-3 py-1 text-xs font-medium text-foreground-secondary"
         >
           {item}
@@ -33,8 +33,8 @@ function BulletList({ items, emptyLabel }: { items: string[]; emptyLabel: string
 
   return (
     <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item} className="flex gap-2 text-sm leading-relaxed text-foreground-secondary">
+      {items.map((item, index) => (
+        <li key={`${item}-${index}`} className="flex gap-2 text-sm leading-relaxed text-foreground-secondary">
           <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
           <span>{item}</span>
         </li>

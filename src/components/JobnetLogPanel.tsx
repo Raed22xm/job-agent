@@ -79,9 +79,9 @@ function FieldRow({
         </dt>
         {field.fieldType === "radio" && field.options ? (
           <dd className="mt-1 flex flex-wrap gap-2">
-            {field.options.map((option) => (
+            {field.options.map((option, index) => (
               <span
-                key={option}
+                key={`${option}-${index}`}
                 className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                   option === field.value
                     ? "bg-success/15 text-emerald-800 ring-1 ring-emerald-300"
@@ -222,8 +222,8 @@ export default function JobnetLogPanel({
         >
           <p className="font-semibold">Mangler — udfyld manuelt på Jobnet:</p>
           <ul className="mt-1 list-inside list-disc">
-            {entry.missingRequired.map((label) => (
-              <li key={label}>{label}</li>
+            {entry.missingRequired.map((label, index) => (
+              <li key={`${label}-${index}`}>{label}</li>
             ))}
           </ul>
         </div>

@@ -28,8 +28,8 @@ export default function NegotiationPanel({ jobDescription, matchScore }: Negotia
       if (!res.ok) throw new Error("Failed to predict salary");
       const data = await res.json();
       setResult(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error predicting salary");
     } finally {
       setIsLoading(false);
     }

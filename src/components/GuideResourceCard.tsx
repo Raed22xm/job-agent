@@ -44,16 +44,16 @@ export default function GuideResourceCard({ resource }: GuideResourceCardProps) 
 
       {resource.steps && resource.steps.length > 0 && (
         <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm text-foreground-secondary">
-          {resource.steps.map((step) => (
-            <li key={step}>{step}</li>
+          {resource.steps.map((step, index) => (
+            <li key={`${step}-${index}`}>{step}</li>
           ))}
         </ol>
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {resource.tags.slice(0, 4).map((tag) => (
+        {resource.tags.slice(0, 4).map((tag, index) => (
           <span
-            key={tag}
+            key={`${tag}-${index}`}
             className="rounded-md bg-background-secondary px-2 py-0.5 text-xs text-foreground-secondary"
           >
             {tag}

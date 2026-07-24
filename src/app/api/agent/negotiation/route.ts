@@ -2,6 +2,7 @@ import { getProvider } from "@/lib/ai/provider";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 import { getPersona } from "@/lib/personaManager";
 import { SYSTEM_TRUTHFULNESS } from "@/lib/ai/prompts";
 
@@ -48,8 +49,9 @@ Based on the Danish market rates for this role, and the candidate's exact experi
     });
 
     return NextResponse.json(object);
-  } catch (error: any) {
-    console.error("Negotiation AI Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Negotiation AI error";
+    logger.error("Negotiation AI Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

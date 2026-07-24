@@ -30,8 +30,8 @@ export default function InterviewPrepModal({ application, onClose }: InterviewPr
         if (!res.ok) throw new Error("Failed to generate prep guide");
         const data = await res.json();
         setPrep(data.prep);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong.");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
       } finally {
         setLoading(false);
       }

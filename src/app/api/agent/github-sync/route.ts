@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,8 +60,9 @@ ${recentCommits.join("\n")}
       message: `Successfully synced ${recentCommits.length} recent commits to RAG knowledge base.`,
       commits: recentCommits
     });
-  } catch (err: any) {
-    console.error("GitHub Sync Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "GitHub Sync failed";
+    logger.error("GitHub Sync Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

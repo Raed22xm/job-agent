@@ -3,10 +3,22 @@
 import { useState } from "react";
 import AppShell from "@/components/AppShell";
 
+interface NetworkProfile {
+  name: string;
+  title: string;
+  url?: string;
+}
+
+interface NetworkSearchResult {
+  company: string;
+  profiles: NetworkProfile[];
+  suggestedScript?: string;
+}
+
 export default function NetworkPage() {
   const [company, setCompany] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<NetworkSearchResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async () => {
@@ -26,8 +38,8 @@ export default function NetworkPage() {
       if (!res.ok) throw new Error(data.error || "Failed to search network");
       
       setResult(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error searching network");
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +97,7 @@ export default function NetworkPage() {
                 Found Connections at {result.company}
               </h2>
               <div className="space-y-4">
-                {result.profiles.map((profile: any, i: number) => (
+                {result.profiles.map((profile: NetworkProfile, i: number) => (
                   <div key={i} className="p-3 bg-background-secondary rounded-lg border border-border">
                     <h3 className="font-bold text-foreground text-sm">{profile.name}</h3>
                     <p className="text-xs text-foreground-secondary mt-1">{profile.title}</p>

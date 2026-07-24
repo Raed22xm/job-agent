@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
+import { logger } from "@/lib/logger";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { getProvider } from "@/lib/ai/provider";
@@ -70,8 +71,9 @@ asking ${profiles[0].name} (${profiles[0].title} at ${company}) for a quick coff
       profiles,
       suggestedScript: script,
     });
-  } catch (err: any) {
-    console.error("LinkedIn Subagent Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "LinkedIn network error";
+    logger.error("LinkedIn Subagent Error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

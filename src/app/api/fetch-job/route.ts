@@ -1,21 +1,29 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { scrapeJobUrl, JobScrapeError } from "@/lib/job/scrapers";
 import { saveJobToFile } from "@/lib/job/saveJobFile";
 
+const FetchJobRequestSchema = z.object({
+  url: z.string().url("Must be a valid URL string"),
+  save: z.boolean().optional(),
+});
+
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
-      url?: string;
-      save?: boolean;
-    };
+    const rawBody = (await request.json().catch(() => ({}))) as unknown;
+    const parseResult = FetchJobRequestSchema.safeParse(rawBody);
 
-    const url = body.url?.trim();
-    if (!url) {
-      return NextResponse.json({ error: "url is required" }, { status: 400 });
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { error: "Invalid URL or request payload", details: parseResult.error.flatten() },
+        { status: 400 }
+      );
     }
 
+    const { url, save } = parseResult.data;
+
     const scraped = await scrapeJobUrl(url);
-    const shouldSave = body.save !== false;
+    const shouldSave = save !== false;
     const savedPath = shouldSave ? await saveJobToFile(scraped) : undefined;
 
     return NextResponse.json({

@@ -27,6 +27,7 @@ const navItems = [
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
@@ -57,17 +58,32 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                 Tailor applications from verified CV data — human approval required.
               </p>
             </div>
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-xl p-2.5 transition-all duration-200 hover:bg-surface-hover"
-              style={{ border: "1px solid var(--surface-border)" }}
-              aria-label="Toggle Dark Mode"
-            >
-              {mounted ? (theme === "dark" ? "☀️" : "🌙") : "🌙"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="rounded-xl p-2.5 transition-all duration-200 hover:bg-surface-hover"
+                style={{ border: "1px solid var(--surface-border)" }}
+                aria-label="Toggle Dark Mode"
+              >
+                {mounted ? (theme === "dark" ? "☀️" : "🌙") : "🌙"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="rounded-xl p-2.5 sm:hidden transition-all duration-200 hover:bg-surface-hover"
+                style={{ border: "1px solid var(--surface-border)" }}
+                aria-label="Toggle Navigation Menu"
+              >
+                {mobileMenuOpen ? "✕" : "☰"}
+              </button>
+            </div>
           </div>
-          <nav className="flex flex-wrap gap-1.5">
-            {navItems.map((item) => {
+          <nav
+            className={`${
+              mobileMenuOpen ? "flex" : "hidden"
+            } sm:flex flex-wrap gap-1.5 transition-all duration-200`}
+          >
+            {navItems.map((item, index) => {
               const isActive =
                 mounted &&
                 (item.href === "/"
@@ -76,8 +92,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
               return (
                 <Link
-                  key={item.href}
+                  key={`${item.href}-${index}`}
                   href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
                   className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? "bg-primary/15 text-primary"

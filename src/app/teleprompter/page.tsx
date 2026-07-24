@@ -30,8 +30,8 @@ export default function TeleprompterPage() {
       if (!res.ok) throw new Error(data.error || "Failed to generate script");
       
       setScript(data.videoScript);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to generate script");
     } finally {
       setIsLoading(false);
     }
