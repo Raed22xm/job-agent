@@ -2,7 +2,7 @@
 
 A local-first job application assistant built with Next.js, TypeScript, and Tailwind CSS.
 
-Job Agent helps you analyze job postings, compare them against your master CV, generate ATS-friendly tailored documents, and track applications — with **human approval required** before anything is sent. No auto-apply functionality is included.
+Job Agent helps you analyze job postings, compare them against your master CV, generate ATS-friendly tailored documents, and track applications — with **human approval required** before anything is sent. An optional form assistant can open an application in a visible browser and fill basic contact fields, but it never submits the application.
 
 ## Features (v0.4)
 
@@ -15,14 +15,16 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 - **CV Generator** — Editable, ATS-friendly CV preview using verified data only
 - **Cover Letter** — Editable tailored draft for human review
 - **Application Tracker** — Save jobs with match score, status, dates, notes, recruiter contact, CV version, cover letter status; export/import JSON backup
+- **Application Form Assistant** — Open a tracked job in a visible browser and fill basic contact fields for manual review and submission
 - **Export** — DOCX and visual PDF export for CV and cover letter (DOCX recommended for ATS)
 
 ## Important rules
 
 - Does **not** invent experience, education, companies, numbers, or skills
 - Uses only verified data from `data/cv/` and `data/master-cv.json`
-- **No auto-apply** — review all outputs before submitting applications
+- **No automated submission** — the optional form assistant only fills basic fields; review the entire application and click Submit yourself
 - OpenAI runs **server-side only** when `OPENAI_API_KEY` is set; local heuristics always available as fallback
+- Browser-launching and email-sending agent actions fail closed in production unless `JOB_AGENT_ENABLE_SENSITIVE_ACTIONS=true` is explicitly configured
 
 ## Tech stack
 
@@ -42,6 +44,8 @@ Job Agent helps you analyze job postings, compare them against your master CV, g
 | `POST /api/validate-cv` | Validate edited CV content against server-side master CV |
 | `POST /api/gap-suggestions` | Generate verified gap-handling suggestions |
 | `POST /api/generate-linkedin-message` | Generate LinkedIn outreach draft from verified CV data |
+| `POST /api/agent/auto-apply` | Open a visible browser and fill basic application fields; never submits |
+| `POST /api/agent/send-email` | Send a user-reviewed outreach email through configured SMTP |
 | `POST /api/save-application-outputs` | Write CV/cover letter markdown |
 | `GET/POST/PUT /api/applications` | Tracker CRUD + JSON import |
 | `PATCH/DELETE /api/applications/[id]` | Update or delete one application |
@@ -115,6 +119,7 @@ Open [http://localhost:3000](http://localhost:3000). If port 3000 is occupied, u
 | `npm test` | Run Vitest unit tests (134 tests) |
 | `npm run typecheck` | TypeScript check without emit |
 | `npm run check` | Lint, test, typecheck, and build |
+| `npm run check:full` | Run `check`, then the Playwright end-to-end suite |
 | `npm run mcp:start` | Start the local MCP-style automation bridge |
 | `npm run browser:check` | Verify the local app responds in a browser check |
 | `npm run test:e2e` | Run Playwright end-to-end tests |
@@ -147,7 +152,7 @@ This starts filesystem + Playwright bridge workers. For GitHub MCP, set `GITHUB_
 - [x] Tracker JSON export/import backup
 - [x] Server-side tracker persistence (`data/applications.sqlite`)
 - [x] Server-side analysis session (`data/session/`)
-- [ ] Playwright E2E tests
+- [x] Playwright E2E tests
 
 ## License
 

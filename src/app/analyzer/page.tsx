@@ -11,6 +11,7 @@ import KeywordList from "@/components/KeywordList";
 import MatchScoreCard from "@/components/MatchScoreCard";
 import NegotiationPanel from "@/components/NegotiationPanel";
 import { useJobAgent } from "@/context/JobAgentContext";
+import { shouldAutoAnalyzeJob } from "@/lib/analyzerAutoAnalysis";
 
 export default function AnalyzerPage() {
   const {
@@ -18,6 +19,8 @@ export default function AnalyzerPage() {
     jobDescription,
     parsedJob,
     matchResult,
+    generatedCV,
+    generatedCoverLetter,
     analysisMode,
     setJobUrl,
     setJobDescription,
@@ -96,7 +99,12 @@ export default function AnalyzerPage() {
 
   // Local-only auto-analyze — no AI token burn while typing
   useEffect(() => {
-    if (!jobDescription.trim()) {
+    const completeParsedJob =
+      parsedJob && matchResult && generatedCV && generatedCoverLetter
+        ? parsedJob
+        : null;
+
+    if (!shouldAutoAnalyzeJob(jobDescription, completeParsedJob)) {
       setIsAutoAnalyzing(false);
       return;
     }
@@ -109,21 +117,19 @@ export default function AnalyzerPage() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [jobDescription]);
+  }, [
+    jobDescription,
+    parsedJob,
+    matchResult,
+    generatedCV,
+    generatedCoverLetter,
+  ]);
 
   const handleAnalyze = () => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     setIsAutoAnalyzing(false);
     runLocalAnalysis();
   };
-
-  const handlePaste = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setIsAutoAnalyzing(false);
-    debounceRef.current = setTimeout(() => {
-      runLocalAnalysis();
-    }, 50);
-  }, [runLocalAnalysis]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -185,7 +191,6 @@ export default function AnalyzerPage() {
           onAnalyze={handleAnalyze}
           onEnhanceWithAI={handleEnhanceWithAI}
           onImportUrl={handleImportUrl}
-          onPaste={handlePaste}
           isLoading={isLoading}
           isEnhancing={isEnhancing}
           isImporting={isImporting}

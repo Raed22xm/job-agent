@@ -1,11 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
 import { logger } from "@/lib/logger";
+import {
+  isSensitiveActionEnabled,
+  ScrapeRequestSchema,
+  sensitiveActionDisabledMessage,
+} from "@/lib/server/sensitiveActions";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { query = "frontend", limit = 10 } = body;
+    if (!isSensitiveActionEnabled()) {
+      return NextResponse.json(
+        { error: sensitiveActionDisabledMessage() },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json().catch(() => null);
+    const validation = ScrapeRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid scrape request", issues: validation.error.issues },
+        { status: 400 }
+      );
+    }
+    const { query, limit } = validation.data;
 
     // Launch headless browser for scraping
     const browser = await chromium.launch({ headless: true });

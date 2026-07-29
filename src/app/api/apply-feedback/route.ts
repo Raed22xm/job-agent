@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateObject } from "ai";
 import { getProvider } from "@/lib/ai/provider";
-import { applyFeedbackPrompt, SYSTEM_TRUTHFULNESS } from "@/lib/ai/prompts";
+import {
+  applyFeedbackPrompt,
+  HUMAN_WRITING_STANDARD,
+  SYSTEM_TRUTHFULNESS,
+} from "@/lib/ai/prompts";
 import { AppliedFeedbackSchema } from "@/lib/ai/schemas";
 import { getAIConfig, resolveOpenAIModel } from "@/lib/ai/providers";
 
@@ -53,7 +57,9 @@ export async function POST(request: Request) {
     const { object } = await generateObject({
       model,
       schema: AppliedFeedbackSchema,
-      system: SYSTEM_TRUTHFULNESS,
+      system: `${SYSTEM_TRUTHFULNESS}
+
+${HUMAN_WRITING_STANDARD}`,
       prompt,
     });
 

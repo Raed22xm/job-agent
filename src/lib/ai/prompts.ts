@@ -6,6 +6,15 @@
 
 export const SYSTEM_TRUTHFULNESS = `You are a job application assistant. You must NEVER invent skills, companies, education, certifications, metrics, or experience. Only use facts from the provided master CV JSON. If a job requirement is not supported by the CV, mark it as a gap — do not fabricate.`;
 
+export const HUMAN_WRITING_STANDARD = `Write like a thoughtful professional, not a template:
+- Keep the tone warm, confident, specific, and natural without becoming casual or over-enthusiastic.
+- Vary sentence length and openings. Prefer clear, direct language and smooth transitions.
+- Avoid generic AI phrasing, clichés, buzzword piles, inflated adjectives, rhetorical questions, metaphors, and repeated claims.
+- Never invent anecdotes, hypothetical scenarios, motivations, emotions, company research, achievements, metrics, skills, or personal details. Do not imply familiarity with the company beyond the supplied job posting.
+- Preserve relevant ATS terms and mirror the job posting's language only when those terms are supported by verified CV facts.
+- Use concrete verified evidence where available. If evidence is unavailable, stay concise rather than filling the gap.
+- Match the source language and sound culturally natural in that language.`;
+
 export function jobAnalysisPrompt(jobText: string): string {
   return `Extract structured job posting data from the text below. Return only fields you can verify from the text. Do not invent requirements or skills not mentioned.
 
@@ -24,6 +33,9 @@ export function cvTailoringPrompt(
 
 Tailor the CV for this job using ONLY verified master CV data. Reorder skills to prioritize: ${matchedKeywords.join(", ") || "relevant overlaps"}. Do not add new skills, companies, or metrics.
 
+Writing standard:
+${HUMAN_WRITING_STANDARD}
+
 Master CV:
 ${masterCVJson}
 
@@ -37,7 +49,10 @@ export function coverLetterPrompt(
 ): string {
   return `${SYSTEM_TRUTHFULNESS}
 
-Write a concise cover letter (3 paragraphs) in the same language as the job posting. Reference only verified experience from the master CV.
+Write a concise cover letter (3 paragraphs) in the same language as the job posting. Reference only verified experience from the master CV. Connect the candidate's verified experience to the role with genuine professional interest, but never invent a personal story, motivation, or knowledge of the company.
+
+Writing standard:
+${HUMAN_WRITING_STANDARD}
 
 Master CV:
 ${masterCVJson}
@@ -71,6 +86,9 @@ export function applyFeedbackPrompt(
 
 You are an expert CV editor. You need to apply a specific feedback fix to the provided CV based on the job requirements.
 Only return the updated section requested (summary, skills, or experience). Do NOT alter other sections.
+
+Writing standard:
+${HUMAN_WRITING_STANDARD}
 
 Feedback Section: ${feedbackSection}
 Feedback Issue: ${feedbackMessage}

@@ -4,6 +4,11 @@ import { logger } from "@/lib/logger";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { getProvider } from "@/lib/ai/provider";
+import {
+  isSensitiveActionEnabled,
+  LinkedInNetworkRequestSchema,
+  sensitiveActionDisabledMessage,
+} from "@/lib/server/sensitiveActions";
 
 const NetworkOutreachSchema = z.object({
   coffeeChatScript: z.string().describe("A professional, casual LinkedIn connection request or InMail asking for a coffee chat regarding the target company."),
@@ -11,8 +16,25 @@ const NetworkOutreachSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { company = "Google" } = body;
+    if (!isSensitiveActionEnabled()) {
+      return NextResponse.json(
+        { error: sensitiveActionDisabledMessage() },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json().catch(() => null);
+    const validation = LinkedInNetworkRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          error: "Invalid LinkedIn network request",
+          issues: validation.error.issues,
+        },
+        { status: 400 }
+      );
+    }
+    const { company } = validation.data;
 
     // Launch visible browser so user can log in if needed
     const browser = await chromium.launch({ headless: false });

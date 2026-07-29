@@ -1,15 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
 import { logger } from "@/lib/logger";
+import {
+  isSensitiveActionEnabled,
+  JobnetLogRequestSchema,
+  sensitiveActionDisabledMessage,
+} from "@/lib/server/sensitiveActions";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { jobTitle, company, url, appliedDate } = body;
-
-    if (!jobTitle || !company) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!isSensitiveActionEnabled()) {
+      return NextResponse.json(
+        { error: sensitiveActionDisabledMessage() },
+        { status: 403 }
+      );
     }
+
+    const body = await req.json().catch(() => null);
+    const validation = JobnetLogRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid Jobnet log request", issues: validation.error.issues },
+        { status: 400 }
+      );
+    }
+    const { jobTitle, company } = validation.data;
 
     // Launch visible browser so user can log in via MitID if needed
     const browser = await chromium.launch({ headless: false });

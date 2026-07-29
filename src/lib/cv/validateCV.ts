@@ -87,12 +87,40 @@ export function validateGeneratedCV(
       const normB = normalizeTerm(bullet);
       
       // Clean function to handle minor AI tweaks: remove punctuation, normalize spaces
-      const clean = (s: string) => s.toLowerCase().replace(/[^\w\s]/g, "").replace(/s\b/g, "").replace(/\s+/g, " ").trim();
+      const clean = (s: string) =>
+        s
+          .toLowerCase()
+          .replace(/over\s+(\d+)/g, "$1+")
+          .replace(/more\s+than\s+(\d+)/g, "$1+")
+          .replace(/(\d+)\s*\+/g, "$1")
+          .replace(/[^\w\s]/g, "")
+          .replace(/\s+/g, " ")
+          .trim();
+          
       const cleanB = clean(normB);
 
-      const isMatch = verifiedBulletArr.some(vb => {
+      const getTokens = (s: string) =>
+        new Set(clean(s).split(/\s+/).filter((w) => w.length > 2));
+      const tokensB = getTokens(bullet);
+
+      const isMatch = verifiedBulletArr.some((vb) => {
         const cleanVb = clean(vb);
-        return cleanVb === cleanB || cleanVb.includes(cleanB) || cleanB.includes(cleanVb);
+        if (
+          cleanVb === cleanB ||
+          cleanVb.includes(cleanB) ||
+          cleanB.includes(cleanVb)
+        ) {
+          return true;
+        }
+
+        const tokensVb = getTokens(vb);
+        if (tokensB.size === 0 || tokensVb.size === 0) return false;
+        let common = 0;
+        tokensB.forEach((t) => {
+          if (tokensVb.has(t)) common++;
+        });
+        const overlapRatio = common / Math.min(tokensB.size, tokensVb.size);
+        return overlapRatio >= 0.4;
       });
 
       if (!isMatch) {

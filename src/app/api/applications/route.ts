@@ -7,6 +7,8 @@ import {
 } from "@/lib/server/applicationsStore";
 import type { Application } from "@/types";
 
+const MAX_APPLICATION_IMPORT_COUNT = 1_000;
+
 export async function GET() {
   try {
     const applications = await readApplicationsFromDisk();
@@ -48,6 +50,15 @@ export async function PUT(request: Request) {
       return NextResponse.json(
         { error: "applications array is required" },
         { status: 400 }
+      );
+    }
+
+    if (body.applications.length > MAX_APPLICATION_IMPORT_COUNT) {
+      return NextResponse.json(
+        {
+          error: `Application backup exceeds the ${MAX_APPLICATION_IMPORT_COUNT}-item import limit`,
+        },
+        { status: 413 }
       );
     }
 

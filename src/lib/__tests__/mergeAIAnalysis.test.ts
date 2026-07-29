@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { AIJobEnhancement } from "@/lib/ai/analyzeJobWithAI";
 import {
+  mergeAIEnhancement,
   mergeGeneratedCV,
   mergeMatchResult,
   mergeParsedJob,
@@ -171,5 +172,50 @@ describe("AIJobEnhancement shape", () => {
     };
 
     expect(enhancement.parsedJob.title).toBe("Developer");
+  });
+
+  it("keeps master identity authoritative when merging AI prose", () => {
+    const jobText =
+      "Frontend Developer\nAcme · Copenhagen\n\nRequirements:\n- React and JavaScript";
+    const baseline = analyzeJobLocally(jobText, undefined, TEST_CV);
+    const enhancement: AIJobEnhancement = {
+      parsedJob: {
+        title: baseline.job.title,
+        company: baseline.job.company,
+        location: baseline.job.location,
+        responsibilities: baseline.job.responsibilities,
+        requirements: baseline.job.requirements,
+        tools: baseline.job.tools,
+        skills: baseline.job.skills,
+        atsKeywords: baseline.job.atsKeywords,
+      },
+      matchSummary: "Verified React experience aligns with this role.",
+      recommendedFocusAreas: ["Highlight verified React work"],
+      cvSummary: "Frontend developer with verified React experience.",
+      skillOrder: ["React", "JavaScript", "Unverified AI Skill"],
+      coverLetter: {
+        greeting: "Dear Hiring Manager,",
+        paragraphs: [
+          "My verified React experience is relevant to this opportunity.",
+        ],
+        closing: "Kind regards,",
+        signature: "Invented Candidate",
+      },
+    };
+
+    const merged = mergeAIEnhancement(
+      baseline,
+      enhancement,
+      TEST_CV,
+      jobText
+    );
+
+    expect(merged.generatedCoverLetter.signature).toBe(
+      TEST_CV.personalInfo.fullName
+    );
+    expect(merged.generatedCV.sections.header).toEqual(TEST_CV.personalInfo);
+    expect(merged.generatedCV.sections.skills).not.toContain(
+      "Unverified AI Skill"
+    );
   });
 });

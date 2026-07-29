@@ -9,11 +9,24 @@ import { getPersona } from "@/lib/personaManager";
 import { logger } from "@/lib/logger";
 
 const AnalyzeJobRequestSchema = z.object({
-  jobDescription: z.string().min(1, "jobDescription is required"),
-  sourceUrl: z.string().optional(),
+  jobDescription: z
+    .string()
+    .trim()
+    .min(40, "A full job description is required")
+    .max(100_000, "jobDescription is too large"),
+  sourceUrl: z
+    .string()
+    .trim()
+    .max(2_048, "sourceUrl is too long")
+    .url("sourceUrl must be a valid URL")
+    .refine(
+      (value) => ["http:", "https:"].includes(new URL(value).protocol),
+      "sourceUrl must use http or https"
+    )
+    .optional(),
   enhanceWithAI: z.boolean().optional(),
-  personaId: z.string().optional(),
-});
+  personaId: z.string().trim().min(1).max(64).optional(),
+}).strict();
 
 export async function POST(request: Request) {
   try {

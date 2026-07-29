@@ -7,6 +7,11 @@ Generate a one-column, ATS-friendly tailored CV for a specific job application.
 - Source data ONLY from `data/cv/` and `data/master-cv.json`.
 - Do NOT invent experience, education, companies, numbers, or skills.
 - Prioritize keywords from the job description that are truthfully supported by the CV.
+- Preserve relevant ATS terminology and mirror the posting's language where the verified CV supports it.
+- Write in a clear, natural professional voice. Vary sentence length and bullet openings while staying concise.
+- Prefer concrete verified evidence over generic claims.
+- Avoid clichés, generic AI phrases, buzzword piles, inflated adjectives, and repetitive sentence patterns.
+- Never invent anecdotes, hypothetical scenarios, motivations, emotions, company research, achievements, or metrics.
 - Keep formatting simple: plain headings, bullet points, no tables or columns.
 - Save output to `data/outputs/cvs/{company}-{role}-{date}.md`.
 

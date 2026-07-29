@@ -1,23 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { logger } from "@/lib/logger";
+import {
+  isSensitiveActionEnabled,
+  SendEmailRequestSchema,
+  sensitiveActionDisabledMessage,
+} from "@/lib/server/sensitiveActions";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { to, subject, text } = body;
-
-    if (!to || !subject || !text) {
-      return NextResponse.json({ error: "Missing to, subject, or text" }, { status: 400 });
+    if (!isSensitiveActionEnabled()) {
+      return NextResponse.json(
+        { error: sensitiveActionDisabledMessage() },
+        { status: 403 }
+      );
     }
+
+    const body = await req.json().catch(() => null);
+    const validation = SendEmailRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid email request", issues: validation.error.issues },
+        { status: 400 }
+      );
+    }
+    const { to, subject, text } = validation.data;
 
     const host = process.env.SMTP_HOST;
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
     if (!host || !user || !pass) {
-      return NextResponse.json({ 
-        error: "SMTP credentials not configured in .env (SMTP_HOST, SMTP_USER, SMTP_PASS)" 
+      return NextResponse.json({
+        error: "SMTP credentials not configured in .env (SMTP_HOST, SMTP_USER, SMTP_PASS)"
       }, { status: 501 });
     }
 

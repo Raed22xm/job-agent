@@ -33,5 +33,9 @@ export default defineConfig({
     url: "http://127.0.0.1:3100",
     reuseExistingServer: false,
     timeout: 120000,
+    env: {
+      ...process.env,
+      JOB_AGENT_SESSION_FILE: "test-results/current-analysis.json",
+    },
   },
 });

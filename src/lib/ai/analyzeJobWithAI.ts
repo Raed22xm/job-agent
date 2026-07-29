@@ -6,6 +6,7 @@ import { mergeAIEnhancement } from "@/lib/ai/mergeAIAnalysis";
 import {
   coverLetterPrompt,
   cvTailoringPrompt,
+  HUMAN_WRITING_STANDARD,
   jobAnalysisPrompt,
   missingSkillsPrompt,
   SYSTEM_TRUTHFULNESS,
@@ -72,9 +73,12 @@ Rules:
 - parsedJob: extract fields ONLY from the job posting text (use heuristic baseline as hint)
 - matchSummary: 2-3 sentences about fit using ONLY verified CV facts; mention gaps honestly
 - recommendedFocusAreas: 4-8 actionable bullets; never suggest adding unverified skills
-- cvSummary: tailored professional summary using ONLY verified CV facts; match job posting language (Danish if job is Danish)
+- cvSummary: a concise, natural tailored summary using ONLY verified CV facts; retain supported ATS keywords and match job posting language (Danish if job is Danish)
 - skillOrder: reorder ALL master CV skills by job relevance — same skills only, no additions or removals
-- coverLetter: concise 3-paragraph letter using ONLY verified experience; match job posting language
+- coverLetter: concise 3-paragraph letter using ONLY verified experience; sound warm and individually written; match job posting language
+
+Human writing standard:
+${HUMAN_WRITING_STANDARD}
 
 ${jobAnalysisPrompt(jobDescription)}
 
@@ -127,9 +131,9 @@ async function generateEnhancement(
     const { object } = await generateObject({
       model,
       schema: AIJobEnhancementSchema,
-      system: SYSTEM_TRUTHFULNESS,
+      system: `${SYSTEM_TRUTHFULNESS}\n\n${HUMAN_WRITING_STANDARD}`,
       prompt,
-      temperature: 0.1,
+      temperature: 0.3,
     });
     return object;
   } catch (error) {

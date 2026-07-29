@@ -8,7 +8,6 @@ interface JobInputProps {
   onAnalyze: () => void;
   onEnhanceWithAI?: () => void;
   onImportUrl?: () => void;
-  onPaste?: () => void;
   isLoading?: boolean;
   isEnhancing?: boolean;
   isImporting?: boolean;
@@ -27,7 +26,6 @@ export default function JobInput({
   onAnalyze,
   onEnhanceWithAI,
   onImportUrl,
-  onPaste,
   isLoading = false,
   isEnhancing = false,
   isImporting = false,
@@ -104,7 +102,6 @@ export default function JobInput({
           id="job-description"
           value={jobDescription}
           onChange={(e) => onJobDescriptionChange(e.target.value)}
-          onPaste={onPaste}
           rows={14}
           placeholder={`Example:\n\nSenior Full-Stack Developer\nAcme Corp · San Francisco, CA (Hybrid)\n\nRequirements:\n- 5+ years experience with TypeScript, React, and Node.js\n- Experience with PostgreSQL and Docker\n- Strong communication and Agile experience\n\nResponsibilities:\n- Build customer-facing web applications\n- Design REST APIs and collaborate with product teams`}
           className={`field-textarea resize-y ${

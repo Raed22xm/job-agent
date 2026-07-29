@@ -4,9 +4,17 @@ import { scrapeJobUrl, JobScrapeError } from "@/lib/job/scrapers";
 import { saveJobToFile } from "@/lib/job/saveJobFile";
 
 const FetchJobRequestSchema = z.object({
-  url: z.string().url("Must be a valid URL string"),
+  url: z
+    .string()
+    .trim()
+    .max(2_048, "URL is too long")
+    .url("Must be a valid URL string")
+    .refine(
+      (value) => ["http:", "https:"].includes(new URL(value).protocol),
+      "URL must use http or https"
+    ),
   save: z.boolean().optional(),
-});
+}).strict();
 
 export async function POST(request: Request) {
   try {

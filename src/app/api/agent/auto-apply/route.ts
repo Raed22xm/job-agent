@@ -2,15 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { chromium } from "playwright";
 import { logger } from "@/lib/logger";
 import { getPersona } from "@/lib/personaManager";
+import {
+  AutoApplyRequestSchema,
+  isSensitiveActionEnabled,
+  sensitiveActionDisabledMessage,
+} from "@/lib/server/sensitiveActions";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { applyUrl, personaId = "default" } = body;
-
-    if (!applyUrl) {
-      return NextResponse.json({ error: "applyUrl is required" }, { status: 400 });
+    if (!isSensitiveActionEnabled()) {
+      return NextResponse.json(
+        { error: sensitiveActionDisabledMessage() },
+        { status: 403 }
+      );
     }
+
+    const body = await req.json().catch(() => null);
+    const validation = AutoApplyRequestSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Invalid auto-apply request", issues: validation.error.issues },
+        { status: 400 }
+      );
+    }
+    const { applyUrl, personaId } = validation.data;
 
     const cv = getPersona(personaId);
     if (!cv) {
