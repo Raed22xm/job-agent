@@ -31,7 +31,27 @@ const STRONG_VERBS = new Set([
   "secured", "exceeded", "achieved", "generated", "saved", "cut",
   "analysed", "analyzed", "coordinated", "facilitated", "produced",
   "published", "resolved", "standardized", "upgraded", "wrote",
+  // --- Research-backed power verbs (Harvard + industry) ---
+  "orchestrated", "mobilized", "championed", "pioneered", "accelerated",
+  "amplified", "maximized", "capitalized", "engineered", "configured",
+  "instrumented", "containerized", "consolidated", "overhauled",
+  "eliminated", "doubled", "tripled", "halved", "revamped", "initiated",
+  "formalized", "modernized", "provisioned", "benchmarked", "diagnosed",
 ]);
+
+/** GPT-isms to flag with better replacements */
+const GPTISM_REPLACEMENTS: Record<string, string> = {
+  leveraged: "used, applied, or employed",
+  utilized: "used or applied",
+  utilised: "used or applied",
+  synergized: "collaborated or combined",
+  spearheaded: "led or initiated",
+  endeavored: "worked or aimed",
+  endeavoured: "worked or aimed",
+  effectuated: "completed or achieved",
+  liaised: "coordinated or communicated",
+  interfaced: "worked with or connected",
+};
 
 const VAGUE_SKILLS = new Set([
   "good communication", "communication skills", "team player",
@@ -212,6 +232,18 @@ export function analyseCVFeedback(cv: GeneratedCV): FeedbackItem[] {
           message: `Bullet under "${role.title}" has no metric.`,
           suggestion:
             "Add a number (%, team size, timeframe) to quantify impact where possible.",
+        });
+      }
+
+      // GPT-ism detection
+      const firstWord = bullet.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+      const replacement = GPTISM_REPLACEMENTS[firstWord];
+      if (replacement) {
+        items.push({
+          severity: "warning",
+          section: "experience",
+          message: `Bullet under "${role.title}" opens with "${firstWord}" — a common AI-generated word that recruiters flag.`,
+          suggestion: `Replace with a stronger, more specific verb: ${replacement}.`,
         });
       }
     }

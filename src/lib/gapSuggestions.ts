@@ -41,6 +41,40 @@ const TRANSFERABLE_HINTS: Record<string, string[]> = {
   "front-end": ["React", "Next.js", "CSS"],
   data: ["Power BI", "SQL", "Dataanalyse", "Excel"],
   sql: ["SQL", "MariaDB", "Power BI"],
+  // --- Research-backed additions ---
+  "ci/cd": ["Git", "GitHub Actions"],
+  cicd: ["Git", "GitHub Actions"],
+  terraform: ["Git", "REST API"],
+  graphql: ["REST API", "JavaScript"],
+  python: ["Java", "JavaScript"],
+  "machine learning": ["Dataanalyse", "SQL"],
+  ml: ["Dataanalyse", "SQL"],
+  microservices: ["REST API", "Java", "Spring Boot"],
+  "react native": ["React", "JavaScript", "CSS"],
+  vue: ["React", "JavaScript", "CSS"],
+  "vue.js": ["React", "JavaScript", "CSS"],
+  angular: ["React", "JavaScript"],
+  mongodb: ["SQL", "MariaDB"],
+  nosql: ["SQL", "MariaDB"],
+  redis: ["SQL"],
+  elasticsearch: ["SQL", "REST API"],
+  kafka: ["REST API"],
+  jenkins: ["Git"],
+  gitlab: ["Git", "GitHub Actions"],
+  devops: ["Git", "REST API"],
+  "cloud computing": ["REST API", "SQL"],
+  cloud: ["REST API", "SQL"],
+  webpack: ["JavaScript", "React", "Next.js"],
+  vite: ["JavaScript", "React", "Next.js"],
+  "tailwind css": ["CSS", "React"],
+  tailwindcss: ["CSS", "React"],
+  sass: ["CSS"],
+  scss: ["CSS"],
+  "spring boot": ["Java", "Spring Boot", "REST API"],
+  spring: ["Java", "Spring Boot"],
+  jira: ["Agile"],
+  confluence: ["Agile"],
+  figma: ["Figma"],
 };
 
 function verifiedTerms(cv: MasterCV): string[] {
@@ -100,15 +134,19 @@ export function buildGapSuggestions(
         missing,
         status: "gap",
         message:
-          "Not in your verified CV. Do not claim this skill — address honestly in your cover letter or skip.",
+          `Not in your verified CV. Do not claim this skill. In your cover letter, you can address it honestly: "While I have not worked directly with ${missing}, I am eager to build on my existing technical foundation to develop this competency."`,
       };
     }
+
+    const relatedList = related.slice(0, 3).join(", ");
+    const firstRelated = related[0] ?? "related technology";
+    const company = cv.experience[0]?.company ?? "my current role";
 
     return {
       missing,
       status: "transferable",
       relatedVerified: related,
-      message: `Not listed explicitly, but you can reference verified overlap: ${related.slice(0, 3).join(", ")}. Frame as transferable experience — do not claim direct expertise.`,
+      message: `Not listed explicitly, but you have verified overlap: ${relatedList}. In your cover letter, frame it as: "While I have not used ${missing} directly, my experience with ${firstRelated} at ${company} provides a strong foundation for quick adoption."`,
     };
   });
 }

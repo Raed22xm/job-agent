@@ -10,9 +10,12 @@ export const HUMAN_WRITING_STANDARD = `Write like a thoughtful professional, not
 - Keep the tone warm, confident, specific, and natural without becoming casual or over-enthusiastic.
 - Vary sentence length and openings. Prefer clear, direct language and smooth transitions.
 - Avoid generic AI phrasing, clichés, buzzword piles, inflated adjectives, rhetorical questions, metaphors, and repeated claims.
+- BANNED phrases (never use these): "leverage", "synergy", "I am confident that", "passionate about", "delighted to", "thrilled to", "I am excited to", "utilize", "utilise", "cutting-edge", "spearhead" (in cover letters — too cliché), "game-changer", "hit the ground running", "think outside the box", "dynamic environment", "results-driven individual", "I believe I would be a great fit".
 - Never invent anecdotes, hypothetical scenarios, motivations, emotions, company research, achievements, metrics, skills, or personal details. Do not imply familiarity with the company beyond the supplied job posting.
 - Preserve relevant ATS terms and mirror the job posting's language only when those terms are supported by verified CV facts.
 - Use concrete verified evidence where available. If evidence is unavailable, stay concise rather than filling the gap.
+- When describing achievements, prefer the STAR format: Situation/Task → Action → Result with a measurable outcome.
+- Start bullet points with strong action verbs: Led, Built, Designed, Delivered, Implemented, Reduced, Increased, Automated, Architected, Scaled.
 - Match the source language and sound culturally natural in that language.`;
 
 export function jobAnalysisPrompt(jobText: string): string {
@@ -49,7 +52,13 @@ export function coverLetterPrompt(
 ): string {
   return `${SYSTEM_TRUTHFULNESS}
 
-Write a concise cover letter (3 paragraphs) in the same language as the job posting. Reference only verified experience from the master CV. Connect the candidate's verified experience to the role with genuine professional interest, but never invent a personal story, motivation, or knowledge of the company.
+Write a concise cover letter (4 paragraphs) in the same language as the job posting. Reference only verified experience from the master CV. Connect the candidate's verified experience to the role with genuine professional interest, but never invent a personal story, motivation, or knowledge of the company.
+
+Paragraph structure:
+1. HOOK: Open with something specific about the role from the job posting — a responsibility, technology, or mission detail that genuinely connects to verified CV experience. NEVER open with "I am writing to apply for…" or "I am excited to apply…" — these are generic and get filtered.
+2. STRONGEST MATCH: Describe verified experience using the STAR method (Situation → Action → Result). Include a quantified achievement from the CV. Use the job posting's own terminology where the CV supports it.
+3. UNIQUE VALUE: Highlight what this candidate brings that others might not — transferable skills, unique project experience, or cross-domain knowledge. If there is a gap, address it honestly and frame related experience as a strength.
+4. CLOSING: Clear, professional call to action. Mention interest in discussing the role further. Keep it to 2-3 sentences maximum.
 
 Writing standard:
 ${HUMAN_WRITING_STANDARD}

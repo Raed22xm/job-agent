@@ -1,4 +1,5 @@
 import type { CvLanguage } from "@/lib/cvLanguage";
+import { buildGapSuggestions } from "@/lib/gapSuggestions";
 import type {
   Experience,
   GeneratedCoverLetter,
@@ -134,6 +135,24 @@ function bestBullets(
     .filter(Boolean);
 }
 
+/** Pick the best bullet that contains a number (quantified achievement). */
+function bestQuantifiedBullet(
+  experience: Experience,
+  job: ParsedJob
+): string | undefined {
+  const keywords = jobKeywords(job);
+
+  return experience.bullets
+    .filter((b) => /\d/.test(b))
+    .map((bullet, index) => ({
+      bullet,
+      index,
+      score: relevanceScore(bullet, keywords),
+    }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(({ bullet }) => bullet)[0];
+}
+
 function joinTerms(terms: string[], language: CvLanguage): string {
   if (terms.length <= 1) return terms[0] ?? "";
 
@@ -173,6 +192,55 @@ function roleEvidence(
   return `${opening}. I ${first}.${second ? ` I also ${second}.` : ""}`;
 }
 
+function uniqueValueParagraph(
+  cv: MasterCV,
+  job: ParsedJob,
+  relevantRole: Experience | undefined,
+  language: CvLanguage
+): string {
+  // Look for transferable skills from gap analysis
+  const missingTerms = [...job.skills, ...job.tools]
+    .filter((term) => {
+      const target = normalize(
+        [...cv.skills, ...cv.tools].join(" ")
+      );
+      return !target.includes(normalize(term));
+    })
+    .slice(0, 3);
+
+  const gaps = buildGapSuggestions(missingTerms, cv);
+  const transferable = gaps.filter((g) => g.status === "transferable");
+
+  // Cross-domain experience: if user has both frontend and backend, or tech and business
+  const hasFullStack =
+    cv.skills.some((s) => /react|next|css|front/i.test(s)) &&
+    cv.skills.some((s) => /java|spring|sql|backend|api/i.test(s));
+
+  if (language === "danish") {
+    if (transferable.length > 0) {
+      const t = transferable[0];
+      return `Ud over mine kernekompetencer har jeg erfaring med ${t.relatedVerified?.slice(0, 2).join(" og ") ?? "relaterede teknologier"}, som giver et solidt fundament for hurtigt at arbejde med ${t.missing}. ${hasFullStack ? "Min erfaring på tværs af frontend og backend giver mig et helhedsperspektiv, der styrker samarbejdet med både designere og driftsteams." : ""}`;
+    }
+    if (hasFullStack) {
+      return "Min tværgående erfaring med både frontend og backend giver mig et helhedsperspektiv, der styrker samarbejdet med hele teamet — fra UX-design til drift.";
+    }
+    return relevantRole
+      ? `Den erfaring, jeg har opbygget som ${relevantRole.title} hos ${relevantRole.company}, giver mig et unikt perspektiv, som jeg vil bringe med ind i rollen.`
+      : "Min kombination af teknisk baggrund og forretningsforståelse giver mig et unikt perspektiv på denne rolle.";
+  }
+
+  if (transferable.length > 0) {
+    const t = transferable[0];
+    return `Beyond my core skills, my experience with ${t.relatedVerified?.slice(0, 2).join(" and ") ?? "related technologies"} provides a solid foundation for working with ${t.missing}. ${hasFullStack ? "Working across the full stack gives me a holistic perspective that strengthens collaboration with both design and operations teams." : ""}`;
+  }
+  if (hasFullStack) {
+    return "Working across both frontend and backend gives me a holistic perspective that strengthens collaboration with the entire team — from UX design to operations.";
+  }
+  return relevantRole
+    ? `The experience I built as ${relevantRole.title} at ${relevantRole.company} gives me a unique perspective that I would bring to this role.`
+    : "My combination of technical background and business understanding gives me a unique perspective on this role.";
+}
+
 export function generateCoverLetter(
   cv: MasterCV,
   job: ParsedJob,
@@ -181,6 +249,9 @@ export function generateCoverLetter(
   const relevantRole = bestExperience(cv, job);
   const relevantTerms = matchedCvTerms(cv, job).slice(0, 4);
   const jobFocus = job.responsibilities.find((item) => item.trim().length > 0);
+  const quantifiedBullet = relevantRole
+    ? bestQuantifiedBullet(relevantRole, job)
+    : undefined;
 
   if (language === "danish") {
     const company = displayValue(job.company, "jeres organisation");
@@ -202,8 +273,12 @@ export function generateCoverLetter(
 
     const paragraphs = [
       [focusSentence, termsSentence].filter(Boolean).join(" "),
-      roleEvidence(relevantRole, job, language),
-      `Den erfaring vil jeg gerne bringe med ind i ${companyReference}. Jeg vil sætte pris på muligheden for at høre mere om jeres behov i rollen og fortælle, hvordan jeg kan bidrage.`,
+      roleEvidence(relevantRole, job, language) +
+        (quantifiedBullet
+          ? ` Konkret ${asFirstPersonClause(quantifiedBullet, language)}.`
+          : ""),
+      uniqueValueParagraph(cv, job, relevantRole, language),
+      `Jeg vil sætte pris på muligheden for at høre mere om ${companyReference}s behov i rollen og fortælle, hvordan jeg kan bidrage. Jeg er tilgængelig for en samtale, når det passer jer.`,
     ];
 
     return {
@@ -236,8 +311,12 @@ export function generateCoverLetter(
 
   const paragraphs = [
     [focusSentence, termsSentence].filter(Boolean).join(" "),
-    roleEvidence(relevantRole, job, language),
-    `I would value the opportunity to bring that experience to ${companyReference} and learn more about what your team needs from this role. Thank you for considering my application.`,
+    roleEvidence(relevantRole, job, language) +
+      (quantifiedBullet
+        ? ` Specifically, I ${asFirstPersonClause(quantifiedBullet, language)}.`
+        : ""),
+    uniqueValueParagraph(cv, job, relevantRole, language),
+    `I would welcome the opportunity to discuss how my experience can contribute to ${companyReference}. I am available for a conversation at your convenience. Thank you for considering my application.`,
   ];
 
   return {

@@ -99,3 +99,76 @@ export function filterApplicationsDueThisWeek(
       isOverdue(app.followUpDate, now)
   );
 }
+
+// ── Follow-up email automation ──────────────────────────────────────────────
+
+const FOLLOW_UP_DAYS = 7;
+
+export interface FollowUpDraft {
+  applicationId: string;
+  subject: string;
+  body: string;
+  daysSinceApplied: number;
+}
+
+/** Returns applications that were applied 7+ days ago without a follow-up date set. */
+export function getApplicationsNeedingFollowUp(
+  applications: Application[],
+  now = new Date()
+): Application[] {
+  const cutoff = new Date(now);
+  cutoff.setDate(cutoff.getDate() - FOLLOW_UP_DAYS);
+
+  return applications.filter((app) => {
+    if (app.status !== "applied") return false;
+    if (app.followUpDate) return false;
+    if (!app.appliedDate?.trim()) return false;
+
+    const applied = new Date(app.appliedDate);
+    if (Number.isNaN(applied.getTime())) return false;
+
+    return applied <= cutoff;
+  });
+}
+
+/** Generates a personalized follow-up email from verified application data. */
+export function generateFollowUpEmail(
+  app: Application,
+  candidateName: string,
+  topSkills: string[] = [],
+  portfolioUrl?: string,
+  now = new Date()
+): FollowUpDraft {
+  const daysSince = app.appliedDate
+    ? Math.floor(
+        (now.getTime() - new Date(app.appliedDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : FOLLOW_UP_DAYS;
+
+  const company = app.company || "your company";
+  const jobTitle = app.jobTitle || "the role";
+  const skillMention =
+    topSkills.length > 0
+      ? topSkills.slice(0, 3).join(", ")
+      : "my technical background";
+
+  const subject = `Following up: ${jobTitle} application – ${candidateName}`;
+
+  const body = `Hi,
+
+I hope you are having a great week.
+
+I am reaching out to reaffirm my interest in the ${jobTitle} role${company !== "your company" ? ` at ${company}` : ""} that I applied for${app.appliedDate ? ` on ${app.appliedDate}` : " recently"}.
+
+My experience with ${skillMention} aligns well with the requirements outlined in the posting, and I remain enthusiastic about the opportunity to contribute to your team.
+
+Please let me know if there is any additional information or work samples I can provide to assist in your review process.${portfolioUrl ? `\n\nPortfolio: ${portfolioUrl}` : ""}
+
+Thank you for your time and consideration.
+
+Best regards,
+${candidateName}`;
+
+  return { applicationId: app.id, subject, body, daysSinceApplied: daysSince };
+}

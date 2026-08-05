@@ -1,0 +1,234 @@
+"use client";
+
+import { useState } from "react";
+
+const EXAMPLE_DRAFTS = [
+  {
+    title: "AI-style Cover Letter Bullet",
+    text: "Leveraged cutting-edge cloud technologies to seamlessly facilitate cross-functional collaboration and drive impactful synergies in a fast-paced environment.",
+    context: "cover-letter",
+  },
+  {
+    title: "Overused Buzzword CV Summary",
+    text: "Results-driven individual and thought leader with a holistic approach to building groundbreaking software. Thrilled to utilize my multifaceted skill set to hit the ground running.",
+    context: "cv",
+  },
+  {
+    title: "Robotic Cold Email",
+    text: "I am writing to express my interest in the Software Engineer position. In today's rapidly evolving digital landscape, it is worth noting that my experience will add immense value.",
+    context: "email",
+  },
+];
+
+export default function HumanizerPage() {
+  const [inputText, setInputText] = useState("");
+  const [context, setContext] = useState<"general" | "cv" | "cover-letter" | "email">("cover-letter");
+  const [voiceSample, setVoiceSample] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{
+    humanizedText: string;
+    changesMade: string[];
+    mode: "local" | "ai";
+    referenceTools: string[];
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleHumanize = async () => {
+    if (!inputText.trim()) return;
+    setLoading(true);
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/humanize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: inputText,
+          context,
+          voiceSample: voiceSample.trim() || undefined,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Humanize request failed");
+      const data = await res.json();
+      setResult(data);
+    } catch {
+      alert("Failed to humanize text.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!result?.humanizedText) return;
+    void navigator.clipboard.writeText(result.humanizedText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">✍️</span>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            AI Text Humanizer
+          </h1>
+          <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
+            5 Open-Source Engines
+          </span>
+        </div>
+        <p className="text-sm text-foreground-secondary leading-relaxed">
+          Strip robotic AI patterns, remove overused buzzwords (leverage, utilize, delve), fix sentence rhythm, and pass AI/recruiter filters using techniques from top open-source projects.
+        </p>
+      </div>
+
+      {/* Main Tool Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Input Column */}
+        <div className="glass-panel p-6 rounded-2xl space-y-4">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-foreground">
+              Input Text to Humanize
+            </label>
+            <select
+              value={context}
+              onChange={(e) => setContext(e.target.value as any)}
+              className="rounded-lg border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground outline-none focus:ring-2 ring-primary"
+            >
+              <option value="cover-letter">Cover Letter</option>
+              <option value="cv">CV Bullet / Summary</option>
+              <option value="email">Cold Email / Outreach</option>
+              <option value="general">General Copy</option>
+            </select>
+          </div>
+
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Paste your AI-generated text, CV bullet, or cover letter here..."
+            rows={8}
+            className="w-full rounded-xl border border-border bg-background p-4 text-sm text-foreground placeholder:text-foreground-tertiary focus:outline-none focus:ring-2 focus:ring-primary font-sans leading-relaxed"
+          />
+
+          <div>
+            <label className="text-xs font-medium text-foreground-secondary block mb-1">
+              Optional: Voice Calibration Sample (Your Writing Tone)
+            </label>
+            <input
+              type="text"
+              value={voiceSample}
+              onChange={(e) => setVoiceSample(e.target.value)}
+              placeholder="e.g. Concise, direct, technical, conversational..."
+              className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground placeholder:text-foreground-tertiary outline-none focus:ring-2 ring-primary"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap gap-1">
+              {EXAMPLE_DRAFTS.map((ex, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    setInputText(ex.text);
+                    setContext(ex.context as any);
+                  }}
+                  className="rounded-md bg-background-secondary border border-border px-2 py-1 text-[11px] font-medium text-foreground-secondary hover:text-foreground hover:bg-border transition-colors"
+                >
+                  Try Ex {i + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleHumanize}
+              disabled={loading || !inputText.trim()}
+              className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all shadow-md"
+            >
+              {loading ? "Humanizing…" : "✨ Humanize Text"}
+            </button>
+          </div>
+        </div>
+
+        {/* Output Column */}
+        <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-semibold text-foreground">
+                Humanized Output
+              </label>
+              {result && (
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="rounded-lg bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+                >
+                  {copied ? "✓ Copied!" : "📋 Copy Text"}
+                </button>
+              )}
+            </div>
+
+            {result ? (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-success/30 bg-success/5 p-4">
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-sans">
+                    {result.humanizedText}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wide text-foreground-secondary">
+                    Transformations Applied
+                  </p>
+                  <ul className="space-y-1">
+                    {result.changesMade.map((change, idx) => (
+                      <li key={idx} className="text-xs text-foreground-secondary flex items-center gap-1.5">
+                        <span className="text-success font-bold">✓</span> {change}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-xl">
+                <span className="text-3xl mb-2 opacity-50">✨</span>
+                <p className="text-sm font-medium text-foreground-secondary">
+                  Humanized output will appear here
+                </p>
+                <p className="text-xs text-foreground-tertiary mt-1">
+                  Paste a draft on the left and click Humanize
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Engine Credits Badges */}
+          <div className="border-t border-border pt-4">
+            <p className="text-[11px] font-semibold text-foreground-tertiary uppercase tracking-wide mb-2">
+              Powered by Open-Source Engines
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "blader/humanizer",
+                "llmstrip",
+                "DadaNanjesha/AI-Text-Humanizer",
+                "lynote-ai/humanize-text",
+                "Firdavs-coder/ai_humanizer",
+              ].map((tool) => (
+                <span
+                  key={tool}
+                  className="rounded-full bg-background-secondary border border-border px-2.5 py-0.5 text-[10px] font-medium text-foreground-secondary"
+                >
+                  {tool}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

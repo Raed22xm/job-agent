@@ -20,6 +20,8 @@ const navItems = [
   { href: "/cover-letter", label: "Cover Letter" },
   { href: "/linkedin", label: "LinkedIn" },
   { href: "/tracker", label: "Application Tracker" },
+  { href: "/humanizer", label: "✍️ Text Humanizer" },
+  { href: "/tool-scout", label: "📡 Tools & MCPs" },
   { href: "/jobnet", label: "🇩🇰 Jobnet" },
   { href: "/geo-audit", label: "🗺️ Geo Audit" },
 ];
