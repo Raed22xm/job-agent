@@ -47,6 +47,18 @@ const BANNED_AI_PATTERNS: Array<[RegExp, string]> = [
   [/\bit is important to (remember|note|highlight) that\b/gi, ""],
   [/\bneedless to say,?\b/gi, ""],
   [/\bas a matter of fact,?\b/gi, "in fact,"],
+
+  // Anti-AI self-qualification phrases
+  [/\bverificeret erfaring\b/gi, "erfaring"],
+  [/\bverified experience\b/gi, "experience"],
+  [/\bverificeret kompetence(r)?\b/gi, "kompetence$1"],
+  [/\bmy verified\b/gi, "my"],
+  [/\bmin verificerede\b/gi, "min"],
+
+  // Meta-commentary about the application
+  [/\bMin motivation bygger på[^.]*\./gi, ""],
+  [/\bJeg skriver for at udtrykke[^.]*\./gi, ""],
+  [/\bI am writing to express[^.]*\./gi, ""],
 ];
 
 /**
@@ -102,10 +114,13 @@ export function humanizeTextLocally(text: string): string {
   // 4. Convert passive to active voice
   cleaned = convertPassiveToActive(cleaned);
 
-  // 5. Reduce excessive em-dashes (—) to commas or periods
+  // 5. Strip ALL-CAPS section headers (e.g. "MOTIVATION", "MIT BIDRAG")
+  cleaned = cleaned.replace(/^[A-ZÆØÅ][A-ZÆØÅ\s]{2,}$/gm, "");
+
+  // 6. Reduce excessive em-dashes (—) to commas or periods
   cleaned = cleaned.replace(/\s*—\s*/g, ", ");
 
-  // 6. Normalize double spaces and clean trailing whitespace
+  // 7. Normalize double spaces and clean trailing whitespace
   cleaned = cleaned
     .replace(/[ \t]+/g, " ")
     .replace(/\s+([.,;:?!])/g, "$1")

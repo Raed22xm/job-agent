@@ -101,5 +101,92 @@ describe("cvFeedback", () => {
       const items = analyseCVFeedback(mockCV);
       expect(Array.isArray(items)).toBe(true);
     });
+
+    it("detects filler phrases in summary and experience bullets", () => {
+      const cvWithFiller: GeneratedCV = {
+        ...mockCV,
+        sections: {
+          ...mockCV.sections,
+          summary: "Results-driven software developer passionate about building team player apps.",
+          experience: [
+            {
+              ...mockCV.sections.experience[0],
+              bullets: ["Hit the ground running with cutting-edge tech."],
+            },
+          ],
+        },
+      };
+
+      const items = analyseCVFeedback(cvWithFiller);
+      expect(items.some((i) => i.message.includes("results-driven"))).toBe(true);
+      expect(items.some((i) => i.message.includes("team player"))).toBe(true);
+      expect(items.some((i) => i.message.includes("passionate about"))).toBe(true);
+      expect(items.some((i) => i.message.includes("hit the ground running"))).toBe(true);
+    });
+
+    it("flags self-described verified experience claims", () => {
+      const cvWithVerifiedClaim: GeneratedCV = {
+        ...mockCV,
+        sections: {
+          ...mockCV.sections,
+          summary: "Software engineer showcasing my verified experience in full-stack web applications.",
+        },
+      };
+
+      const items = analyseCVFeedback(cvWithVerifiedClaim);
+      expect(items.some((i) => i.message.includes("verified experience"))).toBe(true);
+    });
+
+    it("detects repeated starting action verbs within the same role", () => {
+      const cvWithRepeatedVerbs: GeneratedCV = {
+        ...mockCV,
+        sections: {
+          ...mockCV.sections,
+          experience: [
+            {
+              ...mockCV.sections.experience[0],
+              bullets: [
+                "Built React frontend interface.",
+                "Built Node.js backend endpoints.",
+              ],
+            },
+          ],
+        },
+      };
+
+      const items = analyseCVFeedback(cvWithRepeatedVerbs);
+      expect(items.some((i) => i.message.includes('repeat the opening verb "built"'))).toBe(true);
+    });
+
+    it("flags bullets lacking specific details", () => {
+      const cvWithVagueBullet: GeneratedCV = {
+        ...mockCV,
+        sections: {
+          ...mockCV.sections,
+          experience: [
+            {
+              ...mockCV.sections.experience[0],
+              bullets: ["Assisted with general team tasks and meetings."],
+            },
+          ],
+        },
+      };
+
+      const items = analyseCVFeedback(cvWithVagueBullet);
+      expect(items.some((i) => i.message.includes("lacks concrete details"))).toBe(true);
+    });
+
+    it("flags quotation marks around text in summary or bullets", () => {
+      const cvWithQuotes: GeneratedCV = {
+        ...mockCV,
+        sections: {
+          ...mockCV.sections,
+          summary: 'Developer who “built scaling solutions for enterprise customers”.',
+        },
+      };
+
+      const items = analyseCVFeedback(cvWithQuotes);
+      expect(items.some((i) => i.message.includes("uses quotation marks"))).toBe(true);
+    });
   });
 });

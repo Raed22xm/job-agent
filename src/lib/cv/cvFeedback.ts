@@ -1,4 +1,5 @@
 import type { GeneratedCV } from "@/types";
+import { KNOWN_SKILLS, KNOWN_TOOLS } from "@/lib/jobDictionaries";
 
 export type FeedbackSeverity = "tip" | "warning" | "error";
 
@@ -19,6 +20,10 @@ const WEAK_OPENERS = [
   /^assisted (with|in)\b/i,
   /^worked on\b/i,
   /^was involved in\b/i,
+  /^participated in\b/i,
+  /^contributed to\b/i,
+  /^handled\b/i,
+  /^was in charge of\b/i,
 ];
 
 // Strong action verbs — if a bullet starts with one, it scores better
@@ -53,10 +58,68 @@ const GPTISM_REPLACEMENTS: Record<string, string> = {
   interfaced: "worked with or connected",
 };
 
+/** Generic filler phrases & AI clichés to scan across all text */
+const FILLER_PHRASES: Array<{ pattern: RegExp; phrase: string; suggestion: string }> = [
+  {
+    pattern: /\bresults[- ]driven\b/i,
+    phrase: "results-driven",
+    suggestion: "Remove generic cliché — let concrete numbers and outcomes show your results.",
+  },
+  {
+    pattern: /\bteam player\b/i,
+    phrase: "team player",
+    suggestion: "Replace with a concrete collaboration phrase (e.g., 'Collaborated with 4 cross-functional engineers...').",
+  },
+  {
+    pattern: /\bpassionate about\b/i,
+    phrase: "passionate about",
+    suggestion: "Focus on demonstrated achievements and skills rather than self-reported passion.",
+  },
+  {
+    pattern: /\bproven track record\b/i,
+    phrase: "proven track record",
+    suggestion: "Provide measurable metrics (%, numbers, timelines) instead of claiming a track record.",
+  },
+  {
+    pattern: /\bcutting[- ]edge\b/i,
+    phrase: "cutting-edge",
+    suggestion: "Specify the exact technologies and tools used.",
+  },
+  {
+    pattern: /\bhit the ground running\b/i,
+    phrase: "hit the ground running",
+    suggestion: "State your technical skills and domain experience directly without idioms.",
+  },
+  {
+    pattern: /\bthink outside the box\b/i,
+    phrase: "think outside the box",
+    suggestion: "Describe your problem-solving process or innovative technical approach specifically.",
+  },
+  {
+    pattern: /\bdynamic environment\b/i,
+    phrase: "dynamic environment",
+    suggestion: "Describe the specific team size, codebase scale, or fast-paced industry setting.",
+  },
+  {
+    pattern: /\b(my|our|min|vores)\s+(verified|verificerede?)\s+(experience|erfaring|background|baggrund)\b/i,
+    phrase: "verified experience",
+    suggestion: "State your experience factually without self-describing it as 'verified'.",
+  },
+];
+
 const VAGUE_SKILLS = new Set([
   "good communication", "communication skills", "team player",
   "hardworking", "fast learner", "motivated", "proactive",
   "problem solving", "critical thinking",
+]);
+
+// Known tech / tool names set for specificity detection
+const TECH_NAMES = new Set([
+  ...KNOWN_SKILLS.map((s) => s.toLowerCase()),
+  ...KNOWN_TOOLS.map((t) => t.toLowerCase()),
+  "react", "next.js", "typescript", "javascript", "node.js", "spring boot",
+  "power bi", "figma", "docker", "postgres", "postgresql", "sql", "java",
+  "python", "rest api", "tailwind", "zod", "git", "github", "kubernetes",
 ]);
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -67,6 +130,15 @@ function wordCount(text: string): number {
 
 function hasNumber(text: string): boolean {
   return /\d/.test(text);
+}
+
+function hasSpecificDetail(bullet: string): boolean {
+  if (hasNumber(bullet)) return true;
+  const lower = bullet.toLowerCase();
+  for (const tech of TECH_NAMES) {
+    if (lower.includes(tech)) return true;
+  }
+  return false;
 }
 
 function startsWithStrongVerb(bullet: string): boolean {
@@ -83,9 +155,16 @@ export function scoreBullet(bullet: string): number {
   if (!bullet.trim()) return 0;
   let score = 40; // baseline
   if (startsWithStrongVerb(bullet)) score += 30;
-  if (hasNumber(bullet)) score += 20;
+  if (hasSpecificDetail(bullet)) score += 20;
   if (!hasWeakOpener(bullet)) score += 10;
-  return Math.min(score, 100);
+
+  for (const item of FILLER_PHRASES) {
+    if (item.pattern.test(bullet)) {
+      score -= 15;
+    }
+  }
+
+  return Math.max(0, Math.min(score, 100));
 }
 
 export type BulletQuality = "strong" | "moderate" | "weak";
@@ -134,7 +213,7 @@ export function analyseCVFeedback(cv: GeneratedCV): FeedbackItem[] {
       section: "summary",
       message: 'Summary starts with a weak opener ("I am…", "Responsible for…").',
       suggestion:
-        'Lead with your job title and years of experience instead. E.g. "Senior Software Engineer with 6 years of experience…"',
+        'Lead with your job title and experience level instead. E.g. "Software Engineer with 3+ years of experience…"',
     });
   }
 
@@ -145,6 +224,28 @@ export function analyseCVFeedback(cv: GeneratedCV): FeedbackItem[] {
       message: "Summary contains no quantifiable achievement.",
       suggestion:
         "Add one metric (e.g. team size, revenue, % improvement) to immediately signal impact.",
+    });
+  }
+
+  // Summary filler phrases & self-verified claims check
+  for (const filler of FILLER_PHRASES) {
+    if (filler.pattern.test(summary)) {
+      items.push({
+        severity: "warning",
+        section: "summary",
+        message: `Summary contains generic phrase "${filler.phrase}".`,
+        suggestion: filler.suggestion,
+      });
+    }
+  }
+
+  // Check for quotation marks wrapping claims in summary
+  if (/“[^”]+”|"[^"]{4,}"/.test(summary)) {
+    items.push({
+      severity: "warning",
+      section: "summary",
+      message: "Summary uses quotation marks around claims.",
+      suggestion: "Integrate claims as natural prose without quotation marks.",
     });
   }
 
@@ -205,25 +306,33 @@ export function analyseCVFeedback(cv: GeneratedCV): FeedbackItem[] {
   let totalBullets = 0;
 
   for (const role of experience) {
+    const verbCounts = new Map<string, number>();
+
     for (const bullet of role.bullets) {
       if (!bullet.trim()) continue;
       totalBullets++;
       const quality = bulletQuality(bullet);
       if (quality === "weak") weakBulletCount++;
 
+      // Track verb repetitions within the role
+      const firstWord = bullet.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+      if (firstWord) {
+        verbCounts.set(firstWord, (verbCounts.get(firstWord) ?? 0) + 1);
+      }
+
       if (hasWeakOpener(bullet)) {
         items.push({
           severity: "warning",
           section: "experience",
           message: `Bullet under "${role.title}" uses a weak opener.`,
-          suggestion: `Replace "${bullet.split(" ").slice(0, 3).join(" ")}…" with a strong action verb (Led, Built, Delivered…).`,
+          suggestion: `Replace "${bullet.split(" ").slice(0, 3).join(" ")}…" with a strong action verb (Led, Built, Delivered…). Keep bullet short and punchy.`,
         });
       } else if (!startsWithStrongVerb(bullet) && !hasNumber(bullet)) {
         items.push({
           severity: "tip",
           section: "experience",
           message: `Bullet under "${role.title}" lacks a strong verb and quantification.`,
-          suggestion: "Start with an action verb and include a number to show impact.",
+          suggestion: "Start with a strong action verb (Led, Built, Designed) and include a number to show impact.",
         });
       } else if (!hasNumber(bullet)) {
         items.push({
@@ -235,15 +344,58 @@ export function analyseCVFeedback(cv: GeneratedCV): FeedbackItem[] {
         });
       }
 
-      // GPT-ism detection
-      const firstWord = bullet.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+      // Check for vagueness / lack of specific detail
+      if (!hasSpecificDetail(bullet)) {
+        items.push({
+          severity: "tip",
+          section: "experience",
+          message: `Bullet under "${role.title}" lacks concrete details (no metric, tool, or measurable outcome).`,
+          suggestion: "Add one concrete detail — a tool name, a number, or a measurable result.",
+        });
+      }
+
+      // Check for filler phrases / clichés
+      for (const filler of FILLER_PHRASES) {
+        if (filler.pattern.test(bullet)) {
+          items.push({
+            severity: "warning",
+            section: "experience",
+            message: `Bullet under "${role.title}" contains generic phrase "${filler.phrase}".`,
+            suggestion: filler.suggestion,
+          });
+        }
+      }
+
+      // GPT-ism detection (first-word opening)
       const replacement = GPTISM_REPLACEMENTS[firstWord];
       if (replacement) {
         items.push({
           severity: "warning",
           section: "experience",
-          message: `Bullet under "${role.title}" opens with "${firstWord}" — a common AI-generated word that recruiters flag.`,
-          suggestion: `Replace with a stronger, more specific verb: ${replacement}.`,
+          message: `Bullet under "${role.title}" opens with "${firstWord}" — a common AI-generated word.`,
+          suggestion: `Replace with a stronger, more specific action verb: ${replacement}.`,
+        });
+      }
+
+      // Quotation marks check in bullets
+      if (/“[^”]+”|"[^"]{4,}"/.test(bullet)) {
+        items.push({
+          severity: "warning",
+          section: "experience",
+          message: `Bullet under "${role.title}" uses quotation marks around text.`,
+          suggestion: "Rephrase naturally without quotation marks.",
+        });
+      }
+    }
+
+    // Flag repeated opening action verbs within the same role (e.g. 2+ bullets starting with "built")
+    for (const [verb, count] of verbCounts.entries()) {
+      if (count >= 2 && STRONG_VERBS.has(verb)) {
+        items.push({
+          severity: "warning",
+          section: "experience",
+          message: `Multiple bullets under "${role.title}" repeat the opening verb "${verb}".`,
+          suggestion: `Vary starting action verbs across bullets (e.g. alternate with Architected, Implemented, Developed, or Spearheaded).`,
         });
       }
     }
@@ -256,7 +408,7 @@ export function analyseCVFeedback(cv: GeneratedCV): FeedbackItem[] {
       section: "overall",
       message: `More than half your bullets (${weakBulletCount}/${totalBullets}) are weak.`,
       suggestion:
-        "Focus on rewriting the top 3–4 bullets per role with strong verbs and metrics for maximum ATS and recruiter impact.",
+        "Focus on rewriting bullets to start with strong action verbs and include concrete metrics or tools.",
     });
   }
 
@@ -283,3 +435,4 @@ export function summaryQualityScore(cv: GeneratedCV): number {
   if (hasNumber(summary)) score += 30;
   return Math.min(score, 100);
 }
+

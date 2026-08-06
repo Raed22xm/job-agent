@@ -76,8 +76,8 @@ function buildSummaryWithAchievement(
     ? withoutPronoun.charAt(0).toLocaleLowerCase() + withoutPronoun.slice(1)
     : withoutPronoun;
   const achievementSentence = isDanish
-    ? `Et dokumenteret resultat fra min erfaring er, at jeg ${claim}.`
-    : `A verified result from my experience is that I ${claim}.`;
+    ? `Konkret har jeg ${claim}.`
+    : `For example, I ${claim}.`;
   return `${baseSummary} ${achievementSentence}`;
 }
 

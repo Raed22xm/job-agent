@@ -166,15 +166,15 @@ describe("generateCV", () => {
     ).toBe(false);
     expect(canonical).toMatch(
       personaId === "danish"
-        ? /Et dokumenteret resultat fra min erfaring er, at jeg [a-zæøå].*\d/
-        : /A verified result from my experience is that I [a-z].*\d/
+        ? /Konkret har jeg [a-zæøå].*\d/
+        : /For example, I [a-z].*\d/
     );
     const candidates = verifiedProfessionalSummaryCandidates(persona);
     expect(candidates.length).toBeGreaterThan(0);
     expect(candidates.every((candidate) =>
       personaId === "danish"
-        ? /Et dokumenteret resultat fra min erfaring er, at jeg [a-zæøå].*\d/u.test(candidate)
-        : /A verified result from my experience is that I [a-z].*\d/u.test(candidate)
+        ? /Konkret har jeg [a-zæøå].*\d/u.test(candidate)
+        : /For example, I [a-z].*\d/u.test(candidate)
     )).toBe(true);
   });
 
@@ -205,8 +205,8 @@ describe("generateCV", () => {
   });
 
   it.each([
-    ["english", "I reduced errors by 30%.", "that I reduced errors by 30%.", "I I"],
-    ["danish", "Jeg reducerede fejl med 30 %.", "at jeg reducerede fejl med 30 %.", "jeg jeg"],
+    ["english", "I reduced errors by 30%.", "For example, I reduced errors by 30%.", "I I"],
+    ["danish", "Jeg reducerede fejl med 30 %.", "Konkret har jeg reducerede fejl med 30 %.", "jeg jeg"],
   ] as const)(
     "does not duplicate an existing first-person pronoun in %s metrics",
     (language, bullet, expected, duplicate) => {

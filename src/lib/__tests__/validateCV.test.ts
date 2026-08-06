@@ -181,7 +181,7 @@ describe("validateGeneratedCV", () => {
     );
     const generated = generateCV(master, job, matchCV(job, master));
     const canonicalPrefix = buildProfessionalSummary(master);
-    generated.sections.summary = `${canonicalPrefix} A verified result from my experience is that I ${bullet.charAt(0).toLowerCase()}${bullet.slice(1)}`;
+    generated.sections.summary = `${canonicalPrefix} For example, I ${bullet.charAt(0).toLowerCase()}${bullet.slice(1)}`;
 
     const result = validateGeneratedCV(generated, master);
     expect(result.valid).toBe(false);

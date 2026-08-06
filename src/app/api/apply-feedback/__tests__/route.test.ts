@@ -59,7 +59,7 @@ describe("POST /api/apply-feedback summary metrics", () => {
 
     expect(response.status).toBe(200);
     expect(body.summary).toContain(
-      "A verified result from my experience is that I built 5 Power BI dashboards, reducing reporting time by 30%."
+      "For example, I built 5 Power BI dashboards, reducing reporting time by 30%."
     );
     expect(body.summary).not.toContain("I conducted user interviews with 25+");
   });

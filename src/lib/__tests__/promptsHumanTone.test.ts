@@ -88,10 +88,17 @@ describe("human-sounding application prompt contracts", () => {
     expect(prompt).toMatch(/exactly 5 paragraphs|five paragraphs/);
     expect(prompt).toMatch(/no more than 400 words|under 400 words/);
     expect(prompt).toMatch(/same language/);
-    expect(prompt).toMatch(/position.*company.*motivat.*actual listed responsibility/s);
+    expect(prompt).toMatch(/opening.*connecting the role/s);
     expect(prompt).toMatch(/parsed job.*master cv/s);
     expect(prompt).toMatch(/no external company knowledge|company research/);
-    expect(prompt).toMatch(/headline.*motivation.*value i bring.*further contribution.*colleague.*interview closing/s);
+    expect(prompt).toMatch(/headline.*opening.*strongest match.*further contribution.*colleague.*interview closing/s);
     expect(prompt).toMatch(/employer culture|mission|reputation/);
+    // Anti-AI style rules
+    expect(prompt).toMatch(/job title.*at most once/);
+    expect(prompt).toMatch(/verificeret|verified/);
+    expect(prompt).toMatch(/quotation marks/);
+    expect(prompt).toMatch(/all-caps/i);
+    expect(prompt).toMatch(/meta-commentary/);
+    expect(prompt).toMatch(/danish student/);
   });
 });

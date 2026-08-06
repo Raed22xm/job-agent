@@ -16,7 +16,17 @@ export const HUMAN_WRITING_STANDARD = `Write like a thoughtful professional, not
 - Use concrete verified evidence where available. If evidence is unavailable, stay concise rather than filling the gap.
 - When describing achievements, use structured formulas: CAR (Context -> Action -> Result) or XYZ ("Accomplished X as measured by Y by performing Z") with measurable metrics.
 - Start bullet points with strong action verbs: Led, Built, Designed, Delivered, Implemented, Reduced, Increased, Automated, Architected, Scaled.
-- Match the source language and sound culturally natural in that language.`;
+- Match the source language and sound culturally natural in that language.
+
+Anti-AI style rules (MANDATORY for all generated text):
+- Never repeat the job title verbatim more than once in the entire document. After the first mention, rephrase (e.g. "the role", "this position", "the opening").
+- Never use "verificeret"/"verified" to describe your own experience. Just state the fact plainly.
+- Never quote the CV directly with quotation marks. Paraphrase every fact in a new sentence structure.
+- Do not use ALL-CAPS section headers (MOTIVATION, MIT BIDRAG, etc.). Write flowing paragraphs instead.
+- Vary sentence length and opening structure. Do not start consecutive paragraphs the same way (e.g. "Som X, jeg...").
+- No meta-commentary about the application itself (e.g. "Min motivation bygger på den konkrete opgave, der er beskrevet i opslaget").
+- Write like a Danish student would casually explain their experience to a hiring manager — direct, a little informal, not corporate-templated.
+- Max one short intro sentence stating why the role fits, then go straight into concrete examples.`;
 
 export function jobAnalysisPrompt(jobText: string): string {
   return `Extract structured job posting data from the text below. Return only fields you can verify from the text. Do not invent requirements or skills not mentioned.
@@ -52,15 +62,25 @@ export function coverLetterPrompt(
 ): string {
   return `${SYSTEM_TRUTHFULNESS}
 
-Write a structured, scan-friendly cover letter with a factual headline and exactly 5 paragraphs in the same language as the job posting. Keep the complete exported letter, including headline, greeting, sign-off, and signature, at no more than 400 words. Use only verified master CV facts and parsed-job facts. Never invent personal stories, employer culture, mission, reputation, values, products, or external company knowledge. No approved company-research source is supplied, so employer motivation may use only the concrete role and responsibilities stated in the posting.
+Write a structured, scan-friendly cover letter with a factual headline and exactly 5 paragraphs in the same language as the job posting. Keep the complete exported letter, including headline, greeting, sign-off, and signature, at no more than 400 words. Use only master CV facts and parsed-job facts. Never invent personal stories, employer culture, mission, reputation, values, products, or external company knowledge. No approved company-research source is supplied, so employer motivation may use only the concrete role and responsibilities stated in the posting.
 
 Paragraph structure & layout:
-Headline: job title/company plus at most two terms verified in both the master CV and parsed job.
-1. MOTIVATION: Four grounded sentences in order: position/company; professionalMotivation from the master CV; one actual listed responsibility tied only to verified overlap; employer motivation based only on that posting fact or a transparent insufficient-detail statement.
-2. VALUE I BRING: Strongest verified role and its strongest verified bullet or metric, using CAR/STAR where the source supports it.
-3. FURTHER CONTRIBUTION: A distinct verified project, role, or skill contribution; do not repeat paragraph 2.
-4. CONTRIBUTION AS A COLLEAGUE: Use only personalStrengths and collaboration evidence verified in the master CV.
-5. INTERVIEW CLOSING: Direct interview call to action naming the parsed job title and company.
+Headline: job title/company plus at most two terms found in both the master CV and parsed job.
+1. Opening: One short sentence connecting the role to your background, then straight into a concrete example. No meta-commentary ("Min motivation bygger på..."). Do NOT use ALL-CAPS headers like "MOTIVATION".
+2. Strongest match: Your most relevant role and its strongest bullet or metric, using CAR/STAR where the source supports it. Paraphrase CV facts — never quote them with quotation marks.
+3. Further contribution: A distinct project, role, or skill contribution; do not repeat paragraph 2.
+4. Colleague value: Use only personalStrengths and collaboration evidence from the master CV.
+5. Interview closing: Direct interview call to action. Mention the job title at most once more (rephrase it otherwise).
+
+Critical style rules:
+- Mention the exact job title at most once. After that, say "the role", "this position", etc.
+- Never describe your own experience as "verificeret"/"verified" — just state the fact.
+- Never quote the CV with quotation marks. Paraphrase in new sentence structures.
+- No ALL-CAPS section headers. Write flowing paragraphs.
+- Vary sentence length and openings. Never start 2+ paragraphs the same way.
+- No meta-commentary about the application ("Jeg skriver for at udtrykke...", "Min motivation bygger på...").
+- Write like a Danish student casually explaining their experience to a hiring manager — direct, slightly informal, not corporate-templated.
+- One short intro sentence about fit, then jump to concrete examples.
 
 Writing standard:
 ${HUMAN_WRITING_STANDARD}
