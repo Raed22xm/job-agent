@@ -70,10 +70,10 @@ function expectGroundedFiveSectionLetter(
   expect(letter).toContain(TARGET_JOB.company.toLowerCase());
   expect(letter).toMatch(/react|typescript|accessibility|frontend developer|verified studio/);
   expect(letter).not.toContain("kubernetes");
-  expect(paragraphs[0]).toContain(VERIFIED_CV.professionalSummary.professionalMotivation.toLowerCase());
+  expect(paragraphs[0].toLowerCase()).toContain(VERIFIED_CV.professionalSummary.professionalMotivation.toLowerCase());
   expect(paragraphs[1]).toContain("Verified Studio");
   expect(paragraphs[2]).not.toBe(paragraphs[1]);
-  expect(paragraphs[3].toLowerCase()).toContain("verified personal strengths");
+  expect(paragraphs[3].toLowerCase()).toContain(VERIFIED_CV.professionalSummary.personalStrengths.toLowerCase());
   expect(paragraphs[4]).toContain(TARGET_JOB.title);
   expect(paragraphs[4]).toContain(TARGET_JOB.company);
 }
@@ -138,7 +138,7 @@ describe("generateCoverLetter", () => {
   );
 
   it.each(["english", "danish"] as const)(
-    "introduces a verified project description as a complete %s sentence",
+    "introduces a project description as a natural %s sentence without quotation marks",
     (language) => {
       const cv: MasterCV = {
         ...VERIFIED_CV,
@@ -147,10 +147,11 @@ describe("generateCoverLetter", () => {
 
       const paragraph = generateCoverLetter(cv, TARGET_JOB, language).paragraphs[2];
 
-      expect(paragraph).toContain("“Built accessible React prototypes”.");
-      expect(paragraph).toMatch(
-        language === "danish" ? /Mit verificerede CV beskriver/ : /My verified CV describes/
-      );
+      expect(paragraph).toContain("Access Lab");
+      expect(paragraph.toLowerCase()).toContain("built accessible react prototypes");
+      expect(paragraph).not.toContain('\u201c');
+      expect(paragraph).not.toContain('\u201d');
+      expect(paragraph).not.toMatch(/verificer|verified/i);
     }
   );
 
@@ -211,7 +212,9 @@ describe("generateCoverLetter", () => {
       expect(motivation.toLowerCase().indexOf(verifiedMotivation)).toBeGreaterThan(
         motivation.indexOf(opening)
       );
-      expect(motivation.indexOf(job.responsibilities[1])).toBeGreaterThan(
+      // Responsibility is now inlined with lowercased first word, not quoted verbatim
+      const responsibilityLower = job.responsibilities[1].charAt(0).toLowerCase() + job.responsibilities[1].slice(1);
+      expect(motivation.indexOf(responsibilityLower)).toBeGreaterThan(
         motivation.toLowerCase().indexOf(verifiedMotivation)
       );
       expect(motivation).not.toContain(job.responsibilities[0]);
@@ -221,7 +224,7 @@ describe("generateCoverLetter", () => {
   );
 
   it.each(["english", "danish"] as const)(
-    "uses a transparent no-task fallback in %s",
+    "uses a concise no-task fallback in %s",
     (language) => {
       const motivation = buildCoverLetterMotivation(
         VERIFIED_CV,
@@ -231,10 +234,9 @@ describe("generateCoverLetter", () => {
 
       expect(motivation).toContain(TARGET_JOB.title);
       expect(motivation).toContain(TARGET_JOB.company);
-      expect(motivation.toLowerCase()).toMatch(
-        language === "danish" ? /ikke beskrevet/ : /does not detail/
-      );
       expect(motivation.toLowerCase()).not.toContain("kubernetes");
+      // No-task fallback should still mention the role and motivation
+      expect(motivation.toLowerCase()).toMatch(/motiverer|appeals/);
     }
   );
 
@@ -287,7 +289,7 @@ describe("generateCoverLetter", () => {
     expect(motivation).not.toMatch(/the the open role|den ledige stilling som/i);
   });
 
-  it("does not match the verified skill Go inside an unrelated English word", () => {
+  it("does not match the skill Go inside an unrelated English word", () => {
     const cv = getPersona("english");
     expect(cv).not.toBeNull();
     if (!cv) throw new Error("Missing English persona");
@@ -302,11 +304,11 @@ describe("generateCoverLetter", () => {
       "english"
     );
 
-    expect(motivation).not.toContain("verified experience in Go");
-    expect(motivation).toContain("verified professional motivation");
+    expect(motivation).not.toContain("worked with Go");
+    expect(motivation).toContain("professional background");
   });
 
-  it("uses the verified-motivation fallback for an unrelated Danish task", () => {
+  it("uses the background fallback for an unrelated Danish task", () => {
     const cv = getPersona("danish");
     expect(cv).not.toBeNull();
     if (!cv) throw new Error("Missing Danish persona");
@@ -321,7 +323,7 @@ describe("generateCoverLetter", () => {
       "danish"
     );
 
-    expect(motivation).not.toContain("verificerede erfaring med Go");
-    expect(motivation).toContain("verificerede faglige motivation");
+    expect(motivation).not.toContain("arbejdet med Go");
+    expect(motivation).toContain("faglige baggrund");
   });
 });

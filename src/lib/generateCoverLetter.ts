@@ -244,18 +244,18 @@ export function buildCoverLetterMotivation(
       : `Den ledige stilling hos ${company} fangede min opmærksomhed.`;
     const positionMotivation = `Stillingen motiverer mig særligt, fordi ${motivation}.`;
     if (!responsibility) {
-      return `${opening} ${positionMotivation} De konkrete daglige opgaver er ikke beskrevet i opslaget, og muligheden for at høre mere om dem er en del af min interesse. Opslaget giver ikke tilstrækkelige oplysninger til yderligere udsagn om arbejdspladsen.`;
+      return `${opening} ${positionMotivation}`;
     }
 
     const terms = verifiedResponsibilityTerms(cv, selectedResponsibility!);
     const connection = terms.length
-      ? `den hænger sammen med min verificerede erfaring med ${joinTerms(terms, language)}`
-      : "den hænger sammen med min verificerede faglige motivation";
+      ? `jeg har arbejdet med ${joinTerms(terms, language)} før`
+      : "den passer godt til min faglige baggrund";
     const employerMotivation =
       company === "jeres organisation"
-        ? "Opslaget giver ikke tilstrækkelige oplysninger til yderligere udsagn om arbejdspladsen."
-        : `Min motivation for ${company} som arbejdsplads bygger på den konkrete opgave, der er beskrevet i opslaget.`;
-    return `${opening} ${positionMotivation} Blandt de beskrevne opgaver motiverer “${responsibility}” mig særligt, fordi ${connection}. ${employerMotivation}`;
+        ? ""
+        : `Det er netop opgaven hos ${company}, der gør stillingen spændende.`;
+    return `${opening} ${positionMotivation} Især opgaven med at ${lowercaseFirstWord(responsibility)} tiltaler mig, fordi ${connection}. ${employerMotivation}`.trim();
   }
 
   const opening = title
@@ -263,18 +263,18 @@ export function buildCoverLetterMotivation(
     : `The open position at ${company} caught my attention.`;
   const positionMotivation = `This position appeals to me because ${motivation}.`;
   if (!responsibility) {
-    return `${opening} ${positionMotivation} The posting does not detail the day-to-day tasks, and learning more about them is part of my interest. The posting does not provide enough detail to make further claims about the workplace.`;
+    return `${opening} ${positionMotivation}`;
   }
 
   const terms = verifiedResponsibilityTerms(cv, selectedResponsibility!);
   const connection = terms.length
-    ? `it connects with my verified experience in ${joinTerms(terms, language)}`
-    : "it connects with my verified professional motivation";
+    ? `I have worked with ${joinTerms(terms, language)} before`
+    : "it fits well with my professional background";
   const employerMotivation =
     company === "your organization"
-      ? "The posting does not provide enough detail to make further claims about the workplace."
-      : `My motivation for ${company} as a workplace is based on that concrete responsibility described in the posting.`;
-  return `${opening} ${positionMotivation} Among the listed tasks, “${responsibility}” is particularly motivating because ${connection}. ${employerMotivation}`;
+      ? ""
+      : `It's the work itself at ${company} that makes the role appealing.`;
+  return `${opening} ${positionMotivation} The task of ${lowercaseFirstWord(responsibility)} stands out to me because ${connection}. ${employerMotivation}`.trim();
 }
 
 function verifiedJobTerms(cv: MasterCV, job: ParsedJob, limit = 3): string[] {
@@ -334,8 +334,8 @@ function primaryContribution(
 ): string {
   if (!experience) {
     return language === "danish"
-      ? "Min verificerede faglige baggrund fremgår af det vedlagte CV."
-      : "My verified professional background is documented in the attached CV.";
+      ? "Min faglige baggrund fremgår af det vedlagte CV."
+      : "My professional background is in the attached CV.";
   }
   const details = [bestQuantifiedBullet(experience, job) ?? bestBullets(experience, job, 1)[0]]
     .filter((value): value is string => Boolean(value));
@@ -369,8 +369,8 @@ function secondaryContribution(
     const name = boundedSourceText(project.name, 8);
     const description = stripFinalPunctuation(boundedSourceText(project.description, 25));
     return language === "danish"
-      ? `Som et yderligere verificeret bidrag har jeg gennemført projektet ${name}. Mit verificerede CV beskriver projektet sådan: “${description}”.`
-      : `As a further verified contribution, I completed the ${name} project. My verified CV describes the project as follows: “${description}”.`;
+      ? `Derudover har jeg lavet projektet ${name}, som handlede om at ${lowercaseFirstWord(description)}.`
+      : `I also built the ${name} project, which involved ${lowercaseFirstWord(description)}.`;
   }
 
   const secondRole = cv.experience
@@ -390,15 +390,15 @@ function secondaryContribution(
     const title = boundedSourceText(secondRole.title, 8);
     const company = boundedSourceText(secondRole.company, 8);
     return language === "danish"
-      ? `Min erfaring som ${title} hos ${company} er et særskilt bidrag.${detail}`
-      : `My experience as ${title} at ${company} is a distinct contribution.${detail}`;
+      ? `Hos ${company} arbejdede jeg som ${title}.${detail}`
+      : `At ${company}, I worked as ${title}.${detail}`;
   }
 
   const terms = verifiedJobTerms(cv, job);
   const verified = terms.length ? terms : [...cv.skills, ...cv.tools].slice(0, 3);
   return language === "danish"
-    ? `Et yderligere verificeret bidrag er mine kompetencer inden for ${joinTerms(verified, language)}.`
-    : `A further verified contribution is my experience with ${joinTerms(verified, language)}.`;
+    ? `Jeg har desuden erfaring med ${joinTerms(verified, language)}.`
+    : `I also have experience with ${joinTerms(verified, language)}.`;
 }
 
 function colleagueContribution(cv: MasterCV, language: CvLanguage): string {
@@ -407,8 +407,8 @@ function colleagueContribution(cv: MasterCV, language: CvLanguage): string {
     language
   );
   return language === "danish"
-    ? `Som kollega bidrager jeg med det, der er dokumenteret i mit CV: ${strengths}.`
-    : `As a colleague, I contribute what is documented in my CV: ${strengths}.`;
+    ? `Som kollega er jeg ${strengths}.`
+    : `As a colleague, I'm ${strengths}.`;
 }
 
 function interviewClosing(job: ParsedJob, language: CvLanguage): string {
@@ -421,8 +421,8 @@ function interviewClosing(job: ParsedJob, language: CvLanguage): string {
     language === "danish" ? "den ledige rolle" : "the open role"
   );
   return language === "danish"
-    ? `Jeg vil sætte pris på en samtale om, hvordan min verificerede erfaring kan bidrage i stillingen som ${title} hos ${company}.`
-    : `I would welcome an interview to discuss how my verified experience can contribute in the ${title} role at ${company}.`;
+    ? `Jeg vil gerne høre mere om stillingen som ${title} hos ${company} og fortælle om, hvad jeg kan bidrage med.`
+    : `I'd like to learn more about the ${title} role at ${company} and share what I can bring to the team.`;
 }
 
 export function generateCoverLetter(
