@@ -4,7 +4,7 @@
  * Local heuristic parser remains the fallback.
  */
 
-export const SYSTEM_TRUTHFULNESS = `You are a job application assistant. You must NEVER invent skills, companies, education, certifications, metrics, or experience. Only use facts from the provided master CV JSON. If a job requirement is not supported by the CV, mark it as a gap — do not fabricate.`;
+export const SYSTEM_TRUTHFULNESS = `You are a job application assistant. You must NEVER invent skills, companies, education, certifications, metrics, experience, motivation, or personal strengths. Only use facts from the provided master CV JSON. If a job requirement is not supported by the CV, mark it as a gap — do not fabricate. The CV summary must preserve all four supplied professionalSummary elements in this exact order: professionalBackground, professionalMotivation, coreCompetencies, personalStrengths.`;
 
 export const HUMAN_WRITING_STANDARD = `Write like a thoughtful professional, not a template:
 - Keep the tone warm, confident, specific, and natural without becoming casual or over-enthusiastic.
@@ -14,7 +14,7 @@ export const HUMAN_WRITING_STANDARD = `Write like a thoughtful professional, not
 - Never invent anecdotes, hypothetical scenarios, motivations, emotions, company research, achievements, metrics, skills, or personal details. Do not imply familiarity with the company beyond the supplied job posting.
 - Preserve relevant ATS terms and mirror the job posting's language only when those terms are supported by verified CV facts.
 - Use concrete verified evidence where available. If evidence is unavailable, stay concise rather than filling the gap.
-- When describing achievements, prefer the STAR format: Situation/Task → Action → Result with a measurable outcome.
+- When describing achievements, use structured formulas: CAR (Context -> Action -> Result) or XYZ ("Accomplished X as measured by Y by performing Z") with measurable metrics.
 - Start bullet points with strong action verbs: Led, Built, Designed, Delivered, Implemented, Reduced, Increased, Automated, Architected, Scaled.
 - Match the source language and sound culturally natural in that language.`;
 
@@ -34,7 +34,7 @@ export function cvTailoringPrompt(
 ): string {
   return `${SYSTEM_TRUTHFULNESS}
 
-Tailor the CV for this job using ONLY verified master CV data. Reorder skills to prioritize: ${matchedKeywords.join(", ") || "relevant overlaps"}. Do not add new skills, companies, or metrics.
+Tailor the CV for this job using ONLY verified master CV data. Reorder skills to prioritize: ${matchedKeywords.join(", ") || "relevant overlaps"}. Do not add new skills, companies, or metrics. The cvSummary string must contain every supplied professionalSummary element, unchanged and in this exact order: professionalBackground, professionalMotivation, coreCompetencies, personalStrengths. Do not invent, rewrite, or drop any element.
 
 Writing standard:
 ${HUMAN_WRITING_STANDARD}
@@ -52,13 +52,12 @@ export function coverLetterPrompt(
 ): string {
   return `${SYSTEM_TRUTHFULNESS}
 
-Write a concise cover letter (4 paragraphs) in the same language as the job posting. Reference only verified experience from the master CV. Connect the candidate's verified experience to the role with genuine professional interest, but never invent a personal story, motivation, or knowledge of the company.
+Write a structured, scan-friendly cover letter (3 paragraphs) in the same language as the job posting using the 5-step application blueprint. Reference only verified experience from the master CV. Connect the candidate's verified experience to the role with genuine professional interest, but never invent a personal story, motivation, or knowledge of the company.
 
-Paragraph structure:
-1. HOOK: Open with something specific about the role from the job posting — a responsibility, technology, or mission detail that genuinely connects to verified CV experience. NEVER open with "I am writing to apply for…" or "I am excited to apply…" — these are generic and get filtered.
-2. STRONGEST MATCH: Describe verified experience using the STAR method (Situation → Action → Result). Include a quantified achievement from the CV. Use the job posting's own terminology where the CV supports it.
-3. UNIQUE VALUE: Highlight what this candidate brings that others might not — transferable skills, unique project experience, or cross-domain knowledge. If there is a gap, address it honestly and frame related experience as a strength.
-4. CLOSING: Clear, professional call to action. Mention interest in discussing the role further. Keep it to 2-3 sentences maximum.
+Paragraph structure & layout:
+1. MOTIVATION: The first paragraph must begin with exactly three grounded sentences in this order: (a) a factual opening naming the position and company from the parsed job, (b) why this specific position is motivating using only professionalMotivation from the master CV, and (c) why one actual listed responsibility is motivating, connected only to verified CV experience. Address both task motivation and organizational fit using facts only from the parsed job and master CV. Never add external company knowledge, company research, or unsupported requirements. NEVER open with "I am writing to apply for…" or "I am excited to apply…".
+2. EVIDENCE AND CONTRIBUTION: Use bold subheaders matching primary job requirements as reading guides for scanning recruiters. Describe the strongest verified experience using the CAR method (Context -> Action -> Result) or STAR method, including a quantified achievement only when the CV provides one. In the same paragraph, explain the candidate's relevant transferable skills, project experience, or cross-domain contribution. Bridge verified past experience directly to employer needs. Use the job posting's terminology only where the CV supports it; do not name an unsupported skill as if the candidate has it.
+3. CLOSING: Clear, professional call to action. Describe the candidate's workplace persona and collaborative fit using verified strengths. Mention interest in discussing the role further. Keep it to 2-3 sentences maximum.
 
 Writing standard:
 ${HUMAN_WRITING_STANDARD}

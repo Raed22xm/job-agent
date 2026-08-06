@@ -25,14 +25,15 @@ export interface CVAuditResult {
 export function buildCVAuditPrompt(cv: MasterCV): string {
   const cvJson = JSON.stringify(cv, null, 2);
 
-  return `You are a professional CV auditor and career coach. Audit the following master CV and return a structured JSON audit result.
+  return `You are a professional CV auditor and executive career coach. Audit the following master CV using modern application standards (CAR/XYZ achievement formulas, strong action verbs, ATS alignment, and high-impact structural framing).
 
 RULES:
 - Only reference facts that exist in the CV — never invent experience, skills, or metrics
 - Be honest and specific — vague feedback is useless
-- Provide concrete before/after rewrites for weak bullets
+- Provide concrete before/after rewrites for weak bullets using the CAR (Context-Action-Result) or XYZ formula ("Accomplished X as measured by Y by performing Z")
+- Evaluate bullet impact: active verbs (Led, Built, Delivered, Streamlined) and quantifiable metrics (% change, time saved, €/$)
 - Flag ATS risks (tables, graphics, unusual headers — assume plain text here)
-- Score each section 0–100 based on: clarity, impact, ATS-friendliness, and specificity
+- Score each section 0–100 based on: clarity, impact, CAR/XYZ formula adherence, ATS-friendliness, and specificity
 
 Return a JSON object matching this exact structure:
 {
@@ -53,7 +54,7 @@ Return a JSON object matching this exact structure:
   "wordCount": <number>
 }
 
-Audit these sections: summary, experience (bullet quality), skills (relevance ordering), education, certifications/projects (if present).
+Audit these sections: summary (identity tagline & scope), experience (bullet quality & CAR/XYZ metrics), skills (relevance & categorizing), education, certifications/projects (if present).
 
 Master CV to audit:
 ${cvJson}`;
