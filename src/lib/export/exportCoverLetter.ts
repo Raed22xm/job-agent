@@ -1,7 +1,7 @@
 import { BorderStyle, Document, Packer, Paragraph, TextRun } from "docx";
 import {
-  COVER_LETTER_LABELS,
   coverLetterHeadline,
+  coverLetterSectionLabels,
   type CvLanguage,
 } from "@/lib/cvLanguage";
 import type { GeneratedCoverLetter, PersonalInfo } from "@/types";
@@ -25,7 +25,7 @@ export async function exportCoverLetterToDocx(
   options: CoverLetterExportOptions = {}
 ): Promise<void> {
   const language = options.language ?? "english";
-  const labels = COVER_LETTER_LABELS[language];
+  const sectionLabels = coverLetterSectionLabels(language);
   const contact = options.applicant
     ? [options.applicant.location, options.applicant.email, options.applicant.phone]
         .filter(Boolean)
@@ -66,7 +66,7 @@ export async function exportCoverLetterToDocx(
       spacing: { before: 180, after: 220 },
       children: [
         new TextRun({
-          text: coverLetterHeadline(company, title, language),
+          text: letter.headline || coverLetterHeadline(company, title, language),
           bold: true,
           size: 30,
           color: "33473A",
@@ -80,11 +80,11 @@ export async function exportCoverLetterToDocx(
   );
 
   letter.paragraphs.forEach((paragraph, index) => {
-    if (index < 2) {
+    if (sectionLabels[index]) {
       children.push(new Paragraph({
         spacing: { before: 120, after: 40 },
         children: [new TextRun({
-          text: (index === 0 ? labels.motivation : labels.evidence).toUpperCase(),
+          text: sectionLabels[index].toUpperCase(),
           bold: true,
           size: 18,
           color: "52705A",
@@ -137,7 +137,7 @@ export async function exportCoverLetterToPdf(
   const maxWidth = pdfContentWidth(pdf);
   let y = PDF_MARGIN_MM;
   const language = options.language ?? "english";
-  const labels = COVER_LETTER_LABELS[language];
+  const sectionLabels = coverLetterSectionLabels(language);
   const contact = options.applicant
     ? [options.applicant.location, options.applicant.email, options.applicant.phone]
         .filter(Boolean)
@@ -166,7 +166,7 @@ export async function exportCoverLetterToPdf(
   pdf.setFontSize(15);
   y = addPdfWrappedText(
     pdf,
-    coverLetterHeadline(company, title, language),
+    letter.headline || coverLetterHeadline(company, title, language),
     PDF_MARGIN_MM,
     y,
     maxWidth,
@@ -182,13 +182,13 @@ export async function exportCoverLetterToPdf(
   y += 4;
 
   for (const [index, paragraph] of letter.paragraphs.entries()) {
-    if (index < 2) {
+    if (sectionLabels[index]) {
       pdf.setTextColor(82, 112, 90);
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(9);
       y = addPdfWrappedText(
         pdf,
-        (index === 0 ? labels.motivation : labels.evidence).toUpperCase(),
+        sectionLabels[index].toUpperCase(),
         PDF_MARGIN_MM,
         y,
         maxWidth,

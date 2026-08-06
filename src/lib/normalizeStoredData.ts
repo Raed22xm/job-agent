@@ -187,6 +187,7 @@ export function normalizeGeneratedCoverLetter(
   }
 
   return {
+    headline: typeof letter.headline === "string" ? letter.headline : "",
     greeting: letter.greeting,
     paragraphs: normalizeStringArray(letter.paragraphs),
     closing: typeof letter.closing === "string" ? letter.closing : "",

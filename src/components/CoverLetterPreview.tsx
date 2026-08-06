@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 import {
-  COVER_LETTER_LABELS,
   coverLetterHeadline,
+  coverLetterSectionLabels,
   type CvLanguage,
 } from "@/lib/cvLanguage";
 import type { GeneratedCoverLetter, PersonalInfo } from "@/types";
@@ -24,7 +24,7 @@ export default function CoverLetterPreview({
   title,
 }: CoverLetterPreviewProps) {
   const languageLabel = language === "danish" ? "Dansk" : "English";
-  const labels = COVER_LETTER_LABELS[language];
+  const sectionLabels = coverLetterSectionLabels(language);
   const contact = applicant
     ? [applicant.location, applicant.email, applicant.phone].filter(Boolean).join(" · ")
     : "";
@@ -54,14 +54,14 @@ export default function CoverLetterPreview({
           )}
         </header>
         <h1 className="mt-5 text-[15pt] font-bold leading-tight text-[#33473A]">
-          {coverLetterHeadline(company, title, language)}
+          {letter.headline || coverLetterHeadline(company, title, language)}
         </h1>
         <p className="mt-5">{letter.greeting}</p>
         {letter.paragraphs.map((paragraph, index) => (
           <section key={index} className="mt-4">
-            {index < 2 && (
+            {sectionLabels[index] && (
               <h2 className="mb-1 text-[9pt] font-bold uppercase tracking-[0.06em] text-[#52705A]">
-                {index === 0 ? labels.motivation : labels.evidence}
+                {sectionLabels[index]}
               </h2>
             )}
             <p>{paragraph}</p>

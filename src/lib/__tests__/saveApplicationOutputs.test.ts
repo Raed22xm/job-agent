@@ -23,6 +23,7 @@ const sampleCV: GeneratedCV = {
 };
 
 const sampleLetter: GeneratedCoverLetter = {
+  headline: "React for the Android Developer role at TV2",
   greeting: "Dear Hiring Manager,",
   paragraphs: ["Paragraph one."],
   closing: "Sincerely,",
@@ -55,5 +56,6 @@ describe("saveApplicationOutputs", () => {
       "utf8"
     );
     expect(letterContent).toContain("Dear Hiring Manager");
+    expect(letterContent).toContain("# React for the Android Developer role at TV2");
   });
 });

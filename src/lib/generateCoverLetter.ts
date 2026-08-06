@@ -1,8 +1,6 @@
 import type { CvLanguage } from "@/lib/cvLanguage";
-import { buildGapSuggestions } from "@/lib/gapSuggestions";
 import {
   termAppearsInText,
-  termsAreEquivalent,
 } from "@/lib/jobDictionaries";
 import type {
   Experience,
@@ -10,6 +8,19 @@ import type {
   MasterCV,
   ParsedJob,
 } from "@/types";
+
+export const MAX_COVER_LETTER_WORDS = 400;
+
+function boundedSourceText(value: string, maxWords: number): string {
+  const words = value.trim().replace(/^[-•]\s*/u, "").split(/\s+/u).filter(Boolean);
+  if (words.length <= maxWords) return words.join(" ");
+  return `${stripFinalPunctuation(words.slice(0, maxWords).join(" "))}…`;
+}
+
+export function coverLetterWordCount(letter: GeneratedCoverLetter): number {
+  return [letter.headline, letter.greeting, ...letter.paragraphs, letter.closing, letter.signature]
+    .join(" ").trim().split(/\s+/u).filter(Boolean).length;
+}
 
 /**
  * Heuristic cover letter from verified CV facts. AI-enhanced version via POST /api/analyze-job?enhanceWithAI.
@@ -20,7 +31,7 @@ function displayValue(value: string, fallback: string): string {
     trimmed === "Not detected" ||
     trimmed === "Role title not detected"
     ? fallback
-    : trimmed;
+    : boundedSourceText(trimmed, 8);
 }
 
 function normalize(value: string): string {
@@ -37,13 +48,13 @@ function lowercaseFirstWord(value: string): string {
 }
 
 function asMotivationClause(value: string, language: CvLanguage): string {
-  const trimmed = stripFinalPunctuation(value);
+  const trimmed = stripFinalPunctuation(boundedSourceText(value, 25));
   if (language === "english" && /^I\b/u.test(trimmed)) return trimmed;
   return lowercaseFirstWord(trimmed);
 }
 
 function asFirstPersonClause(value: string, language: CvLanguage): string {
-  const trimmed = stripFinalPunctuation(value).replace(/^[-•]\s*/u, "");
+  const trimmed = stripFinalPunctuation(boundedSourceText(value, 25));
   const withoutPronoun =
     language === "danish"
       ? trimmed.replace(/^jeg\s+/iu, "")
@@ -149,6 +160,7 @@ function bestQuantifiedBullet(
 }
 
 function joinTerms(terms: string[], language: CvLanguage): string {
+  terms = terms.map((term) => boundedSourceText(term, 4));
   if (terms.length <= 1) return terms[0] ?? "";
 
   const conjunction = language === "danish" ? "og" : "and";
@@ -221,7 +233,10 @@ export function buildCoverLetterMotivation(
     cv.professionalSummary.professionalMotivation,
     language
   );
-  const responsibility = selectResponsibility(cv, job);
+  const selectedResponsibility = selectResponsibility(cv, job);
+  const responsibility = selectedResponsibility
+    ? boundedSourceText(selectedResponsibility, 24)
+    : undefined;
 
   if (language === "danish") {
     const opening = title
@@ -229,14 +244,18 @@ export function buildCoverLetterMotivation(
       : `Den ledige stilling hos ${company} fangede min opmærksomhed.`;
     const positionMotivation = `Stillingen motiverer mig særligt, fordi ${motivation}.`;
     if (!responsibility) {
-      return `${opening} ${positionMotivation} De konkrete daglige opgaver er ikke beskrevet i opslaget, og muligheden for at høre mere om dem er en del af min interesse.`;
+      return `${opening} ${positionMotivation} De konkrete daglige opgaver er ikke beskrevet i opslaget, og muligheden for at høre mere om dem er en del af min interesse. Opslaget giver ikke tilstrækkelige oplysninger til yderligere udsagn om arbejdspladsen.`;
     }
 
-    const terms = verifiedResponsibilityTerms(cv, responsibility);
+    const terms = verifiedResponsibilityTerms(cv, selectedResponsibility!);
     const connection = terms.length
       ? `den hænger sammen med min verificerede erfaring med ${joinTerms(terms, language)}`
       : "den hænger sammen med min verificerede faglige motivation";
-    return `${opening} ${positionMotivation} Blandt de beskrevne opgaver motiverer “${responsibility}” mig særligt, fordi ${connection}.`;
+    const employerMotivation =
+      company === "jeres organisation"
+        ? "Opslaget giver ikke tilstrækkelige oplysninger til yderligere udsagn om arbejdspladsen."
+        : `Min motivation for ${company} som arbejdsplads bygger på den konkrete opgave, der er beskrevet i opslaget.`;
+    return `${opening} ${positionMotivation} Blandt de beskrevne opgaver motiverer “${responsibility}” mig særligt, fordi ${connection}. ${employerMotivation}`;
   }
 
   const opening = title
@@ -244,114 +263,166 @@ export function buildCoverLetterMotivation(
     : `The open position at ${company} caught my attention.`;
   const positionMotivation = `This position appeals to me because ${motivation}.`;
   if (!responsibility) {
-    return `${opening} ${positionMotivation} The posting does not detail the day-to-day tasks, and learning more about them is part of my interest.`;
+    return `${opening} ${positionMotivation} The posting does not detail the day-to-day tasks, and learning more about them is part of my interest. The posting does not provide enough detail to make further claims about the workplace.`;
   }
 
-  const terms = verifiedResponsibilityTerms(cv, responsibility);
+  const terms = verifiedResponsibilityTerms(cv, selectedResponsibility!);
   const connection = terms.length
     ? `it connects with my verified experience in ${joinTerms(terms, language)}`
     : "it connects with my verified professional motivation";
-  return `${opening} ${positionMotivation} Among the listed tasks, “${responsibility}” is particularly motivating because ${connection}.`;
+  const employerMotivation =
+    company === "your organization"
+      ? "The posting does not provide enough detail to make further claims about the workplace."
+      : `My motivation for ${company} as a workplace is based on that concrete responsibility described in the posting.`;
+  return `${opening} ${positionMotivation} Among the listed tasks, “${responsibility}” is particularly motivating because ${connection}. ${employerMotivation}`;
 }
 
-function roleEvidence(
+function verifiedJobTerms(cv: MasterCV, job: ParsedJob, limit = 3): string[] {
+  const parsedJobText = [
+    job.title,
+    ...job.responsibilities,
+    ...job.requirements,
+    ...job.skills,
+    ...job.tools,
+    ...job.atsKeywords,
+  ].join(" ");
+  const seen = new Set<string>();
+  return [...cv.skills, ...cv.tools]
+    .filter((term) => {
+      const key = normalize(term);
+      if (!key || seen.has(key) || !termAppearsInText(term, parsedJobText)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .slice(0, limit);
+}
+
+export function buildCoverLetterHeadline(
+  cv: MasterCV,
+  job: ParsedJob,
+  language: CvLanguage
+): string {
+  const company = displayValue(
+    job.company,
+    language === "danish" ? "jeres organisation" : "your organization"
+  );
+  const title = displayValue(
+    job.title,
+    language === "danish" ? "den ledige rolle" : "the open role"
+  );
+  const terms = verifiedJobTerms(cv, job, 2);
+  const focus = terms.length
+    ? joinTerms(terms, language)
+    : bestExperience(cv, job)?.title;
+
+  if (focus) {
+    return language === "danish"
+      ? `${focus} til stillingen som ${title} hos ${company}`
+      : `${focus} for the ${title} role at ${company}`;
+  }
+  return language === "danish"
+    ? `Ansøgning — ${title} hos ${company}`
+    : `Application — ${title} at ${company}`;
+}
+
+function primaryContribution(
   experience: Experience | undefined,
   job: ParsedJob,
   language: CvLanguage
 ): string {
   if (!experience) {
     return language === "danish"
-      ? "Min faglige baggrund er beskrevet i det vedlagte CV."
-      : "My professional background is outlined in the attached CV.";
+      ? "Min verificerede faglige baggrund fremgår af det vedlagte CV."
+      : "My verified professional background is documented in the attached CV.";
   }
-
-  const bullets = bestBullets(experience, job);
-  const first = bullets[0]
-    ? asFirstPersonClause(bullets[0], language)
-    : "";
-  const second = bullets[1]
-    ? asFirstPersonClause(bullets[1], language)
-    : "";
-
-  if (language === "danish") {
-    const opening = `Hos ${experience.company} var min rolle ${experience.title}`;
-    if (!first) return `${opening}.`;
-
-    return `${opening}. Jeg ${first}.${second ? ` Jeg ${second}.` : ""}`;
-  }
-
-  const opening = `At ${experience.company}, my role was ${experience.title}`;
-  if (!first) return `${opening}.`;
-
-  return `${opening}. I ${first}.${second ? ` I also ${second}.` : ""}`;
+  const details = [bestQuantifiedBullet(experience, job) ?? bestBullets(experience, job, 1)[0]]
+    .filter((value): value is string => Boolean(value));
+  const opening = language === "danish"
+    ? `Hos ${boundedSourceText(experience.company, 8)} var min rolle ${boundedSourceText(experience.title, 8)}.`
+    : `At ${boundedSourceText(experience.company, 8)}, my role was ${boundedSourceText(experience.title, 8)}.`;
+  const evidence = details.map((item, index) => {
+    const clause = asFirstPersonClause(item, language);
+    if (language === "danish") return `${index ? "Derudover" : "Jeg"} ${clause}.`;
+    return `${index ? "I also" : "I"} ${clause}.`;
+  });
+  return [opening, ...evidence].join(" ");
 }
 
-function quantifiedEvidenceSuffix(
-  evidence: string,
-  quantifiedBullet: string | undefined,
-  language: CvLanguage
-): string {
-  if (!quantifiedBullet) return "";
-
-  const clause = asFirstPersonClause(quantifiedBullet, language);
-  if (normalize(evidence).includes(normalize(clause))) return "";
-
-  return language === "danish"
-    ? ` Konkret ${clause}.`
-    : ` Specifically, I ${clause}.`;
-}
-
-function uniqueValueParagraph(
+function secondaryContribution(
   cv: MasterCV,
   job: ParsedJob,
-  relevantRole: Experience | undefined,
+  primaryRole: Experience | undefined,
   language: CvLanguage
 ): string {
-  // Look for transferable skills from gap analysis
-  const missingTerms = [...job.skills, ...job.tools]
-    .filter((term) => {
-      const target = normalize(
-        [...cv.skills, ...cv.tools].join(" ")
-      );
-      return !target.includes(normalize(term));
-    })
-    .slice(0, 3);
-
-  const gaps = buildGapSuggestions(missingTerms, cv);
-  const transferable = gaps.filter((g) => g.status === "transferable");
-
-  // Cross-domain experience: if user has both frontend and backend, or tech and business
-  const hasVerifiedTerm = (terms: string[]) =>
-    [...cv.skills, ...cv.tools].some((skill) =>
-      terms.some((term) => termsAreEquivalent(skill, term))
-    );
-  const hasFullStack =
-    hasVerifiedTerm(["React", "Next.js", "CSS", "Frontend"]) &&
-    hasVerifiedTerm(["Java", "Spring Boot", "SQL", "Backend", "REST API"]);
-
-  if (language === "danish") {
-    if (transferable.length > 0) {
-      const t = transferable[0];
-      return `Ud over mine kernekompetencer har jeg erfaring med ${t.relatedVerified?.slice(0, 2).join(" og ") ?? "relaterede teknologier"}, som giver et solidt fundament for hurtigt at lære nye værktøjer. ${hasFullStack ? "Min erfaring på tværs af frontend og backend styrker samarbejdet med både designere og driftsteams." : ""}`;
-    }
-    if (hasFullStack) {
-      return "Min tværgående erfaring med både frontend og backend giver mig et helhedsperspektiv, der styrker samarbejdet med hele teamet — fra UX-design til drift.";
-    }
-    return relevantRole
-      ? `Den erfaring, jeg har opbygget som ${relevantRole.title} hos ${relevantRole.company}, giver mig et unikt perspektiv, som jeg vil bringe med ind i rollen.`
-      : "Min kombination af teknisk baggrund og forretningsforståelse giver mig et unikt perspektiv på denne rolle.";
+  const keywords = jobKeywords(job);
+  const project = (cv.projects ?? [])
+    .map((item, index) => ({
+      item,
+      index,
+      score: relevanceScore(`${item.name} ${item.description}`, keywords),
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.item;
+  if (project) {
+    const name = boundedSourceText(project.name, 8);
+    const description = stripFinalPunctuation(boundedSourceText(project.description, 25));
+    return language === "danish"
+      ? `Som et yderligere verificeret bidrag har jeg gennemført projektet ${name}. Mit verificerede CV beskriver projektet sådan: “${description}”.`
+      : `As a further verified contribution, I completed the ${name} project. My verified CV describes the project as follows: “${description}”.`;
   }
 
-  if (transferable.length > 0) {
-    const t = transferable[0];
-    return `Beyond my core skills, my experience with ${t.relatedVerified?.slice(0, 2).join(" and ") ?? "related technologies"} provides a solid foundation for learning new tools quickly. ${hasFullStack ? "Working across the full stack strengthens my collaboration with design and operations teams." : ""}`;
+  const secondRole = cv.experience
+    .filter((entry) => entry.id !== primaryRole?.id)
+    .map((item, index) => ({
+      item,
+      index,
+      score: relevanceScore(`${item.title} ${item.bullets.join(" ")}`, keywords),
+    }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.item;
+  if (secondRole) {
+    const bullet = bestBullets(secondRole, job, 1)[0];
+    const clause = bullet ? asFirstPersonClause(bullet, language) : "";
+    const detail = clause
+      ? language === "danish" ? ` Jeg ${clause}.` : ` I ${clause}.`
+      : "";
+    const title = boundedSourceText(secondRole.title, 8);
+    const company = boundedSourceText(secondRole.company, 8);
+    return language === "danish"
+      ? `Min erfaring som ${title} hos ${company} er et særskilt bidrag.${detail}`
+      : `My experience as ${title} at ${company} is a distinct contribution.${detail}`;
   }
-  if (hasFullStack) {
-    return "Working across both frontend and backend gives me a holistic perspective that strengthens collaboration with the entire team — from UX design to operations.";
-  }
-  return relevantRole
-    ? `The experience I built as ${relevantRole.title} at ${relevantRole.company} gives me a unique perspective that I would bring to this role.`
-    : "My combination of technical background and business understanding gives me a unique perspective on this role.";
+
+  const terms = verifiedJobTerms(cv, job);
+  const verified = terms.length ? terms : [...cv.skills, ...cv.tools].slice(0, 3);
+  return language === "danish"
+    ? `Et yderligere verificeret bidrag er mine kompetencer inden for ${joinTerms(verified, language)}.`
+    : `A further verified contribution is my experience with ${joinTerms(verified, language)}.`;
+}
+
+function colleagueContribution(cv: MasterCV, language: CvLanguage): string {
+  const strengths = asMotivationClause(
+    cv.professionalSummary.personalStrengths,
+    language
+  );
+  return language === "danish"
+    ? `Som kollega bidrager jeg med det, der er dokumenteret i mit CV: ${strengths}.`
+    : `As a colleague, I contribute what is documented in my CV: ${strengths}.`;
+}
+
+function interviewClosing(job: ParsedJob, language: CvLanguage): string {
+  const company = displayValue(
+    job.company,
+    language === "danish" ? "jeres organisation" : "your organization"
+  );
+  const title = displayValue(
+    job.title,
+    language === "danish" ? "den ledige rolle" : "the open role"
+  );
+  return language === "danish"
+    ? `Jeg vil sætte pris på en samtale om, hvordan min verificerede erfaring kan bidrage i stillingen som ${title} hos ${company}.`
+    : `I would welcome an interview to discuss how my verified experience can contribute in the ${title} role at ${company}.`;
 }
 
 export function generateCoverLetter(
@@ -360,24 +431,19 @@ export function generateCoverLetter(
   language: CvLanguage = "english"
 ): GeneratedCoverLetter {
   const relevantRole = bestExperience(cv, job);
-  const quantifiedBullet = relevantRole
-    ? bestQuantifiedBullet(relevantRole, job)
-    : undefined;
+  const headline = buildCoverLetterHeadline(cv, job, language);
+  const paragraphs = [
+    buildCoverLetterMotivation(cv, job, language),
+    primaryContribution(relevantRole, job, language),
+    secondaryContribution(cv, job, relevantRole, language),
+    colleagueContribution(cv, language),
+    interviewClosing(job, language),
+  ];
 
   if (language === "danish") {
     const company = displayValue(job.company, "jeres organisation");
-    const companyReference =
-      company === "jeres organisation" ? "jeres team" : `${company}-teamet`;
-    const evidence = roleEvidence(relevantRole, job, language);
-    const paragraphs = [
-      buildCoverLetterMotivation(cv, job, language),
-      evidence +
-        quantifiedEvidenceSuffix(evidence, quantifiedBullet, language) +
-        ` ${uniqueValueParagraph(cv, job, relevantRole, language)}`,
-      `Jeg vil sætte pris på muligheden for at høre mere om ${companyReference}s behov i rollen og fortælle, hvordan jeg kan bidrage. Jeg er tilgængelig for en samtale, når det passer jer.`,
-    ];
-
     return {
+      headline,
       greeting:
         company === "jeres organisation"
           ? "Kære rekrutteringsteam,"
@@ -389,18 +455,8 @@ export function generateCoverLetter(
   }
 
   const company = displayValue(job.company, "your organization");
-  const companyReference =
-    company === "your organization" ? "your team" : company;
-  const evidence = roleEvidence(relevantRole, job, language);
-  const paragraphs = [
-    buildCoverLetterMotivation(cv, job, language),
-    evidence +
-      quantifiedEvidenceSuffix(evidence, quantifiedBullet, language) +
-      ` ${uniqueValueParagraph(cv, job, relevantRole, language)}`,
-    `I would welcome the opportunity to discuss how my experience can contribute to ${companyReference}. I am available for a conversation at your convenience. Thank you for considering my application.`,
-  ];
-
   return {
+    headline,
     greeting:
       company === "your organization"
         ? "Dear Hiring Team,"

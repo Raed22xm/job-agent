@@ -111,6 +111,7 @@ export const GeneratedCVSchema = z.object({
 });
 
 export const GeneratedCoverLetterSchema = z.object({
+  headline: z.string(),
   greeting: z.string(),
   paragraphs: z.array(z.string()),
   closing: z.string(),

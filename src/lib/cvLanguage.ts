@@ -44,10 +44,28 @@ export const CV_SECTION_LABELS: Record<
 
 export const COVER_LETTER_LABELS: Record<
   CvLanguage,
-  { motivation: string; evidence: string }
+  {
+    motivation: string;
+    valueOne: string;
+    valueTwo: string;
+    colleague: string;
+    closing: string;
+  }
 > = {
-  danish: { motivation: "Motivation", evidence: "Relevant erfaring og bidrag" },
-  english: { motivation: "Motivation", evidence: "Relevant experience and contribution" },
+  danish: {
+    motivation: "Motivation",
+    valueOne: "Mit bidrag",
+    valueTwo: "Yderligere værdi",
+    colleague: "Mit bidrag som kollega",
+    closing: "Lad os tale om stillingen",
+  },
+  english: {
+    motivation: "Motivation",
+    valueOne: "Value I bring",
+    valueTwo: "Further contribution",
+    colleague: "Contribution as a colleague",
+    closing: "Let’s discuss the role",
+  },
 };
 
 export function coverLetterHeadline(
@@ -58,6 +76,17 @@ export function coverLetterHeadline(
   return language === "danish"
     ? `Ansøgning — ${title} hos ${company}`
     : `Application — ${title} at ${company}`;
+}
+
+export function coverLetterSectionLabels(language: CvLanguage): string[] {
+  const labels = COVER_LETTER_LABELS[language];
+  return [
+    labels.motivation,
+    labels.valueOne,
+    labels.valueTwo,
+    labels.colleague,
+    labels.closing,
+  ];
 }
 
 export function personaIdToLanguage(personaId?: string): CvLanguage {

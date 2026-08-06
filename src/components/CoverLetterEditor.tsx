@@ -50,6 +50,22 @@ export default function CoverLetterEditor({
       <div className="space-y-5 px-6 py-5">
         <div>
           <label
+            htmlFor="letter-headline"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-foreground-secondary dark:text-foreground-tertiary"
+          >
+            {language === "danish" ? "Overskrift" : "Headline"}
+          </label>
+          <input
+            id="letter-headline"
+            type="text"
+            value={letter.headline}
+            onChange={(e) => updateField("headline", e.target.value)}
+            className="field-input"
+          />
+        </div>
+
+        <div>
+          <label
             htmlFor="letter-greeting"
             className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-foreground-secondary dark:text-foreground-tertiary"
           >
@@ -85,8 +101,8 @@ export default function CoverLetterEditor({
           </p>
           <p className="mt-1 text-xs text-foreground-secondary dark:text-foreground-tertiary">
             {language === "danish"
-              ? "Motivationsafsnit: åbning → hvorfor denne stilling → hvorfor dens opgaver. Brug kun fakta fra opslaget og det verificerede CV."
-              : "Motivation paragraph: opening → why this position → why its tasks. Use only facts from the posting and verified CV."}
+              ? "Fem afsnit: motivation → mit bidrag → yderligere værdi → bidrag som kollega → samtale. Uverificerede arbejdsgiverfakta eller CV-påstande blokerer eksport."
+              : "Five sections: motivation → value I bring → further contribution → colleague contribution → interview. Unverified employer or CV claims block export."}
           </p>
         </div>
 

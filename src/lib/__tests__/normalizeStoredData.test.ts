@@ -125,11 +125,24 @@ describe("normalizeStoredData", () => {
 
       const result = normalizeGeneratedCoverLetter(input);
       expect(result).toEqual({
+        headline: "",
         greeting: "Dear Hiring Manager",
         paragraphs: ["P1", "P2"],
         closing: "Sincerely",
         signature: "John Doe",
       });
+    });
+
+    it("preserves a stored cover-letter headline", () => {
+      const result = normalizeGeneratedCoverLetter({
+        headline: "React for the Developer role at Acme",
+        greeting: "Dear Acme team,",
+        paragraphs: ["P1", "P2", "P3", "P4", "P5"],
+        closing: "Sincerely,",
+        signature: "John Doe",
+      });
+
+      expect(result?.headline).toBe("React for the Developer role at Acme");
     });
   });
 

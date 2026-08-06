@@ -85,11 +85,13 @@ describe("human-sounding application prompt contracts", () => {
     expect(prompt).toMatch(/anecdote|personal stor/);
     expect(prompt).toMatch(/motivation|emotion|feeling|enthusiasm/);
     expect(prompt).toMatch(/verified|master cv/);
-    expect(prompt).toMatch(/3 paragraphs|three paragraphs/);
+    expect(prompt).toMatch(/exactly 5 paragraphs|five paragraphs/);
+    expect(prompt).toMatch(/no more than 400 words|under 400 words/);
     expect(prompt).toMatch(/same language/);
     expect(prompt).toMatch(/position.*company.*motivat.*actual listed responsibility/s);
     expect(prompt).toMatch(/parsed job.*master cv/s);
     expect(prompt).toMatch(/no external company knowledge|company research/);
-    expect(prompt).toMatch(/unsupported requirement/);
+    expect(prompt).toMatch(/headline.*motivation.*value i bring.*further contribution.*colleague.*interview closing/s);
+    expect(prompt).toMatch(/employer culture|mission|reputation/);
   });
 });

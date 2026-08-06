@@ -178,7 +178,7 @@ export default function CoverLetterPage() {
               !validation
                 ? "Checking cover letter validation before export."
                 : !validation.valid
-                  ? "Restore the verified motivation paragraph before exporting."
+                  ? "Restore the verified canonical cover letter before exporting."
                   : undefined
             }
             onExportPdf={async () => {

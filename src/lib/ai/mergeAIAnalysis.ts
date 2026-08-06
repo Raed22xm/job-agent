@@ -7,7 +7,6 @@ import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import { matchCV } from "@/lib/matchCV";
 import type { AnalyzeJobResult } from "@/lib/analyzeJobLocal";
 import type {
-  GeneratedCoverLetter,
   GeneratedCV,
   MasterCV,
   MatchResult,
@@ -151,7 +150,7 @@ export function mergeAIEnhancement(
     match
   );
 
-  const generatedCoverLetter: GeneratedCoverLetter = generateCoverLetter(
+  const generatedCoverLetter = generateCoverLetter(
     cv,
     job,
     language

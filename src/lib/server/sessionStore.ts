@@ -109,6 +109,7 @@ const GeneratedCVSchema = z.object({
 });
 
 const GeneratedCoverLetterSchema = z.object({
+  headline: text.default(""),
   greeting: text,
   paragraphs: z.array(longText).max(MAX_LIST_ITEMS),
   closing: text,

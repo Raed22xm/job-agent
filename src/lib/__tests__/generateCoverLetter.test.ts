@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCoverLetterHeadline,
   buildCoverLetterMotivation,
+  coverLetterWordCount,
   generateCoverLetter,
+  MAX_COVER_LETTER_WORDS,
 } from "@/lib/generateCoverLetter";
 import type { MasterCV, ParsedJob } from "@/types";
 import { getPersona } from "@/lib/personaManager";
@@ -49,13 +52,17 @@ const TARGET_JOB: ParsedJob = {
     "Northstar Labs seeks a Product Engineer with React and Kubernetes experience.",
 };
 
-function expectGroundedThreeParagraphLetter(
-  paragraphs: string[],
+function expectGroundedFiveSectionLetter(
+  result: ReturnType<typeof generateCoverLetter>,
   stockOpening: string
 ): void {
-  expect(paragraphs).toHaveLength(3);
+  const { headline, paragraphs } = result;
+  expect(headline).toContain(TARGET_JOB.title);
+  expect(headline).toContain(TARGET_JOB.company);
+  expect(headline.toLowerCase()).toContain("react");
+  expect(headline.toLowerCase()).not.toContain("kubernetes");
+  expect(paragraphs).toHaveLength(5);
   expect(paragraphs.every((paragraph) => paragraph.trim().length > 0)).toBe(true);
-  expect(paragraphs.every((paragraph) => paragraph.length <= 450)).toBe(true);
 
   const letter = paragraphs.join("\n").toLowerCase();
   expect(letter).not.toContain(stockOpening.toLowerCase());
@@ -63,14 +70,20 @@ function expectGroundedThreeParagraphLetter(
   expect(letter).toContain(TARGET_JOB.company.toLowerCase());
   expect(letter).toMatch(/react|typescript|accessibility|frontend developer|verified studio/);
   expect(letter).not.toContain("kubernetes");
+  expect(paragraphs[0]).toContain(VERIFIED_CV.professionalSummary.professionalMotivation.toLowerCase());
+  expect(paragraphs[1]).toContain("Verified Studio");
+  expect(paragraphs[2]).not.toBe(paragraphs[1]);
+  expect(paragraphs[3].toLowerCase()).toContain("verified personal strengths");
+  expect(paragraphs[4]).toContain(TARGET_JOB.title);
+  expect(paragraphs[4]).toContain(TARGET_JOB.company);
 }
 
 describe("generateCoverLetter", () => {
   it("creates a concise, grounded English draft without a stock AI opening", () => {
     const result = generateCoverLetter(VERIFIED_CV, TARGET_JOB, "english");
 
-    expectGroundedThreeParagraphLetter(
-      result.paragraphs,
+    expectGroundedFiveSectionLetter(
+      result,
       "I am writing to express my interest"
     );
   });
@@ -78,11 +91,68 @@ describe("generateCoverLetter", () => {
   it("creates a concise, grounded Danish draft without a stock AI opening", () => {
     const result = generateCoverLetter(VERIFIED_CV, TARGET_JOB, "danish");
 
-    expectGroundedThreeParagraphLetter(
-      result.paragraphs,
+    expectGroundedFiveSectionLetter(
+      result,
       "Jeg skriver for at udtrykke min interesse"
     );
   });
+
+  it.each(["english", "danish"] as const)(
+    "keeps the complete %s letter within 400 words for an unusually long responsibility",
+    (language) => {
+      const cv = getPersona(language);
+      expect(cv).not.toBeNull();
+      if (!cv) throw new Error(`Missing ${language} persona`);
+      const longResponsibility = Array.from(
+        { length: 45 },
+        () => "Build accessible React products with verified delivery practices"
+      ).join(" ");
+      const letter = generateCoverLetter(
+        cv,
+        { ...TARGET_JOB, responsibilities: [longResponsibility] },
+        language
+      );
+
+      expect(coverLetterWordCount(letter)).toBeLessThanOrEqual(
+        MAX_COVER_LETTER_WORDS
+      );
+      expect(letter.paragraphs[0]).toContain("…");
+      expect(letter.paragraphs[0]).toContain("React");
+    }
+  );
+
+  it.each([
+    ["english", /\. I [a-z]/],
+    ["danish", /\. Jeg [a-zæøå]/],
+  ] as const)(
+    "turns secondary-role evidence into grammatical first-person %s prose",
+    (language, evidencePattern) => {
+      const cv = getPersona(language);
+      expect(cv).not.toBeNull();
+      if (!cv) throw new Error(`Missing ${language} persona`);
+
+      const paragraph = generateCoverLetter(cv, TARGET_JOB, language).paragraphs[2];
+
+      expect(paragraph).toMatch(evidencePattern);
+    }
+  );
+
+  it.each(["english", "danish"] as const)(
+    "introduces a verified project description as a complete %s sentence",
+    (language) => {
+      const cv: MasterCV = {
+        ...VERIFIED_CV,
+        projects: [{ id: "project-1", name: "Access Lab", description: "Built accessible React prototypes" }],
+      };
+
+      const paragraph = generateCoverLetter(cv, TARGET_JOB, language).paragraphs[2];
+
+      expect(paragraph).toContain("“Built accessible React prototypes”.");
+      expect(paragraph).toMatch(
+        language === "danish" ? /Mit verificerede CV beskriver/ : /My verified CV describes/
+      );
+    }
+  );
 
   it.each(["english", "danish"] as const)(
     "does not repeat a quantified achievement in %s evidence",
@@ -109,6 +179,15 @@ describe("generateCoverLetter", () => {
       expect(evidence.match(/40%/g)).toHaveLength(1);
     }
   );
+
+  it("builds a factual headline from job and verified CV overlap only", () => {
+    const headline = buildCoverLetterHeadline(VERIFIED_CV, TARGET_JOB, "english");
+
+    expect(headline).toContain("Product Engineer");
+    expect(headline).toContain("Northstar Labs");
+    expect(headline).toContain("React");
+    expect(headline).not.toContain("Kubernetes");
+  });
 
   it.each(["english", "danish"] as const)(
     "orders verified position, motivation, and task content in %s",

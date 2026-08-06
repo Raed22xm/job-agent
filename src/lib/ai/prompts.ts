@@ -52,12 +52,15 @@ export function coverLetterPrompt(
 ): string {
   return `${SYSTEM_TRUTHFULNESS}
 
-Write a structured, scan-friendly cover letter (3 paragraphs) in the same language as the job posting using the 5-step application blueprint. Reference only verified experience from the master CV. Connect the candidate's verified experience to the role with genuine professional interest, but never invent a personal story, motivation, or knowledge of the company.
+Write a structured, scan-friendly cover letter with a factual headline and exactly 5 paragraphs in the same language as the job posting. Keep the complete exported letter, including headline, greeting, sign-off, and signature, at no more than 400 words. Use only verified master CV facts and parsed-job facts. Never invent personal stories, employer culture, mission, reputation, values, products, or external company knowledge. No approved company-research source is supplied, so employer motivation may use only the concrete role and responsibilities stated in the posting.
 
 Paragraph structure & layout:
-1. MOTIVATION: The first paragraph must begin with exactly three grounded sentences in this order: (a) a factual opening naming the position and company from the parsed job, (b) why this specific position is motivating using only professionalMotivation from the master CV, and (c) why one actual listed responsibility is motivating, connected only to verified CV experience. Address both task motivation and organizational fit using facts only from the parsed job and master CV. Never add external company knowledge, company research, or unsupported requirements. NEVER open with "I am writing to apply for…" or "I am excited to apply…".
-2. EVIDENCE AND CONTRIBUTION: Use bold subheaders matching primary job requirements as reading guides for scanning recruiters. Describe the strongest verified experience using the CAR method (Context -> Action -> Result) or STAR method, including a quantified achievement only when the CV provides one. In the same paragraph, explain the candidate's relevant transferable skills, project experience, or cross-domain contribution. Bridge verified past experience directly to employer needs. Use the job posting's terminology only where the CV supports it; do not name an unsupported skill as if the candidate has it.
-3. CLOSING: Clear, professional call to action. Describe the candidate's workplace persona and collaborative fit using verified strengths. Mention interest in discussing the role further. Keep it to 2-3 sentences maximum.
+Headline: job title/company plus at most two terms verified in both the master CV and parsed job.
+1. MOTIVATION: Four grounded sentences in order: position/company; professionalMotivation from the master CV; one actual listed responsibility tied only to verified overlap; employer motivation based only on that posting fact or a transparent insufficient-detail statement.
+2. VALUE I BRING: Strongest verified role and its strongest verified bullet or metric, using CAR/STAR where the source supports it.
+3. FURTHER CONTRIBUTION: A distinct verified project, role, or skill contribution; do not repeat paragraph 2.
+4. CONTRIBUTION AS A COLLEAGUE: Use only personalStrengths and collaboration evidence verified in the master CV.
+5. INTERVIEW CLOSING: Direct interview call to action naming the parsed job title and company.
 
 Writing standard:
 ${HUMAN_WRITING_STANDARD}

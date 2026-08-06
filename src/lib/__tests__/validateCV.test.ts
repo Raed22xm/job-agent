@@ -129,10 +129,34 @@ describe("validateCoverLetter", () => {
     rawText: "Frontend Developer at Acme building React applications.",
   };
 
-  it("passes a canonical three-part motivation paragraph", () => {
+  it("passes the canonical headline and five-section cover letter", () => {
     const letter = generateCoverLetter(TEST_CV, job, "english");
 
     expect(validateCoverLetter(letter, TEST_CV, job, "english").valid).toBe(true);
+  });
+
+  it("rejects an unverified rewritten headline", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter.headline = "Award-winning Kubernetes leader for Acme";
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "headline", severity: "error" })
+    );
+  });
+
+  it("rejects a complete exported letter over 400 words", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter.paragraphs[2] = `${letter.paragraphs[2]} ${"verified ".repeat(401)}`;
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "wordCount", severity: "error" })
+    );
   });
 
   it.each(["delete", "reorder", "rewrite"])(
@@ -157,7 +181,7 @@ describe("validateCoverLetter", () => {
     }
   );
 
-  it("rejects letters with fewer than three paragraphs", () => {
+  it("rejects letters with fewer than five paragraphs", () => {
     const letter = generateCoverLetter(TEST_CV, job, "english");
     letter.paragraphs = letter.paragraphs.slice(0, 2);
 
@@ -169,7 +193,7 @@ describe("validateCoverLetter", () => {
     );
   });
 
-  it("rejects an appended fourth paragraph", () => {
+  it("rejects an appended sixth paragraph", () => {
     const letter = generateCoverLetter(TEST_CV, job, "english");
     letter.paragraphs.push(
       "I increased revenue by 300% while leading a global team."
@@ -224,7 +248,7 @@ describe("validateCoverLetter", () => {
 
     expect(result.valid).toBe(false);
     expect(result.issues).toContainEqual(
-      expect.objectContaining({ field: "evidence", severity: "error" })
+      expect.objectContaining({ field: "valueContribution.1", severity: "error" })
     );
   });
 

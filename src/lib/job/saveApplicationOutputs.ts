@@ -79,7 +79,7 @@ export function formatCoverLetterMarkdown(
 ): string {
   const date = savedAt.toISOString().slice(0, 10);
 
-  return `# Cover Letter — ${title} at ${company}
+  return `# ${letter.headline || `Cover Letter — ${title} at ${company}`}
 
 **Date saved:** ${date}
 

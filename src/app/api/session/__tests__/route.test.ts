@@ -62,6 +62,32 @@ describe("PUT /api/session", () => {
     });
   });
 
+  it("restores a safe empty headline for legacy stored cover letters", async () => {
+    const legacyLetter = {
+      greeting: "Dear Acme team,",
+      paragraphs: ["One", "Two", "Three"],
+      closing: "Sincerely,",
+      signature: "Test User",
+    };
+    const response = await PUT(
+      putRequest(
+        JSON.stringify({
+          ...validPayload,
+          generatedCoverLetter: legacyLetter,
+          originalCoverLetter: legacyLetter,
+        })
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(writeSessionToDisk).toHaveBeenCalledWith(
+      expect.objectContaining({
+        generatedCoverLetter: expect.objectContaining({ headline: "" }),
+        originalCoverLetter: expect.objectContaining({ headline: "" }),
+      })
+    );
+  });
+
   it("rejects malformed JSON without writing", async () => {
     const response = await PUT(putRequest("{"));
 

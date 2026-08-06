@@ -77,7 +77,7 @@ Rules:
 - recommendedFocusAreas: 4-8 actionable bullets; never suggest adding unverified skills
 - cvSummary: preserve all four supplied professionalSummary elements unchanged and in this exact order: professionalBackground, professionalMotivation, coreCompetencies, personalStrengths; never invent, rewrite, or omit an element
 - skillOrder: reorder ALL master CV skills by job relevance — same skills only, no additions or removals
-- coverLetter: concise 3-paragraph letter using ONLY verified experience; paragraph 1 starts with position/company from the parsed job, then motivation from master CV professionalMotivation, then motivation for one actual listed responsibility connected only to verified CV experience; no external company knowledge or unsupported requirements; match job posting language
+- coverLetter: verified-overlap headline plus exactly 5 paragraphs in order: four-part motivation, strongest verified value, distinct second verified value, verified colleague contribution, direct interview close; employer motivation may use only parsed posting facts because no approved company-research source is supplied; no external company knowledge or unsupported requirements; match job posting language
 
 Human writing standard:
 ${HUMAN_WRITING_STANDARD}

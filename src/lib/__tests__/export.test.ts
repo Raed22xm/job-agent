@@ -3,7 +3,7 @@ import {
   buildExportBasename,
   sanitizeFilenamePart,
 } from "@/lib/export/download";
-import { coverLetterHeadline, COVER_LETTER_LABELS } from "@/lib/cvLanguage";
+import { coverLetterHeadline, coverLetterSectionLabels } from "@/lib/cvLanguage";
 import { formatLanguages } from "@/lib/export/exportCV";
 
 describe("export filenames", () => {
@@ -33,9 +33,14 @@ describe("localized export content", () => {
     expect(coverLetterHeadline("Acme", "Ingeniør", "danish")).toBe(
       "Ansøgning — Ingeniør hos Acme"
     );
-    expect(COVER_LETTER_LABELS.danish.evidence).toBe(
-      "Relevant erfaring og bidrag"
-    );
+    expect(coverLetterSectionLabels("danish")).toEqual([
+      "Motivation",
+      "Mit bidrag",
+      "Yderligere værdi",
+      "Mit bidrag som kollega",
+      "Lad os tale om stillingen",
+    ]);
+    expect(coverLetterSectionLabels("english")).toHaveLength(5);
   });
 
   it("formats verified CV language metadata", () => {

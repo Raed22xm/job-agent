@@ -176,6 +176,7 @@ describe("AIJobEnhancement shape", () => {
       cvSummary: "React developer.",
       skillOrder: ["React", "JavaScript"],
       coverLetter: {
+        headline: "React for the Developer role at Acme",
         greeting: "Dear Hiring Manager,",
         paragraphs: ["Paragraph one."],
         closing: "Sincerely,",
@@ -206,6 +207,7 @@ describe("AIJobEnhancement shape", () => {
       cvSummary: "Frontend developer with verified React experience.",
       skillOrder: ["React", "JavaScript", "Unverified AI Skill"],
       coverLetter: {
+        headline: "Award-winning leader for Acme's famous mission",
         greeting: "Dear Hiring Manager,",
         paragraphs: [
           "Acme is an amazing market leader whose mission has always inspired me.",
@@ -227,6 +229,10 @@ describe("AIJobEnhancement shape", () => {
     expect(merged.generatedCoverLetter.signature).toBe(
       TEST_CV.personalInfo.fullName
     );
+    expect(merged.generatedCoverLetter).toEqual(
+      generateCoverLetter(TEST_CV, merged.job, "english")
+    );
+    expect(merged.generatedCoverLetter.headline).not.toContain("Award-winning");
     expect(merged.generatedCoverLetter.paragraphs[0]).toBe(
       buildCoverLetterMotivation(TEST_CV, merged.job, "english")
     );

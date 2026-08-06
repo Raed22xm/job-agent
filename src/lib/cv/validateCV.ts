@@ -7,8 +7,9 @@ import {
 } from "@/lib/jobDictionaries";
 import { buildProfessionalSummary } from "@/lib/generateCV";
 import {
-  buildCoverLetterMotivation,
+  coverLetterWordCount,
   generateCoverLetter,
+  MAX_COVER_LETTER_WORDS,
 } from "@/lib/generateCoverLetter";
 import type { CvLanguage } from "@/lib/cvLanguage";
 import type {
@@ -203,38 +204,45 @@ export function validateCoverLetter(
 
   const canonicalLetter = generateCoverLetter(master, job, language);
 
-  if (letter.paragraphs.length !== 3) {
+  if (coverLetterWordCount(letter) > MAX_COVER_LETTER_WORDS) {
+    issues.push({
+      field: "wordCount",
+      message: `Cover letter must contain no more than ${MAX_COVER_LETTER_WORDS} words in total.`,
+      severity: "error",
+    });
+  }
+
+  if (!letter.headline.trim() || letter.headline !== canonicalLetter.headline) {
+    issues.push({
+      field: "headline",
+      message: "Headline must preserve the verified job and CV overlap.",
+      severity: "error",
+    });
+  }
+
+  if (letter.paragraphs.length !== 5) {
     issues.push({
       field: "paragraphs",
-      message: "Cover letter must contain exactly motivation, evidence, and closing paragraphs.",
+      message: "Cover letter must contain exactly five canonical AKA sections.",
       severity: "error",
     });
   }
 
-  if (letter.paragraphs[0] !== buildCoverLetterMotivation(master, job, language)) {
-    issues.push({
-      field: "motivation",
-      message:
-        "Motivation must preserve the verified position, professional motivation, and listed-task structure.",
-      severity: "error",
-    });
-  }
-
-  if (letter.paragraphs[1] !== canonicalLetter.paragraphs[1]) {
-    issues.push({
-      field: "evidence",
-      message:
-        "Evidence paragraph must preserve the verified experience generated from the master CV.",
-      severity: "error",
-    });
-  }
-  if (letter.paragraphs[2] !== canonicalLetter.paragraphs[2]) {
-    issues.push({
-      field: "closingParagraph",
-      message:
-        "Closing paragraph must preserve the verified, job-specific canonical wording.",
-      severity: "error",
-    });
+  const paragraphFields = [
+    "motivation",
+    "valueContribution.1",
+    "valueContribution.2",
+    "colleagueContribution",
+    "interviewClosing",
+  ];
+  for (const [index, field] of paragraphFields.entries()) {
+    if (letter.paragraphs[index] !== canonicalLetter.paragraphs[index]) {
+      issues.push({
+        field,
+        message: `Cover letter section ${index + 1} must preserve its verified canonical wording.`,
+        severity: "error",
+      });
+    }
   }
   if (letter.greeting !== canonicalLetter.greeting) {
     issues.push({
@@ -258,7 +266,10 @@ export function validateCoverLetter(
     });
   }
 
-  const evidenceText = letter.paragraphs.slice(1).join(" ");
+  // Only the contribution sections make evidence claims. The interview closing
+  // intentionally repeats the parsed job title and company and must not be
+  // mistaken for an unsupported CV skill or a former employer.
+  const evidenceText = letter.paragraphs.slice(1, 4).join(" ");
   const verifiedTerms = [...master.skills, ...master.tools];
   const verifiedClaimText = [
     ...Object.values(master.professionalSummary),

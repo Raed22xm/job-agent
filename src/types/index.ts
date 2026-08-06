@@ -121,11 +121,20 @@ export interface GeneratedCV {
 }
 
 export interface GeneratedCoverLetter {
+  headline: string;
   greeting: string;
   paragraphs: string[];
   closing: string;
   signature: string;
 }
+
+export const COVER_LETTER_PARAGRAPH_INDEX = {
+  motivation: 0,
+  valueOne: 1,
+  valueTwo: 2,
+  colleague: 3,
+  interviewClosing: 4,
+} as const;
 
 export type ApplicationStatus =
   | "draft"
