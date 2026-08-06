@@ -9,8 +9,30 @@ import {
 import { AppliedFeedbackSchema } from "@/lib/ai/schemas";
 import { getAIConfig, resolveOpenAIModel } from "@/lib/ai/providers";
 import { resolvePersonaId } from "@/lib/cvLanguage";
-import { buildProfessionalSummary } from "@/lib/generateCV";
+import {
+  buildProfessionalSummary,
+  findVerifiedQuantifiedAchievement,
+} from "@/lib/generateCV";
 import { getPersona } from "@/lib/personaManager";
+import type { Experience } from "@/types";
+
+function safeExperience(value: unknown): Experience[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((entry): entry is Experience => {
+    if (!entry || typeof entry !== "object") return false;
+    const item = entry as Partial<Experience>;
+    return (
+      typeof item.id === "string" &&
+      typeof item.company === "string" &&
+      typeof item.title === "string" &&
+      typeof item.location === "string" &&
+      typeof item.startDate === "string" &&
+      typeof item.endDate === "string" &&
+      Array.isArray(item.bullets) &&
+      item.bullets.every((bullet) => typeof bullet === "string")
+    );
+  });
+}
 
 function formatAIError(error: unknown): string {
   const raw = error instanceof Error ? error.message : "Apply feedback failed";
@@ -45,9 +67,23 @@ export async function POST(request: Request) {
         );
       }
 
+      const currentExperience = safeExperience(cv?.sections?.experience);
+      if (
+        /quantifiable|quantified|metric/i.test(String(feedbackItem.message)) &&
+        !findVerifiedQuantifiedAchievement(master, currentExperience)
+      ) {
+        return NextResponse.json(
+          {
+            error: "No verified quantified achievement is available in the current tailored experience. Add a real metric to the master CV before applying this fix.",
+            autoFixable: false,
+          },
+          { status: 422 }
+        );
+      }
+
       return NextResponse.json({
         updatedSection: "summary",
-        summary: buildProfessionalSummary(master),
+        summary: buildProfessionalSummary(master, currentExperience),
         skills: null,
         experience: null,
       });

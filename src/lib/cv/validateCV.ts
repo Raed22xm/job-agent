@@ -5,7 +5,7 @@ import {
   termAppearsInText,
   termsAreEquivalent,
 } from "@/lib/jobDictionaries";
-import { buildProfessionalSummary } from "@/lib/generateCV";
+import { verifiedProfessionalSummaryCandidates } from "@/lib/generateCV";
 import {
   coverLetterWordCount,
   generateCoverLetter,
@@ -170,11 +170,11 @@ export function validateGeneratedCV(
     }
   }
 
-  if (generated.sections.summary !== buildProfessionalSummary(master)) {
+  if (!verifiedProfessionalSummaryCandidates(master).includes(generated.sections.summary)) {
     issues.push({
       field: "summary",
       message:
-        "Professional summary must preserve all four verified elements in their canonical order.",
+        "Professional summary must preserve all four verified elements in canonical order and may include exactly one canonically formatted metric from a verified master-CV bullet.",
       severity: "error",
     });
   }

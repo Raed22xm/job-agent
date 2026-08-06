@@ -1,7 +1,56 @@
 import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
-import type { GeneratedCV, MasterCV, MatchResult, ParsedJob, Project } from "@/types";
+import type { Experience, GeneratedCV, MasterCV, MatchResult, ParsedJob, Project } from "@/types";
 
-export function buildProfessionalSummary(cv: MasterCV): string {
+function metricStrength(bullet: string): number {
+  const outcome = /%|procent|percent|reduc|increase|improv|save|spare|time|timer|uptime|oppetid|tilfredshed/iu;
+  const numericClaims = bullet.match(/\d+(?:[.,]\d+)?\s*(?:%|\+)?/gu)?.length ?? 0;
+  return (outcome.test(bullet) ? 100 : 0) + numericClaims;
+}
+
+export function isQuantifiedAchievement(bullet: string): boolean {
+  if (!/\d/u.test(bullet)) return false;
+  if (/\d+(?:[.,]\d+)?\s*%|\d+\s*\+/u.test(bullet)) return true;
+  if (/\b(reduc|increase|improv|save|spare|grew|growth|uptime|oppetid|tilfredshed|frafald|rapporteringstid)\p{L}*\b/iu.test(bullet)) {
+    return true;
+  }
+  if (/\d+(?:[.,]\d+)?\s*(?:hours?|timer|min(?:utes?|utter)?|seconds?|sekunder?|days?|dage|weeks?|uger|months?|måneder|years?|år|dkk|kr\.?|eur|usd)\b/iu.test(bullet)) {
+    return true;
+  }
+  const deliveredCount = /\d+\s+(?:[\p{L}/&-]+\s+){0,3}(?:dashboards?|endpoints?|shipments?|forsendelser|interviews?|workshops?|projects?|projekter|users?|brugere|customers?|kunder|reports?|rapporter|features?|tests?|deployments?|releases?|teams?|countries|lande)\b/iu;
+  return deliveredCount.test(bullet);
+}
+
+export function findVerifiedQuantifiedAchievement(
+  cv: MasterCV,
+  experience: Experience[]
+): string | null {
+  const verifiedById = new Map(
+    cv.experience.map((entry) => [entry.id, new Set(entry.bullets.map((bullet) => bullet.trim()))])
+  );
+  for (const entry of experience) {
+    const verified = verifiedById.get(entry.id);
+    if (!verified) continue;
+    const candidates = entry.bullets
+      .map((bullet, index) => ({ bullet: bullet.trim(), index }))
+      .filter(({ bullet }) => isQuantifiedAchievement(bullet) && verified.has(bullet))
+      .sort((a, b) => metricStrength(b.bullet) - metricStrength(a.bullet) || a.index - b.index);
+    if (candidates[0]) return candidates[0].bullet;
+  }
+  return null;
+}
+
+export function buildProfessionalSummary(
+  cv: MasterCV,
+  experience: Experience[] = []
+): string {
+  const achievement = findVerifiedQuantifiedAchievement(cv, experience);
+  return buildSummaryWithAchievement(cv, achievement);
+}
+
+function buildSummaryWithAchievement(
+  cv: MasterCV,
+  achievement: string | null
+): string {
   const {
     professionalBackground,
     professionalMotivation,
@@ -9,7 +58,7 @@ export function buildProfessionalSummary(cv: MasterCV): string {
     personalStrengths,
   } = cv.professionalSummary;
 
-  return [
+  const baseSummary = [
     professionalBackground,
     professionalMotivation,
     coreCompetencies,
@@ -17,6 +66,30 @@ export function buildProfessionalSummary(cv: MasterCV): string {
   ]
     .map((element) => element.trim())
     .join(" ");
+  if (!achievement) return baseSummary;
+  const isDanish = /^Jeg\b/iu.test(professionalMotivation.trim());
+  const trimmedClaim = achievement.replace(/[.!?;:]+$/u, "").trim();
+  const withoutPronoun = isDanish
+    ? trimmedClaim.replace(/^Jeg\s+/iu, "")
+    : trimmedClaim.replace(/^I\s+/u, "");
+  const claim = /^[A-ZÆØÅ][a-zæøå]/u.test(withoutPronoun)
+    ? withoutPronoun.charAt(0).toLocaleLowerCase() + withoutPronoun.slice(1)
+    : withoutPronoun;
+  const achievementSentence = isDanish
+    ? `Et dokumenteret resultat fra min erfaring er, at jeg ${claim}.`
+    : `A verified result from my experience is that I ${claim}.`;
+  return `${baseSummary} ${achievementSentence}`;
+}
+
+export function verifiedProfessionalSummaryCandidates(cv: MasterCV): string[] {
+  const quantified = Array.from(new Set(
+    cv.experience.flatMap((entry) => entry.bullets)
+      .map((bullet) => bullet.trim())
+      .filter(isQuantifiedAchievement)
+  ));
+  return quantified.length > 0
+    ? quantified.map((bullet) => buildSummaryWithAchievement(cv, bullet))
+    : [buildSummaryWithAchievement(cv, null)];
 }
 
 /**
@@ -60,7 +133,7 @@ export function generateCV(
   return {
     sections: {
       header: cv.personalInfo,
-      summary: buildProfessionalSummary(cv),
+      summary: buildProfessionalSummary(cv, tailoredExperience),
       skills: prioritizedSkills,
       experience: tailoredExperience,
       education: cv.education,

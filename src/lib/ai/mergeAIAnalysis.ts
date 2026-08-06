@@ -110,7 +110,7 @@ export function mergeGeneratedCV(
   return {
     sections: {
       header: master.personalInfo,
-      summary: buildProfessionalSummary(master),
+      summary: buildProfessionalSummary(master, experience),
       skills,
       experience,
       education: master.education,

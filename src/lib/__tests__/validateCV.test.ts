@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateGeneratedCV, validateCoverLetter } from "@/lib/cv/validateCV";
-import { generateCV } from "@/lib/generateCV";
+import { buildProfessionalSummary, generateCV } from "@/lib/generateCV";
 import {
   buildCoverLetterMotivation,
   generateCoverLetter,
@@ -113,6 +113,124 @@ describe("validateGeneratedCV", () => {
         severity: "error",
       })
     );
+  });
+
+  it("requires the canonical verified metric selected from generated experience", () => {
+    const master: MasterCV = {
+      ...TEST_CV,
+      experience: [{
+        ...TEST_CV.experience[0],
+        bullets: ["Built React apps.", "Reduced reporting time by 30%."],
+      }],
+    };
+    const job = parseJob(
+      "Developer role building React applications and improving reporting workflows."
+    );
+    const generated = generateCV(master, job, matchCV(job, master));
+
+    expect(validateGeneratedCV(generated, master).valid).toBe(true);
+    generated.sections.summary = buildProfessionalSummary(master);
+
+    const result = validateGeneratedCV(generated, master);
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "summary", severity: "error" })
+    );
+  });
+
+  it("accepts a verified master-CV metric when its source role is not displayed", () => {
+    const metricRole = {
+      ...TEST_CV.experience[0],
+      id: "metric-role",
+      company: "BS Technologies",
+      bullets: ["Built 12+ Spring Boot endpoints with 99.9% uptime."],
+    };
+    const displayedRole = {
+      ...TEST_CV.experience[0],
+      id: "displayed-role",
+      company: "Novo Nordisk",
+      bullets: ["Built React apps."],
+    };
+    const master: MasterCV = {
+      ...TEST_CV,
+      experience: [metricRole, displayedRole],
+    };
+    const job = parseJob(
+      "Developer role building React applications and improving customer workflows."
+    );
+    const generated = generateCV(master, job, matchCV(job, master));
+    generated.sections.experience = [displayedRole];
+    generated.sections.summary = buildProfessionalSummary(master, [metricRole]);
+
+    expect(validateGeneratedCV(generated, master).valid).toBe(true);
+  });
+
+  it.each([
+    ["fabricated metric", "Built 12+ Spring Boot endpoints with 999% uptime."],
+    ["altered claim", "Increased revenue through 12+ endpoints with 99.9% uptime."],
+  ])("rejects a %s in the canonical achievement sentence", (_, bullet) => {
+    const master: MasterCV = {
+      ...TEST_CV,
+      experience: [{
+        ...TEST_CV.experience[0],
+        bullets: ["Built 12+ Spring Boot endpoints with 99.9% uptime."],
+      }],
+    };
+    const job = parseJob(
+      "Developer role building React applications and reliable Spring services."
+    );
+    const generated = generateCV(master, job, matchCV(job, master));
+    const canonicalPrefix = buildProfessionalSummary(master);
+    generated.sections.summary = `${canonicalPrefix} A verified result from my experience is that I ${bullet.charAt(0).toLowerCase()}${bullet.slice(1)}`;
+
+    const result = validateGeneratedCV(generated, master);
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "summary", severity: "error" })
+    );
+  });
+
+  it("rejects reordered four-part summary elements", () => {
+    const job = parseJob(
+      "Developer role requiring React and JavaScript experience for web applications."
+    );
+    const generated = generateCV(TEST_CV, job, matchCV(job, TEST_CV));
+    const parts = Object.values(TEST_CV.professionalSummary);
+    generated.sections.summary = [parts[1], parts[0], parts[2], parts[3]].join(" ");
+
+    expect(validateGeneratedCV(generated, TEST_CV).valid).toBe(false);
+  });
+
+  it("accepts the exact base summary when the master CV has no metric", () => {
+    const job = parseJob(
+      "Developer role requiring React and JavaScript experience for web applications."
+    );
+    const generated = generateCV(TEST_CV, job, matchCV(job, TEST_CV));
+
+    expect(generated.sections.summary).toBe(buildProfessionalSummary(TEST_CV));
+    expect(validateGeneratedCV(generated, TEST_CV).valid).toBe(true);
+  });
+
+  it.each([
+    ["english", "Used Python 3 and OAuth 2."],
+    ["danish", "Arbejdede med Python 3 og OAuth 2."],
+  ])("treats incidental %s version numbers as no metric", (language, bullet) => {
+    const master: MasterCV = {
+      ...TEST_CV,
+      professionalSummary: {
+        ...TEST_CV.professionalSummary,
+        professionalMotivation:
+          language === "danish" ? "Jeg bygger software." : "I build software.",
+      },
+      experience: [{ ...TEST_CV.experience[0], bullets: [bullet] }],
+    };
+    const job = parseJob(
+      "Developer role using Python and OAuth to build reliable customer applications."
+    );
+    const generated = generateCV(master, job, matchCV(job, master));
+
+    expect(generated.sections.summary).toBe(buildProfessionalSummary(master));
+    expect(validateGeneratedCV(generated, master).valid).toBe(true);
   });
 });
 

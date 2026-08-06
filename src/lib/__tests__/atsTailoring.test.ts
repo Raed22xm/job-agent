@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildProfessionalSummary, generateCV } from "@/lib/generateCV";
+import {
+  buildProfessionalSummary,
+  generateCV,
+  isQuantifiedAchievement,
+  verifiedProfessionalSummaryCandidates,
+} from "@/lib/generateCV";
 import { scoreCVKeywordCoverage } from "@/lib/cv/scoreCVKeywords";
+import { analyseCVFeedback } from "@/lib/cv/cvFeedback";
 import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import { matchCV } from "@/lib/matchCV";
 import { parseJob } from "@/lib/parseJob";
@@ -79,6 +85,24 @@ describe("tailorExperienceForJob", () => {
 });
 
 describe("generateCV", () => {
+  it.each([
+    "Built 12+ Spring Boot endpoints with 99.9% uptime.",
+    "Built 5 Power BI dashboards, reducing reporting time by 30%.",
+    "Processed 500+ shipments.",
+    "Conducted 25+ interviews.",
+    "Byggede 5 dashboards og reducerede tiden med 30 %.",
+  ])("recognizes a real quantified achievement: %s", (bullet) => {
+    expect(isQuantifiedAchievement(bullet)).toBe(true);
+  });
+
+  it.each([
+    "Used Python 3 and OAuth 2.",
+    "Arbejdede med Python 3 og OAuth 2.",
+    "Migrated to React 19.",
+  ])("rejects incidental technology version numbers: %s", (bullet) => {
+    expect(isQuantifiedAchievement(bullet)).toBe(false);
+  });
+
   it("reorders skills and experience for ATS without inventing content", () => {
     const job = parseJob(
       "React developer with TypeScript and Power BI experience required.",
@@ -118,12 +142,12 @@ describe("generateCV", () => {
     if (!persona) throw new Error(`Missing ${personaId} persona fixture`);
 
     const elements = Object.values(persona.professionalSummary);
-    const canonical = buildProfessionalSummary(persona);
     const job = parseJob(
       "Software developer role requiring React, TypeScript, Java, and UX experience.",
       "https://example.com/job"
     );
     const generated = generateCV(persona, job, matchCV(job, persona));
+    const canonical = buildProfessionalSummary(persona, generated.sections.experience);
 
     expect(elements.every((element) => element.trim().length > 0)).toBe(true);
     expect(generated.sections.summary).toBe(canonical);
@@ -134,7 +158,74 @@ describe("generateCV", () => {
       expect(index).toBeGreaterThan(previousIndex);
       previousIndex = index;
     }
+    expect(canonical).toMatch(/\d/);
+    expect(
+      analyseCVFeedback(generated).some((item) =>
+        item.message.includes("no quantifiable achievement")
+      )
+    ).toBe(false);
+    expect(canonical).toMatch(
+      personaId === "danish"
+        ? /Et dokumenteret resultat fra min erfaring er, at jeg [a-zæøå].*\d/
+        : /A verified result from my experience is that I [a-z].*\d/
+    );
+    const candidates = verifiedProfessionalSummaryCandidates(persona);
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.every((candidate) =>
+      personaId === "danish"
+        ? /Et dokumenteret resultat fra min erfaring er, at jeg [a-zæøå].*\d/u.test(candidate)
+        : /A verified result from my experience is that I [a-z].*\d/u.test(candidate)
+    )).toBe(true);
   });
+
+  it("preserves the base summary when no verified metric exists", () => {
+    const job = parseJob(
+      "React developer role building accessible web interfaces for customers.",
+      "https://example.com/job"
+    );
+    const generated = generateCV(TEST_CV, job, matchCV(job, TEST_CV));
+
+    expect(generated.sections.summary).toBe(buildProfessionalSummary(TEST_CV));
+  });
+
+  it("never copies a fabricated metric from generated experience", () => {
+    const master: MasterCV = {
+      ...TEST_CV,
+      experience: [{ ...TEST_CV.experience[0], bullets: ["Built React interfaces for customers."] }],
+    };
+    const generatedExperience = [{
+      ...master.experience[0],
+      bullets: ["Increased revenue by 999%."],
+    }];
+
+    const summary = buildProfessionalSummary(master, generatedExperience);
+
+    expect(summary).toBe(buildProfessionalSummary(master));
+    expect(summary).not.toContain("999%");
+  });
+
+  it.each([
+    ["english", "I reduced errors by 30%.", "that I reduced errors by 30%.", "I I"],
+    ["danish", "Jeg reducerede fejl med 30 %.", "at jeg reducerede fejl med 30 %.", "jeg jeg"],
+  ] as const)(
+    "does not duplicate an existing first-person pronoun in %s metrics",
+    (language, bullet, expected, duplicate) => {
+      const master: MasterCV = {
+        ...TEST_CV,
+        professionalSummary: {
+          ...TEST_CV.professionalSummary,
+          professionalMotivation:
+            language === "danish" ? "Jeg bygger software." : "I build software.",
+        },
+        experience: [{ ...TEST_CV.experience[0], bullets: [bullet] }],
+      };
+
+      const summary = buildProfessionalSummary(master, master.experience);
+
+      expect(summary).toContain(expected);
+      expect(summary.toLowerCase()).not.toContain(duplicate.toLowerCase());
+    }
+  );
 });
 
 describe("scoreCVKeywordCoverage", () => {
