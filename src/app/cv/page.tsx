@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { logger } from "@/lib/logger";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -34,7 +34,6 @@ export default function CVGeneratorPage() {
     resetGeneratedCV,
   } = useJobAgent();
 
-  const exportRef = useRef<HTMLElement>(null);
   const [validation, setValidation] = useState<CVValidationResult | null>(null);
   const [cvMeta, setCVMeta] = useState<CVMeta>({ languages: [], certifications: [] });
   const [preSendOpen, setPreSendOpen] = useState(false);
@@ -135,13 +134,6 @@ export default function CVGeneratorPage() {
     );
   }
 
-  const getExportElement = () => {
-    if (!exportRef.current) {
-      throw new Error("CV preview is not ready for export.");
-    }
-    return exportRef.current;
-  };
-
   const exportBlocked = !validation || !validation.valid;
 
   const handleExport = async (type: "pdf" | "docx") => {
@@ -149,9 +141,21 @@ export default function CVGeneratorPage() {
     setIsExporting(type);
     try {
       if (type === "pdf") {
-        await exportCVToPdf(generatedCV, parsedJob.company, parsedJob.title, cvLanguage);
+        await exportCVToPdf(
+          generatedCV,
+          parsedJob.company,
+          parsedJob.title,
+          cvLanguage,
+          cvMeta
+        );
       } else {
-        await exportCVToDocx(generatedCV, parsedJob.company, parsedJob.title, cvLanguage);
+        await exportCVToDocx(
+          generatedCV,
+          parsedJob.company,
+          parsedJob.title,
+          cvLanguage,
+          cvMeta
+        );
       }
       setPreSendOpen(false);
     } catch (err) {
@@ -170,7 +174,12 @@ export default function CVGeneratorPage() {
       const res = await fetch("/api/apply-feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cv: generatedCV, job: parsedJob, feedbackItem: item }),
+        body: JSON.stringify({
+          cv: generatedCV,
+          job: parsedJob,
+          feedbackItem: item,
+          personaId,
+        }),
       });
 
       if (!res.ok) {
@@ -301,7 +310,6 @@ export default function CVGeneratorPage() {
         />
         <CVPreview
           cv={generatedCV}
-          exportRef={exportRef}
           languages={cvMeta.languages}
           certifications={cvMeta.certifications}
           language={cvLanguage}

@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { validateGeneratedCV, validateCoverLetter } from "@/lib/cv/validateCV";
 import { generateCV } from "@/lib/generateCV";
+import {
+  buildCoverLetterMotivation,
+  generateCoverLetter,
+} from "@/lib/generateCoverLetter";
 import { matchCV } from "@/lib/matchCV";
 import { parseJob } from "@/lib/parseJob";
-import type { MasterCV } from "@/types";
+import type { MasterCV, ParsedJob } from "@/types";
 
 const TEST_CV: MasterCV = {
   personalInfo: {
@@ -12,6 +16,12 @@ const TEST_CV: MasterCV = {
     phone: "+45 00 00 00 00",
     location: "Copenhagen",
     summary: "Developer with React experience.",
+  },
+  professionalSummary: {
+    professionalBackground: "Verified professional background.",
+    professionalMotivation: "Verified professional motivation.",
+    coreCompetencies: "Verified core competencies.",
+    personalStrengths: "Verified personal strengths.",
   },
   skills: ["JavaScript", "React"],
   tools: ["Git"],
@@ -57,23 +67,175 @@ describe("validateGeneratedCV", () => {
       true
     );
   });
+
+  it.each(Object.keys(TEST_CV.professionalSummary))(
+    "rejects a generated summary that omits %s",
+    (field) => {
+      const job = parseJob(
+        `Developer\nAcme · Remote\n\nRequirements:\n- React and JavaScript experience`
+      );
+      const generated = generateCV(TEST_CV, job, matchCV(job, TEST_CV));
+      const omitted = TEST_CV.professionalSummary[
+        field as keyof typeof TEST_CV.professionalSummary
+      ];
+      generated.sections.summary = generated.sections.summary
+        .replace(omitted, "")
+        .trim();
+
+      const result = validateGeneratedCV(generated, TEST_CV);
+
+      expect(result.valid).toBe(false);
+      expect(result.issues).toContainEqual(
+        expect.objectContaining({ field: "summary", severity: "error" })
+      );
+    }
+  );
+
+  it("identifies a blank verified source element", () => {
+    const master: MasterCV = {
+      ...TEST_CV,
+      professionalSummary: {
+        ...TEST_CV.professionalSummary,
+        professionalMotivation: "  ",
+      },
+    };
+    const job = parseJob(
+      `Developer\nAcme · Remote\n\nRequirements:\n- React and JavaScript experience`
+    );
+    const generated = generateCV(master, job, matchCV(job, master));
+
+    const result = validateGeneratedCV(generated, master);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({
+        field: "professionalSummary.professionalMotivation",
+        severity: "error",
+      })
+    );
+  });
 });
 
 describe("validateCoverLetter", () => {
+  const job: ParsedJob = {
+    title: "Frontend Developer",
+    company: "Acme",
+    location: "Copenhagen",
+    responsibilities: ["Build React applications."],
+    requirements: ["React"],
+    tools: [],
+    skills: ["React"],
+    atsKeywords: ["React"],
+    rawText: "Frontend Developer at Acme building React applications.",
+  };
+
+  it("passes a canonical three-part motivation paragraph", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+
+    expect(validateCoverLetter(letter, TEST_CV, job, "english").valid).toBe(true);
+  });
+
+  it.each(["delete", "reorder", "rewrite"])(
+    "rejects a %s motivation component change",
+    (change) => {
+      const letter = generateCoverLetter(TEST_CV, job, "english");
+      const canonical = buildCoverLetterMotivation(TEST_CV, job, "english");
+      if (change === "delete") {
+        letter.paragraphs[0] = canonical.split(". ").slice(1).join(". ");
+      } else if (change === "reorder") {
+        letter.paragraphs[0] = canonical.split(". ").reverse().join(". ");
+      } else {
+        letter.paragraphs[0] = canonical.replace("caught my attention", "is ideal for me");
+      }
+
+      const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+      expect(result.valid).toBe(false);
+      expect(result.issues).toContainEqual(
+        expect.objectContaining({ field: "motivation", severity: "error" })
+      );
+    }
+  );
+
+  it("rejects letters with fewer than three paragraphs", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter.paragraphs = letter.paragraphs.slice(0, 2);
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "paragraphs", severity: "error" })
+    );
+  });
+
+  it("rejects an appended fourth paragraph", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter.paragraphs.push(
+      "I increased revenue by 300% while leading a global team."
+    );
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "paragraphs", severity: "error" })
+    );
+  });
+
+  it.each([
+    ["greeting", "Dear Global Leadership Team,"],
+    ["closing", "With guaranteed results,"],
+    ["signature", "Invented Executive"],
+  ] as const)("rejects a mutated %s", (field, value) => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter[field] = value;
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field, severity: "error" })
+    );
+  });
+
+  it("rejects invented employer and unsupported skill claims in evidence", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter.paragraphs[1] =
+      "At Invented Corp, I used Kubernetes to operate production systems.";
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: "evidence.company", severity: "error" }),
+        expect.objectContaining({ field: "evidence.skill", severity: "error" }),
+      ])
+    );
+  });
+
+  it("rejects fabricated metrics, leadership, and employer claims in evidence", () => {
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    letter.paragraphs[1] =
+      "I increased revenue by 300% while leading a global team. I worked for Invented Corp.";
+
+    const result = validateCoverLetter(letter, TEST_CV, job, "english");
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "evidence", severity: "error" })
+    );
+  });
+
   it("warns when company is not mentioned", () => {
-    const letter = {
-      greeting: "Dear Hiring Manager,",
-      paragraphs: [
-        "I am interested in this role.",
-        "I have relevant experience.",
-        "Thank you for your consideration.",
-      ],
-      closing: "Sincerely,",
-      signature: "Test User",
-    };
+    const letter = generateCoverLetter(TEST_CV, job, "english");
+    const otherJob = { ...job, company: "UniqueCompanyXYZ" };
 
-    const result = validateCoverLetter(letter, TEST_CV, "UniqueCompanyXYZ");
+    const result = validateCoverLetter(letter, TEST_CV, otherJob, "english");
 
-    expect(result.issues.some((i) => i.field === "company")).toBe(true);
+    expect(result.issues).toContainEqual(
+      expect.objectContaining({ field: "company", severity: "warning" })
+    );
   });
 });

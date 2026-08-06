@@ -4,7 +4,7 @@ import { analyzeJobLocally } from "@/lib/analyzeJobLocal";
 import { analyzeJobWithAI } from "@/lib/ai/analyzeJobWithAI";
 import { getAIConfig } from "@/lib/ai/providers";
 import { parseMasterCV } from "@/lib/ai/schemas";
-import { resolvePersonaId } from "@/lib/cvLanguage";
+import { personaIdToLanguage, resolvePersonaId } from "@/lib/cvLanguage";
 import { getPersona } from "@/lib/personaManager";
 import { logger } from "@/lib/logger";
 
@@ -88,6 +88,7 @@ export async function POST(request: Request) {
         cv,
         baseline,
         config: aiConfig,
+        language: personaIdToLanguage(personaId),
       });
       return NextResponse.json(merged);
     } catch (aiError) {

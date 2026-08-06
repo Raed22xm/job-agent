@@ -102,17 +102,29 @@ export function termsAreEquivalent(a: string, b: string): boolean {
   const bVariants = expandTermAliases(b);
 
   if (aVariants.some((av) => bVariants.includes(av))) return true;
-
-  const na = normalizeTerm(a);
-  const nb = normalizeTerm(b);
-  return na.includes(nb) || nb.includes(na);
+  return false;
 }
 
 export function termAppearsInText(term: string, text: string): boolean {
-  const normalizedText = normalizeTerm(text);
+  const toTokens = (value: string) =>
+    normalizeTerm(value)
+      .replace(/[^\p{L}\p{N}+#./-]+/gu, " ")
+      .split(" ")
+      .map((token) => token.replace(/^[./-]+|[./-]+$/gu, ""))
+      .filter(Boolean);
+  const textTokens = toTokens(text);
   const variants = expandTermAliases(term);
 
-  return variants.some((variant) => normalizedText.includes(variant));
+  return variants.some((variant) => {
+    const variantTokens = toTokens(variant);
+    if (variantTokens.length === 0) return false;
+
+    return textTokens.some((_, start) =>
+      variantTokens.every(
+        (token, offset) => textTokens[start + offset] === token
+      )
+    );
+  });
 }
 
 export function extractKnownTerms(

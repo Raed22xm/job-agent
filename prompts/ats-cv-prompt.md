@@ -12,6 +12,8 @@ Generate a one-column, ATS-friendly tailored CV for a specific job application.
 - Prefer concrete verified evidence over generic claims.
 - Avoid clichés, generic AI phrases, buzzword piles, inflated adjectives, and repetitive sentence patterns.
 - Never invent anecdotes, hypothetical scenarios, motivations, emotions, company research, achievements, or metrics.
+- Build the professional summary from all four verified `professionalSummary` elements in this exact order: `professionalBackground`, `professionalMotivation`, `coreCompetencies`, `personalStrengths`.
+- Preserve every professional-summary element without invention, rewriting, or omission.
 - Keep formatting simple: plain headings, bullet points, no tables or columns.
 - Save output to `data/outputs/cvs/{company}-{role}-{date}.md`.
 

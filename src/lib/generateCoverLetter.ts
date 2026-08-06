@@ -1,5 +1,9 @@
 import type { CvLanguage } from "@/lib/cvLanguage";
 import { buildGapSuggestions } from "@/lib/gapSuggestions";
+import {
+  termAppearsInText,
+  termsAreEquivalent,
+} from "@/lib/jobDictionaries";
 import type {
   Experience,
   GeneratedCoverLetter,
@@ -32,6 +36,12 @@ function lowercaseFirstWord(value: string): string {
   return value.charAt(0).toLocaleLowerCase() + value.slice(1);
 }
 
+function asMotivationClause(value: string, language: CvLanguage): string {
+  const trimmed = stripFinalPunctuation(value);
+  if (language === "english" && /^I\b/u.test(trimmed)) return trimmed;
+  return lowercaseFirstWord(trimmed);
+}
+
 function asFirstPersonClause(value: string, language: CvLanguage): string {
   const trimmed = stripFinalPunctuation(value).replace(/^[-•]\s*/u, "");
   const withoutPronoun =
@@ -54,21 +64,6 @@ function jobText(job: ParsedJob): string {
       job.rawText,
     ].join(" ")
   );
-}
-
-function matchedCvTerms(cv: MasterCV, job: ParsedJob): string[] {
-  const target = jobText(job);
-  const seen = new Set<string>();
-
-  return [...cv.skills, ...cv.tools].filter((term) => {
-    const normalized = normalize(term);
-    if (!normalized || seen.has(normalized) || !target.includes(normalized)) {
-      return false;
-    }
-
-    seen.add(normalized);
-    return true;
-  });
 }
 
 function jobKeywords(job: ParsedJob): Set<string> {
@@ -160,6 +155,105 @@ function joinTerms(terms: string[], language: CvLanguage): string {
   return `${terms.slice(0, -1).join(", ")} ${conjunction} ${terms.at(-1)}`;
 }
 
+function responsibilityScore(responsibility: string, cv: MasterCV): number {
+  const verifiedTokens = new Set(normalize(
+    [
+      ...cv.skills,
+      ...cv.tools,
+      ...Object.values(cv.professionalSummary),
+      ...cv.experience.flatMap((entry) => [entry.title, ...entry.bullets]),
+    ].join(" ")
+  ).split(" "));
+
+  return Array.from(new Set(normalize(responsibility).split(" ")))
+    .filter((term) => term.length >= 3)
+    .reduce(
+      (score, term) => score + (verifiedTokens.has(term) ? 1 : 0),
+      0
+    );
+}
+
+function selectResponsibility(cv: MasterCV, job: ParsedJob): string | undefined {
+  return job.responsibilities
+    .map((responsibility, index) => ({
+      responsibility: responsibility.trim(),
+      index,
+      score: responsibilityScore(responsibility, cv),
+    }))
+    .filter(({ responsibility }) => responsibility.length > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index)[0]?.responsibility;
+}
+
+function verifiedResponsibilityTerms(
+  cv: MasterCV,
+  responsibility: string
+): string[] {
+  const normalizedResponsibility = normalize(responsibility);
+  const seen = new Set<string>();
+
+  return [...cv.skills, ...cv.tools]
+    .filter((term) => {
+      const normalized = normalize(term);
+      if (
+        !normalized ||
+        seen.has(normalized) ||
+        !termAppearsInText(term, normalizedResponsibility)
+      ) {
+        return false;
+      }
+      seen.add(normalized);
+      return true;
+    })
+    .slice(0, 3);
+}
+
+export function buildCoverLetterMotivation(
+  cv: MasterCV,
+  job: ParsedJob,
+  language: CvLanguage
+): string {
+  const company = displayValue(
+    job.company,
+    language === "danish" ? "jeres organisation" : "your organization"
+  );
+  const title = displayValue(job.title, "");
+  const motivation = asMotivationClause(
+    cv.professionalSummary.professionalMotivation,
+    language
+  );
+  const responsibility = selectResponsibility(cv, job);
+
+  if (language === "danish") {
+    const opening = title
+      ? `Stillingen som ${title} hos ${company} fangede min opmærksomhed.`
+      : `Den ledige stilling hos ${company} fangede min opmærksomhed.`;
+    const positionMotivation = `Stillingen motiverer mig særligt, fordi ${motivation}.`;
+    if (!responsibility) {
+      return `${opening} ${positionMotivation} De konkrete daglige opgaver er ikke beskrevet i opslaget, og muligheden for at høre mere om dem er en del af min interesse.`;
+    }
+
+    const terms = verifiedResponsibilityTerms(cv, responsibility);
+    const connection = terms.length
+      ? `den hænger sammen med min verificerede erfaring med ${joinTerms(terms, language)}`
+      : "den hænger sammen med min verificerede faglige motivation";
+    return `${opening} ${positionMotivation} Blandt de beskrevne opgaver motiverer “${responsibility}” mig særligt, fordi ${connection}.`;
+  }
+
+  const opening = title
+    ? `The ${title} position at ${company} caught my attention.`
+    : `The open position at ${company} caught my attention.`;
+  const positionMotivation = `This position appeals to me because ${motivation}.`;
+  if (!responsibility) {
+    return `${opening} ${positionMotivation} The posting does not detail the day-to-day tasks, and learning more about them is part of my interest.`;
+  }
+
+  const terms = verifiedResponsibilityTerms(cv, responsibility);
+  const connection = terms.length
+    ? `it connects with my verified experience in ${joinTerms(terms, language)}`
+    : "it connects with my verified professional motivation";
+  return `${opening} ${positionMotivation} Among the listed tasks, “${responsibility}” is particularly motivating because ${connection}.`;
+}
+
 function roleEvidence(
   experience: Experience | undefined,
   job: ParsedJob,
@@ -192,6 +286,21 @@ function roleEvidence(
   return `${opening}. I ${first}.${second ? ` I also ${second}.` : ""}`;
 }
 
+function quantifiedEvidenceSuffix(
+  evidence: string,
+  quantifiedBullet: string | undefined,
+  language: CvLanguage
+): string {
+  if (!quantifiedBullet) return "";
+
+  const clause = asFirstPersonClause(quantifiedBullet, language);
+  if (normalize(evidence).includes(normalize(clause))) return "";
+
+  return language === "danish"
+    ? ` Konkret ${clause}.`
+    : ` Specifically, I ${clause}.`;
+}
+
 function uniqueValueParagraph(
   cv: MasterCV,
   job: ParsedJob,
@@ -212,14 +321,18 @@ function uniqueValueParagraph(
   const transferable = gaps.filter((g) => g.status === "transferable");
 
   // Cross-domain experience: if user has both frontend and backend, or tech and business
+  const hasVerifiedTerm = (terms: string[]) =>
+    [...cv.skills, ...cv.tools].some((skill) =>
+      terms.some((term) => termsAreEquivalent(skill, term))
+    );
   const hasFullStack =
-    cv.skills.some((s) => /react|next|css|front/i.test(s)) &&
-    cv.skills.some((s) => /java|spring|sql|backend|api/i.test(s));
+    hasVerifiedTerm(["React", "Next.js", "CSS", "Frontend"]) &&
+    hasVerifiedTerm(["Java", "Spring Boot", "SQL", "Backend", "REST API"]);
 
   if (language === "danish") {
     if (transferable.length > 0) {
       const t = transferable[0];
-      return `Ud over mine kernekompetencer har jeg erfaring med ${t.relatedVerified?.slice(0, 2).join(" og ") ?? "relaterede teknologier"}, som giver et solidt fundament for hurtigt at arbejde med ${t.missing}. ${hasFullStack ? "Min erfaring på tværs af frontend og backend giver mig et helhedsperspektiv, der styrker samarbejdet med både designere og driftsteams." : ""}`;
+      return `Ud over mine kernekompetencer har jeg erfaring med ${t.relatedVerified?.slice(0, 2).join(" og ") ?? "relaterede teknologier"}, som giver et solidt fundament for hurtigt at lære nye værktøjer. ${hasFullStack ? "Min erfaring på tværs af frontend og backend styrker samarbejdet med både designere og driftsteams." : ""}`;
     }
     if (hasFullStack) {
       return "Min tværgående erfaring med både frontend og backend giver mig et helhedsperspektiv, der styrker samarbejdet med hele teamet — fra UX-design til drift.";
@@ -231,7 +344,7 @@ function uniqueValueParagraph(
 
   if (transferable.length > 0) {
     const t = transferable[0];
-    return `Beyond my core skills, my experience with ${t.relatedVerified?.slice(0, 2).join(" and ") ?? "related technologies"} provides a solid foundation for working with ${t.missing}. ${hasFullStack ? "Working across the full stack gives me a holistic perspective that strengthens collaboration with both design and operations teams." : ""}`;
+    return `Beyond my core skills, my experience with ${t.relatedVerified?.slice(0, 2).join(" and ") ?? "related technologies"} provides a solid foundation for learning new tools quickly. ${hasFullStack ? "Working across the full stack strengthens my collaboration with design and operations teams." : ""}`;
   }
   if (hasFullStack) {
     return "Working across both frontend and backend gives me a holistic perspective that strengthens collaboration with the entire team — from UX design to operations.";
@@ -247,37 +360,20 @@ export function generateCoverLetter(
   language: CvLanguage = "english"
 ): GeneratedCoverLetter {
   const relevantRole = bestExperience(cv, job);
-  const relevantTerms = matchedCvTerms(cv, job).slice(0, 4);
-  const jobFocus = job.responsibilities.find((item) => item.trim().length > 0);
   const quantifiedBullet = relevantRole
     ? bestQuantifiedBullet(relevantRole, job)
     : undefined;
 
   if (language === "danish") {
     const company = displayValue(job.company, "jeres organisation");
-    const title = displayValue(job.title, "den ledige stilling");
     const companyReference =
       company === "jeres organisation" ? "jeres team" : `${company}-teamet`;
-    const roleOpening =
-      company === "jeres organisation"
-        ? `stillingen som ${title}`
-        : `stillingen som ${title} hos ${company}`;
-    const focusSentence = jobFocus
-      ? `I opslaget om ${roleOpening} lagde jeg især mærke til dette ansvar: ${stripFinalPunctuation(jobFocus)}.`
-      : `${roleOpening.charAt(0).toLocaleUpperCase() + roleOpening.slice(1)} fangede min interesse.`;
-    const termsSentence = relevantTerms.length
-      ? `Min baggrund omfatter ${joinTerms(relevantTerms, language)}, som også går igen i rollen.`
-      : relevantRole
-        ? `Rollen ligger tæt på det arbejde, jeg har udført som ${relevantRole.title}.`
-        : "";
-
+    const evidence = roleEvidence(relevantRole, job, language);
     const paragraphs = [
-      [focusSentence, termsSentence].filter(Boolean).join(" "),
-      roleEvidence(relevantRole, job, language) +
-        (quantifiedBullet
-          ? ` Konkret ${asFirstPersonClause(quantifiedBullet, language)}.`
-          : ""),
-      uniqueValueParagraph(cv, job, relevantRole, language),
+      buildCoverLetterMotivation(cv, job, language),
+      evidence +
+        quantifiedEvidenceSuffix(evidence, quantifiedBullet, language) +
+        ` ${uniqueValueParagraph(cv, job, relevantRole, language)}`,
       `Jeg vil sætte pris på muligheden for at høre mere om ${companyReference}s behov i rollen og fortælle, hvordan jeg kan bidrage. Jeg er tilgængelig for en samtale, når det passer jer.`,
     ];
 
@@ -293,29 +389,14 @@ export function generateCoverLetter(
   }
 
   const company = displayValue(job.company, "your organization");
-  const title = displayValue(job.title, "the open role");
   const companyReference =
     company === "your organization" ? "your team" : company;
-  const roleOpening =
-    company === "your organization"
-      ? title
-      : `the ${title} role at ${company}`;
-  const focusSentence = jobFocus
-    ? `In the posting for ${roleOpening}, one responsibility stood out to me: ${stripFinalPunctuation(jobFocus)}.`
-    : `${roleOpening.charAt(0).toLocaleUpperCase() + roleOpening.slice(1)} caught my attention.`;
-  const termsSentence = relevantTerms.length
-    ? `My background includes ${joinTerms(relevantTerms, language)}, which also feature in the role.`
-    : relevantRole
-      ? `The role connects with the work I have done as ${relevantRole.title}.`
-      : "";
-
+  const evidence = roleEvidence(relevantRole, job, language);
   const paragraphs = [
-    [focusSentence, termsSentence].filter(Boolean).join(" "),
-    roleEvidence(relevantRole, job, language) +
-      (quantifiedBullet
-        ? ` Specifically, I ${asFirstPersonClause(quantifiedBullet, language)}.`
-        : ""),
-    uniqueValueParagraph(cv, job, relevantRole, language),
+    buildCoverLetterMotivation(cv, job, language),
+    evidence +
+      quantifiedEvidenceSuffix(evidence, quantifiedBullet, language) +
+      ` ${uniqueValueParagraph(cv, job, relevantRole, language)}`,
     `I would welcome the opportunity to discuss how my experience can contribute to ${companyReference}. I am available for a conversation at your convenience. Thank you for considering my application.`,
   ];
 

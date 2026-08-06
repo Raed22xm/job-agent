@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { generateCV } from "@/lib/generateCV";
+import { buildProfessionalSummary, generateCV } from "@/lib/generateCV";
 import { scoreCVKeywordCoverage } from "@/lib/cv/scoreCVKeywords";
 import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import { matchCV } from "@/lib/matchCV";
 import { parseJob } from "@/lib/parseJob";
+import { getPersona } from "@/lib/personaManager";
 import type { MasterCV } from "@/types";
 
 const TEST_CV: MasterCV = {
@@ -13,6 +14,12 @@ const TEST_CV: MasterCV = {
     phone: "+45 12345678",
     location: "Copenhagen",
     summary: "Full-stack developer with React and Power BI experience.",
+  },
+  professionalSummary: {
+    professionalBackground: "Verified professional background.",
+    professionalMotivation: "Verified professional motivation.",
+    coreCompetencies: "Verified core competencies.",
+    personalStrengths: "Verified personal strengths.",
   },
   skills: ["React", "TypeScript", "Power BI", "SQL"],
   tools: ["Figma", "Git"],
@@ -83,6 +90,50 @@ describe("generateCV", () => {
     expect(generated.sections.skills[0]).toBe("React");
     expect(generated.sections.experience[0].id).toBe("exp-a");
     expect(generated.atsNotes.some((n) => n.includes("reordered"))).toBe(true);
+  });
+
+  it("builds the summary from all four verified elements in source order", () => {
+    const job = parseJob(
+      "React developer with TypeScript experience required.",
+      "https://example.com/job"
+    );
+    const generated = generateCV(TEST_CV, job, matchCV(job, TEST_CV));
+    const elements = Object.values(TEST_CV.professionalSummary);
+
+    expect(generated.sections.summary).toBe(buildProfessionalSummary(TEST_CV));
+    expect(elements.every((element) => generated.sections.summary.includes(element))).toBe(true);
+    expect(elements.map((element) => generated.sections.summary.indexOf(element))).toEqual(
+      [...elements].map((_, index) =>
+        elements.slice(0, index).reduce((length, value) => length + value.length + 1, 0)
+      )
+    );
+  });
+
+  it.each([
+    ["danish", "Danish"],
+    ["english", "English"],
+  ])("preserves the real %s persona summary contract", (personaId) => {
+    const persona = getPersona(personaId);
+    expect(persona).not.toBeNull();
+    if (!persona) throw new Error(`Missing ${personaId} persona fixture`);
+
+    const elements = Object.values(persona.professionalSummary);
+    const canonical = buildProfessionalSummary(persona);
+    const job = parseJob(
+      "Software developer role requiring React, TypeScript, Java, and UX experience.",
+      "https://example.com/job"
+    );
+    const generated = generateCV(persona, job, matchCV(job, persona));
+
+    expect(elements.every((element) => element.trim().length > 0)).toBe(true);
+    expect(generated.sections.summary).toBe(canonical);
+    let previousIndex = -1;
+    for (const element of elements) {
+      expect(canonical.split(element)).toHaveLength(2);
+      const index = canonical.indexOf(element);
+      expect(index).toBeGreaterThan(previousIndex);
+      previousIndex = index;
+    }
   });
 });
 

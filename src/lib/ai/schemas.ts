@@ -41,8 +41,16 @@ export const LanguageSchema = z.object({
   level: z.string().min(1),
 });
 
+export const ProfessionalSummarySchema = z.object({
+  professionalBackground: z.string().min(1),
+  professionalMotivation: z.string().min(1),
+  coreCompetencies: z.string().min(1),
+  personalStrengths: z.string().min(1),
+});
+
 export const MasterCVSchema = z.object({
   personalInfo: PersonalInfoSchema,
+  professionalSummary: ProfessionalSummarySchema,
   skills: z.array(z.string()).min(1),
   tools: z.array(z.string()),
   experience: z.array(ExperienceSchema),

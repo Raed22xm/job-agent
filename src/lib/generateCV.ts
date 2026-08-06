@@ -1,6 +1,24 @@
 import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import type { GeneratedCV, MasterCV, MatchResult, ParsedJob, Project } from "@/types";
 
+export function buildProfessionalSummary(cv: MasterCV): string {
+  const {
+    professionalBackground,
+    professionalMotivation,
+    coreCompetencies,
+    personalStrengths,
+  } = cv.professionalSummary;
+
+  return [
+    professionalBackground,
+    professionalMotivation,
+    coreCompetencies,
+    personalStrengths,
+  ]
+    .map((element) => element.trim())
+    .join(" ");
+}
+
 /**
  * Tailors verified CV content for ATS: skill order, experience/bullet order, relevant projects.
  * Does not invent experience, metrics, or skills.
@@ -32,6 +50,7 @@ export function generateCV(
 
   const atsNotes = [
     "One-column ATS-friendly layout.",
+    "Professional summary preserves all four verified elements in source order.",
     "Only verified CV data — experience bullets reordered by job relevance.",
     match.missingKeywords.length
       ? `Gaps to address honestly: ${match.missingKeywords.slice(0, 5).join(", ")}.`
@@ -41,7 +60,7 @@ export function generateCV(
   return {
     sections: {
       header: cv.personalInfo,
-      summary: cv.personalInfo.summary,
+      summary: buildProfessionalSummary(cv),
       skills: prioritizedSkills,
       experience: tailoredExperience,
       education: cv.education,

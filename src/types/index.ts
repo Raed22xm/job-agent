@@ -39,8 +39,16 @@ export interface Language {
   level: string;
 }
 
+export interface ProfessionalSummary {
+  professionalBackground: string;
+  professionalMotivation: string;
+  coreCompetencies: string;
+  personalStrengths: string;
+}
+
 export interface MasterCV {
   personalInfo: PersonalInfo;
+  professionalSummary: ProfessionalSummary;
   skills: string[];
   tools: string[];
   experience: Experience[];

@@ -1,6 +1,7 @@
 "use client";
 
 import type { GeneratedCoverLetter } from "@/types";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import {
   paragraphsToText,
   textToParagraphs,
@@ -10,12 +11,14 @@ interface CoverLetterEditorProps {
   letter: GeneratedCoverLetter;
   onChange: (letter: GeneratedCoverLetter) => void;
   onReset?: () => void;
+  language?: CvLanguage;
 }
 
 export default function CoverLetterEditor({
   letter,
   onChange,
   onReset,
+  language = "english",
 }: CoverLetterEditorProps) {
   const updateField = <K extends keyof GeneratedCoverLetter>(
     field: K,
@@ -79,6 +82,11 @@ export default function CoverLetterEditor({
           />
           <p className="mt-1.5 text-xs text-foreground-secondary dark:text-foreground-tertiary">
             Separate paragraphs with a blank line.
+          </p>
+          <p className="mt-1 text-xs text-foreground-secondary dark:text-foreground-tertiary">
+            {language === "danish"
+              ? "Motivationsafsnit: åbning → hvorfor denne stilling → hvorfor dens opgaver. Brug kun fakta fra opslaget og det verificerede CV."
+              : "Motivation paragraph: opening → why this position → why its tasks. Use only facts from the posting and verified CV."}
           </p>
         </div>
 

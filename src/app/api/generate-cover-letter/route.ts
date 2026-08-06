@@ -1,26 +1,38 @@
 import { NextResponse } from "next/server";
 import { validateCoverLetter } from "@/lib/cv/validateCV";
 import { generateCoverLetter } from "@/lib/generateCoverLetter";
-import { getMasterCV } from "@/lib/matchCV";
-import type { ParsedJob } from "@/types";
+import { personaIdToLanguage, resolvePersonaId } from "@/lib/cvLanguage";
+import { getPersona } from "@/lib/personaManager";
+import { normalizeParsedJob } from "@/lib/normalizeStoredData";
 
 /** Local heuristic cover letter regeneration. Use POST /api/analyze-job for the full AI pipeline. */
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
-      job?: ParsedJob;
+      job?: unknown;
+      personaId?: string;
     };
+    const job = normalizeParsedJob(body.job);
 
-    if (!body.job?.rawText) {
-      return NextResponse.json({ error: "job with rawText is required" }, { status: 400 });
+    if (!job?.rawText) {
+      return NextResponse.json({ error: "Valid job with rawText is required" }, { status: 400 });
     }
 
-    const cv = getMasterCV();
-    const generatedCoverLetter = generateCoverLetter(cv, body.job);
+    const personaId = resolvePersonaId(body.personaId);
+    const cv = getPersona(personaId);
+    if (!cv) {
+      return NextResponse.json(
+        { error: `No CV persona found for "${personaId}"` },
+        { status: 404 }
+      );
+    }
+    const language = personaIdToLanguage(personaId);
+    const generatedCoverLetter = generateCoverLetter(cv, job, language);
     const validation = validateCoverLetter(
       generatedCoverLetter,
       cv,
-      body.job.company
+      job,
+      language
     );
 
     return NextResponse.json({

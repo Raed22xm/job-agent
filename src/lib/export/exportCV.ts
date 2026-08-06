@@ -1,12 +1,16 @@
 import {
   AlignmentType,
+  BorderStyle,
   Document,
   Packer,
   Paragraph,
+  ShadingType,
+  TabStopPosition,
+  TabStopType,
   TextRun,
 } from "docx";
 import { CV_SECTION_LABELS, type CvLanguage } from "@/lib/cvLanguage";
-import type { GeneratedCV } from "@/types";
+import type { GeneratedCV, Language } from "@/types";
 import { buildExportBasename, downloadBlob } from "@/lib/export/download";
 import {
   addPdfSectionHeading,
@@ -15,22 +19,48 @@ import {
   PDF_BODY_SIZE,
   PDF_LINE_MM,
   PDF_MARGIN_MM,
+  ensurePdfSpace,
   pdfContentWidth,
 } from "@/lib/export/textPdf";
+
+const ACCENT = "52705A";
+const PROFILE_FILL = "E7F1E8";
+
+export interface CVExportMetadata {
+  languages?: Language[];
+  certifications?: string[];
+}
+
+export function formatLanguages(languages: Language[]): string {
+  return languages
+    .map(({ language, level }) => `${language} (${level})`)
+    .join(" · ");
+}
 
 function sectionHeading(text: string): Paragraph {
   return new Paragraph({
     spacing: { before: 240, after: 120 },
     border: {
-      bottom: { color: "999999", size: 6, style: "single" },
+      bottom: { color: ACCENT, size: 6, style: BorderStyle.SINGLE },
     },
     children: [
       new TextRun({
         text: text.toUpperCase(),
         bold: true,
-        size: 20,
+        size: 19,
+        color: "33473A",
       }),
     ],
+  });
+}
+
+function profileParagraph(text: string): Paragraph {
+  return new Paragraph({
+    spacing: { before: 180, after: 120 },
+    indent: { left: 140, right: 100 },
+    border: { left: { color: ACCENT, size: 18, style: BorderStyle.SINGLE } },
+    shading: { type: ShadingType.CLEAR, fill: PROFILE_FILL },
+    children: [new TextRun({ text, size: 21 })],
   });
 }
 
@@ -45,7 +75,8 @@ export async function exportCVToDocx(
   cv: GeneratedCV,
   company: string,
   title: string,
-  language: CvLanguage = "english"
+  language: CvLanguage = "english",
+  metadata: CVExportMetadata = {}
 ): Promise<void> {
   const { header, summary, skills, experience, education, projects } = cv.sections;
   const labels = CV_SECTION_LABELS[language];
@@ -54,18 +85,18 @@ export async function exportCVToDocx(
 
   const children: Paragraph[] = [
     new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 120 },
+      alignment: AlignmentType.LEFT,
+      spacing: { after: 80 },
       children: [
         new TextRun({
           text: header.fullName,
           bold: true,
-          size: 32,
+          size: 40,
         }),
       ],
     }),
     new Paragraph({
-      alignment: AlignmentType.CENTER,
+      alignment: AlignmentType.LEFT,
       spacing: { after: 80 },
       children: [new TextRun({ text: contactParts.join(" · "), size: 20 })],
     }),
@@ -74,7 +105,7 @@ export async function exportCVToDocx(
   if (linkParts.length > 0) {
     children.push(
       new Paragraph({
-        alignment: AlignmentType.CENTER,
+        alignment: AlignmentType.LEFT,
         spacing: { after: 200 },
         children: [new TextRun({ text: linkParts.join(" · "), size: 20 })],
       })
@@ -82,8 +113,7 @@ export async function exportCVToDocx(
   }
 
   children.push(
-    sectionHeading(labels.summary),
-    bodyParagraph(summary),
+    profileParagraph(`${labels.summary.toUpperCase()}\n${summary}`),
     sectionHeading(labels.skills),
     bodyParagraph(skills.join(" · "))
   );
@@ -93,6 +123,7 @@ export async function exportCVToDocx(
     children.push(
       new Paragraph({
         spacing: { before: 120 },
+        tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
         children: [
           new TextRun({ text: role.title, bold: true, size: 22 }),
           new TextRun({
@@ -169,8 +200,41 @@ export async function exportCVToDocx(
     }
   }
 
+  if (metadata.certifications?.length) {
+    children.push(sectionHeading(labels.certifications));
+    for (const certification of metadata.certifications) {
+      children.push(new Paragraph({
+        bullet: { level: 0 },
+        spacing: { after: 60 },
+        children: [new TextRun({ text: certification, size: 22 })],
+      }));
+    }
+  }
+
+  if (metadata.languages?.length) {
+    children.push(
+      sectionHeading(labels.languages),
+      bodyParagraph(
+        formatLanguages(metadata.languages)
+      )
+    );
+  }
+
   const doc = new Document({
-    sections: [{ properties: {}, children }],
+    styles: {
+      default: {
+        document: { run: { font: "Arial", size: 22 } },
+      },
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: { top: 850, right: 850, bottom: 850, left: 850 },
+        },
+      },
+      children,
+    }],
   });
 
   const blob = await Packer.toBlob(doc);
@@ -183,7 +247,8 @@ export async function exportCVToPdf(
   cv: GeneratedCV,
   company: string,
   title: string,
-  language: CvLanguage = "english"
+  language: CvLanguage = "english",
+  metadata: CVExportMetadata = {}
 ): Promise<void> {
   const pdf = await createA4PdfAsync();
   const pageWidth = pdf.internal.pageSize.getWidth();
@@ -197,28 +262,47 @@ export async function exportCVToPdf(
 
   pdf.setFont("helvetica", "bold");
   pdf.setFontSize(16);
-  pdf.text(header.fullName, pageWidth / 2, y, { align: "center" });
-  y += 7;
+  pdf.text(header.fullName, PDF_MARGIN_MM, y);
+  y += 8;
 
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(9);
   if (contactParts.length > 0) {
-    pdf.text(contactParts.join(" · "), pageWidth / 2, y, { align: "center" });
+    pdf.text(contactParts.join(" · "), PDF_MARGIN_MM, y);
     y += 4.5;
   }
   if (linkParts.length > 0) {
     pdf.setTextColor(60, 60, 60);
-    pdf.text(linkParts.join(" · "), pageWidth / 2, y, { align: "center" });
+    pdf.text(linkParts.join(" · "), PDF_MARGIN_MM, y);
     pdf.setTextColor(0, 0, 0);
     y += 4.5;
   }
-  y += 4;
+  pdf.setDrawColor(82, 112, 90);
+  pdf.setLineWidth(0.6);
+  pdf.line(PDF_MARGIN_MM, y, pageWidth - PDF_MARGIN_MM, y);
+  y += 5;
 
   pdf.setFontSize(PDF_BODY_SIZE);
 
-  y = addPdfSectionHeading(pdf, labels.summary, y, maxWidth);
-  y = addPdfWrappedText(pdf, summary, PDF_MARGIN_MM, y, maxWidth);
-  y += 2;
+  const profileLines = pdf.splitTextToSize(summary, maxWidth - 8) as string[];
+  const profileHeight = 9 + profileLines.length * PDF_LINE_MM;
+  y = ensurePdfSpace(pdf, y, profileHeight);
+  pdf.setFillColor(231, 241, 232);
+  pdf.setDrawColor(82, 112, 90);
+  pdf.setLineWidth(0.8);
+  pdf.rect(PDF_MARGIN_MM, y, maxWidth, profileHeight, "F");
+  pdf.line(PDF_MARGIN_MM, y, PDF_MARGIN_MM, y + profileHeight);
+  pdf.setTextColor(51, 71, 58);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(9);
+  pdf.text(labels.summary.toUpperCase(), PDF_MARGIN_MM + 4, y + 5);
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(PDF_BODY_SIZE);
+  profileLines.forEach((line, index) => {
+    pdf.text(line, PDF_MARGIN_MM + 4, y + 10 + index * PDF_LINE_MM);
+  });
+  y += profileHeight + 3;
 
   y = addPdfSectionHeading(pdf, labels.skills, y, maxWidth);
   y = addPdfWrappedText(pdf, skills.join(" · "), PDF_MARGIN_MM, y, maxWidth);
@@ -284,6 +368,31 @@ export async function exportCVToPdf(
       }
     }
     y += PDF_LINE_MM * 0.5;
+  }
+
+  if (metadata.certifications?.length) {
+    y = addPdfSectionHeading(pdf, labels.certifications, y, maxWidth);
+    for (const certification of metadata.certifications) {
+      y = addPdfWrappedText(
+        pdf,
+        `• ${certification}`,
+        PDF_MARGIN_MM + 2,
+        y,
+        maxWidth - 2
+      );
+    }
+    y += 2;
+  }
+
+  if (metadata.languages?.length) {
+    y = addPdfSectionHeading(pdf, labels.languages, y, maxWidth);
+    y = addPdfWrappedText(
+      pdf,
+      formatLanguages(metadata.languages),
+      PDF_MARGIN_MM,
+      y,
+      maxWidth
+    );
   }
 
   const blob = pdf.output("blob");

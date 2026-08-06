@@ -49,7 +49,7 @@ export default function ExportButtons({
   const defaultHelp =
     mode === "review-first"
       ? "Compare your CV to best practices before you export and apply."
-      : "DOCX is recommended for ATS submissions. PDF preview export is image-based and may not be fully ATS-readable.";
+      : "DOCX is recommended for ATS submissions. PDF export uses selectable text and is ATS-readable.";
 
   if (mode === "review-first") {
     return (

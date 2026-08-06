@@ -9,6 +9,11 @@ import {
 } from "@/lib/ai/mergeAIAnalysis";
 import { analyzeJobLocally } from "@/lib/analyzeJobLocal";
 import { parseJob } from "@/lib/parseJob";
+import { buildProfessionalSummary } from "@/lib/generateCV";
+import {
+  buildCoverLetterMotivation,
+  generateCoverLetter,
+} from "@/lib/generateCoverLetter";
 import type { MasterCV } from "@/types";
 
 const TEST_CV: MasterCV = {
@@ -18,6 +23,12 @@ const TEST_CV: MasterCV = {
     phone: "+45 00 00 00 00",
     location: "Copenhagen",
     summary: "Developer with React experience.",
+  },
+  professionalSummary: {
+    professionalBackground: "Verified professional background.",
+    professionalMotivation: "Verified professional motivation.",
+    coreCompetencies: "Verified core competencies.",
+    personalStrengths: "Verified personal strengths.",
   },
   skills: ["JavaScript", "React", "CSS"],
   tools: ["Git"],
@@ -117,7 +128,8 @@ describe("mergeGeneratedCV", () => {
       baseline.match
     );
 
-    expect(merged.sections.summary).toBe("Tailored summary for React role.");
+    expect(merged.sections.summary).toBe(buildProfessionalSummary(TEST_CV));
+    expect(merged.sections.summary).not.toContain("Tailored summary");
     expect(merged.sections.skills).toEqual(["React", "JavaScript", "CSS"]);
     expect(merged.sections.experience.map((exp) => exp.id)).toEqual(
       expect.arrayContaining(["exp-1"])
@@ -196,7 +208,9 @@ describe("AIJobEnhancement shape", () => {
       coverLetter: {
         greeting: "Dear Hiring Manager,",
         paragraphs: [
-          "My verified React experience is relevant to this opportunity.",
+          "Acme is an amazing market leader whose mission has always inspired me.",
+          "I increased revenue by 300% while leading a global team at Invented Corp.",
+          "I would welcome a conversation.",
         ],
         closing: "Kind regards,",
         signature: "Invented Candidate",
@@ -212,6 +226,21 @@ describe("AIJobEnhancement shape", () => {
 
     expect(merged.generatedCoverLetter.signature).toBe(
       TEST_CV.personalInfo.fullName
+    );
+    expect(merged.generatedCoverLetter.paragraphs[0]).toBe(
+      buildCoverLetterMotivation(TEST_CV, merged.job, "english")
+    );
+    expect(merged.generatedCoverLetter.paragraphs[0]).not.toContain(
+      "amazing market leader"
+    );
+    expect(merged.generatedCoverLetter.paragraphs[1]).toBe(
+      generateCoverLetter(TEST_CV, merged.job, "english").paragraphs[1]
+    );
+    expect(merged.generatedCoverLetter.paragraphs.join(" ")).not.toContain(
+      "amazing market leader"
+    );
+    expect(merged.generatedCoverLetter.paragraphs.join(" ")).not.toContain(
+      "increased revenue by 300%"
     );
     expect(merged.generatedCV.sections.header).toEqual(TEST_CV.personalInfo);
     expect(merged.generatedCV.sections.skills).not.toContain(

@@ -8,6 +8,9 @@ import {
 } from "@/lib/ai/prompts";
 import { AppliedFeedbackSchema } from "@/lib/ai/schemas";
 import { getAIConfig, resolveOpenAIModel } from "@/lib/ai/providers";
+import { resolvePersonaId } from "@/lib/cvLanguage";
+import { buildProfessionalSummary } from "@/lib/generateCV";
+import { getPersona } from "@/lib/personaManager";
 
 function formatAIError(error: unknown): string {
   const raw = error instanceof Error ? error.message : "Apply feedback failed";
@@ -20,21 +23,41 @@ function formatAIError(error: unknown): string {
 
 export async function POST(request: Request) {
   try {
-    const aiConfig = getAIConfig();
-    if (!aiConfig.isConfigured) {
-      return NextResponse.json(
-        { error: "AI is not configured. Add OPENAI_API_KEY to .env" },
-        { status: 503 }
-      );
-    }
-
     const body = await request.json();
-    const { cv, job, feedbackItem } = body;
+    const { cv, job, feedbackItem, personaId: rawPersonaId } = body;
 
     if (!cv || !job || !feedbackItem) {
       return NextResponse.json(
         { error: "cv, job, and feedbackItem are required" },
         { status: 400 }
+      );
+    }
+
+    if (feedbackItem.section === "summary") {
+      const personaId = resolvePersonaId(
+        typeof rawPersonaId === "string" ? rawPersonaId : undefined
+      );
+      const master = getPersona(personaId);
+      if (!master) {
+        return NextResponse.json(
+          { error: `No CV persona found for "${personaId}"` },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        updatedSection: "summary",
+        summary: buildProfessionalSummary(master),
+        skills: null,
+        experience: null,
+      });
+    }
+
+    const aiConfig = getAIConfig();
+    if (!aiConfig.isConfigured) {
+      return NextResponse.json(
+        { error: "AI is not configured. Add OPENAI_API_KEY to .env" },
+        { status: 503 }
       );
     }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import LanguageToggle from "@/components/LanguageToggle";
 import CoverLetterEditor from "@/components/CoverLetterEditor";
@@ -12,11 +12,12 @@ import {
   exportCoverLetterToPdf,
 } from "@/lib/export/exportCoverLetter";
 import { saveApplication, updateApplication } from "@/lib/storage";
-import type { Application } from "@/types";
+import type { Application, CVValidationResult } from "@/types";
 
 export default function CoverLetterPage() {
   const {
     generatedCoverLetter,
+    generatedCV,
     parsedJob,
     cvLanguage,
     setCvLanguage,
@@ -25,10 +26,56 @@ export default function CoverLetterPage() {
     applications,
     refreshApplications,
   } = useJobAgent();
-  const exportRef = useRef<HTMLElement>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [isSwitchingLanguage, setIsSwitchingLanguage] = useState(false);
   const [languageError, setLanguageError] = useState<string | null>(null);
+  const [validation, setValidation] = useState<CVValidationResult | null>(null);
+
+  useEffect(() => {
+    if (!generatedCoverLetter || !parsedJob) {
+      setValidation(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    setValidation(null);
+    void fetch("/api/validate-cover-letter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        generatedCoverLetter,
+        job: parsedJob,
+        personaId: cvLanguage,
+      }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as {
+          error?: string;
+          validation?: CVValidationResult;
+        };
+        if (!response.ok || !data.validation) {
+          throw new Error(data.error ?? `Validation failed (${response.status})`);
+        }
+        setValidation(data.validation);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        setValidation({
+          valid: false,
+          issues: [{
+            field: "validation",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Could not validate cover letter before export.",
+            severity: "error",
+          }],
+        });
+      });
+
+    return () => controller.abort();
+  }, [generatedCoverLetter, parsedJob, cvLanguage]);
 
   if (!generatedCoverLetter || !parsedJob) {
     return (
@@ -46,13 +93,6 @@ export default function CoverLetterPage() {
       </div>
     );
   }
-
-  const getExportElement = () => {
-    if (!exportRef.current) {
-      throw new Error("Cover letter preview is not ready for export.");
-    }
-    return exportRef.current;
-  };
 
   const handleExportComplete = async () => {
     if (!parsedJob) return;
@@ -133,32 +173,61 @@ export default function CoverLetterPage() {
         <div className="flex items-center gap-3">
           {saveMessage && <span className="text-sm font-medium text-success">{saveMessage}</span>}
           <ExportButtons
+            disabled={!validation?.valid}
+            disabledReason={
+              !validation
+                ? "Checking cover letter validation before export."
+                : !validation.valid
+                  ? "Restore the verified motivation paragraph before exporting."
+                  : undefined
+            }
             onExportPdf={async () => {
               await exportCoverLetterToPdf(
                 generatedCoverLetter,
                 parsedJob.company,
-                parsedJob.title
+                parsedJob.title,
+                { applicant: generatedCV?.sections.header, language: cvLanguage }
               );
               await handleExportComplete();
             }}
             onExportDocx={async () => {
-              await exportCoverLetterToDocx(generatedCoverLetter, parsedJob.company, parsedJob.title);
+              await exportCoverLetterToDocx(
+                generatedCoverLetter,
+                parsedJob.company,
+                parsedJob.title,
+                { applicant: generatedCV?.sections.header, language: cvLanguage }
+              );
               await handleExportComplete();
             }}
           />
         </div>
       </div>
 
+      {validation?.issues
+        .filter((issue) => issue.severity === "error")
+        .map((issue) => (
+          <p
+            key={`${issue.field}-${issue.message}`}
+            role="alert"
+            className="rounded-lg border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger"
+          >
+            {issue.message}
+          </p>
+        ))}
+
       <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
         <CoverLetterEditor
           letter={generatedCoverLetter}
           onChange={updateGeneratedCoverLetter}
           onReset={resetGeneratedCoverLetter}
+          language={cvLanguage}
         />
         <CoverLetterPreview
           letter={generatedCoverLetter}
-          exportRef={exportRef}
           language={cvLanguage}
+          applicant={generatedCV?.sections.header}
+          company={parsedJob.company}
+          title={parsedJob.title}
         />
       </div>
     </div>

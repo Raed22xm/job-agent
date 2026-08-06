@@ -147,6 +147,10 @@ export default function CVEditor({ cv, onChange, onReset }: CVEditorProps) {
             rows={5}
             className="field-textarea"
           />
+          <p className="mt-1.5 text-xs text-foreground-tertiary">
+            This summary combines four verified elements: background, motivation,
+            competencies, and strengths. Unsupported edits block export.
+          </p>
           <SummaryTip text={cv.sections.summary} />
         </div>
 

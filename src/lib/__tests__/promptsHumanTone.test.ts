@@ -10,6 +10,12 @@ const MASTER_CV = JSON.stringify({
     fullName: "Test User",
     summary: "Frontend developer with React experience.",
   },
+  professionalSummary: {
+    professionalBackground: "Verified professional background.",
+    professionalMotivation: "Verified professional motivation.",
+    coreCompetencies: "Verified core competencies.",
+    personalStrengths: "Verified personal strengths.",
+  },
   skills: ["React", "TypeScript"],
   experience: [
     {
@@ -58,6 +64,10 @@ describe("human-sounding application prompt contracts", () => {
     expect(prompt).toMatch(/anecdote|personal stor/);
     expect(prompt).toContain("react");
     expect(prompt).toContain("typescript");
+    expect(prompt).toMatch(
+      /professionalbackground.*professionalmotivation.*corecompetencies.*personalstrengths/s
+    );
+    expect(prompt).toMatch(/unchanged|do not.*(?:rewrite|drop|omit)/s);
   });
 
   it("asks for a warm, specific cover letter while rejecting synthetic enthusiasm", () => {
@@ -77,5 +87,9 @@ describe("human-sounding application prompt contracts", () => {
     expect(prompt).toMatch(/verified|master cv/);
     expect(prompt).toMatch(/3 paragraphs|three paragraphs/);
     expect(prompt).toMatch(/same language/);
+    expect(prompt).toMatch(/position.*company.*motivat.*actual listed responsibility/s);
+    expect(prompt).toMatch(/parsed job.*master cv/s);
+    expect(prompt).toMatch(/no external company knowledge|company research/);
+    expect(prompt).toMatch(/unsupported requirement/);
   });
 });

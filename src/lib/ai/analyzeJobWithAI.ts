@@ -14,6 +14,7 @@ import {
 import type { AIConfig } from "@/lib/ai/providers";
 import { GeneratedCoverLetterSchema } from "@/lib/ai/schemas";
 import type { MasterCV } from "@/types";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import { searchKnowledgeBase } from "@/lib/rag";
 
 const AIJobFieldsSchema = z.object({
@@ -44,6 +45,7 @@ export interface AnalyzeJobWithAIOptions {
   cv: MasterCV;
   baseline: AnalyzeJobResult;
   config: AIConfig;
+  language: CvLanguage;
 }
 
 function buildAnalysisPrompt(
@@ -73,9 +75,9 @@ Rules:
 - parsedJob: extract fields ONLY from the job posting text (use heuristic baseline as hint)
 - matchSummary: 2-3 sentences about fit using ONLY verified CV facts; mention gaps honestly
 - recommendedFocusAreas: 4-8 actionable bullets; never suggest adding unverified skills
-- cvSummary: a concise, natural tailored summary using ONLY verified CV facts; retain supported ATS keywords and match job posting language (Danish if job is Danish)
+- cvSummary: preserve all four supplied professionalSummary elements unchanged and in this exact order: professionalBackground, professionalMotivation, coreCompetencies, personalStrengths; never invent, rewrite, or omit an element
 - skillOrder: reorder ALL master CV skills by job relevance — same skills only, no additions or removals
-- coverLetter: concise 3-paragraph letter using ONLY verified experience; sound warm and individually written; match job posting language
+- coverLetter: concise 3-paragraph letter using ONLY verified experience; paragraph 1 starts with position/company from the parsed job, then motivation from master CV professionalMotivation, then motivation for one actual listed responsibility connected only to verified CV experience; no external company knowledge or unsupported requirements; match job posting language
 
 Human writing standard:
 ${HUMAN_WRITING_STANDARD}
@@ -102,7 +104,7 @@ ${ragContext.length > 0 ? ragContext.join("\n\n") : "No additional knowledge bas
 export async function analyzeJobWithAI(
   options: AnalyzeJobWithAIOptions
 ): Promise<AnalyzeJobResult> {
-  const { jobDescription, sourceUrl, cv, baseline, config } = options;
+  const { jobDescription, sourceUrl, cv, baseline, config, language } = options;
 
   // Retrieve relevant past achievements, code snippets, etc. from local RAG
   const ragContext = await searchKnowledgeBase(jobDescription, 3);
@@ -117,7 +119,8 @@ export async function analyzeJobWithAI(
     object,
     cv,
     jobDescription,
-    sourceUrl
+    sourceUrl,
+    language
   );
 }
 

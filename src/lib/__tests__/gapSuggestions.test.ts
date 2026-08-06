@@ -10,6 +10,12 @@ const TEST_CV: MasterCV = {
     location: "Copenhagen",
     summary: "Junior developer.",
   },
+  professionalSummary: {
+    professionalBackground: "Verified professional background.",
+    professionalMotivation: "Verified professional motivation.",
+    coreCompetencies: "Verified core competencies.",
+    personalStrengths: "Verified personal strengths.",
+  },
   skills: ["React", "JavaScript", "Power BI", "Figma"],
   tools: ["Git"],
   experience: [

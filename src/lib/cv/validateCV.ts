@@ -1,10 +1,23 @@
-import { normalizeTerm, termAppearsInText } from "@/lib/jobDictionaries";
+import {
+  KNOWN_SKILLS,
+  KNOWN_TOOLS,
+  normalizeTerm,
+  termAppearsInText,
+  termsAreEquivalent,
+} from "@/lib/jobDictionaries";
+import { buildProfessionalSummary } from "@/lib/generateCV";
+import {
+  buildCoverLetterMotivation,
+  generateCoverLetter,
+} from "@/lib/generateCoverLetter";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import type {
   CVValidationIssue,
   CVValidationResult,
   GeneratedCoverLetter,
   GeneratedCV,
   MasterCV,
+  ParsedJob,
 } from "@/types";
 
 function masterSkillSet(cv: MasterCV): Set<string> {
@@ -48,6 +61,17 @@ export function validateGeneratedCV(
   const verifiedEduIds = masterEducationIds(master);
   const verifiedCompanies = masterCompanies(master);
   const verifiedBulletsByExperience = masterExperienceBullets(master);
+  const summaryElements = master.professionalSummary;
+
+  for (const [field, value] of Object.entries(summaryElements)) {
+    if (!value.trim()) {
+      issues.push({
+        field: `professionalSummary.${field}`,
+        message: `Verified professional summary element "${field}" is empty. Complete the master CV before exporting.`,
+        severity: "error",
+      });
+    }
+  }
 
   for (const skill of generated.sections.skills) {
     const norm = normalizeTerm(skill);
@@ -145,12 +169,12 @@ export function validateGeneratedCV(
     }
   }
 
-  if (generated.sections.summary !== master.personalInfo.summary) {
+  if (generated.sections.summary !== buildProfessionalSummary(master)) {
     issues.push({
       field: "summary",
       message:
-        "Summary differs from master CV. Review for unsupported claims before applying.",
-      severity: "warning",
+        "Professional summary must preserve all four verified elements in their canonical order.",
+      severity: "error",
     });
   }
 
@@ -166,7 +190,8 @@ export function validateGeneratedCV(
 export function validateCoverLetter(
   letter: GeneratedCoverLetter,
   master: MasterCV,
-  jobCompany: string
+  job: ParsedJob,
+  language: CvLanguage
 ): CVValidationResult {
   const issues: CVValidationIssue[] = [];
   const fullText = [
@@ -176,19 +201,116 @@ export function validateCoverLetter(
     letter.signature,
   ].join(" ");
 
-  const verifiedCompanies = master.experience.map((e) => e.company);
+  const canonicalLetter = generateCoverLetter(master, job, language);
 
-  for (const company of verifiedCompanies) {
-    if (fullText.includes(company)) continue;
+  if (letter.paragraphs.length !== 3) {
+    issues.push({
+      field: "paragraphs",
+      message: "Cover letter must contain exactly motivation, evidence, and closing paragraphs.",
+      severity: "error",
+    });
+  }
+
+  if (letter.paragraphs[0] !== buildCoverLetterMotivation(master, job, language)) {
+    issues.push({
+      field: "motivation",
+      message:
+        "Motivation must preserve the verified position, professional motivation, and listed-task structure.",
+      severity: "error",
+    });
+  }
+
+  if (letter.paragraphs[1] !== canonicalLetter.paragraphs[1]) {
+    issues.push({
+      field: "evidence",
+      message:
+        "Evidence paragraph must preserve the verified experience generated from the master CV.",
+      severity: "error",
+    });
+  }
+  if (letter.paragraphs[2] !== canonicalLetter.paragraphs[2]) {
+    issues.push({
+      field: "closingParagraph",
+      message:
+        "Closing paragraph must preserve the verified, job-specific canonical wording.",
+      severity: "error",
+    });
+  }
+  if (letter.greeting !== canonicalLetter.greeting) {
+    issues.push({
+      field: "greeting",
+      message: "Greeting must preserve the canonical job-company wording.",
+      severity: "error",
+    });
+  }
+  if (letter.closing !== canonicalLetter.closing) {
+    issues.push({
+      field: "closing",
+      message: "Sign-off must preserve the canonical localized wording.",
+      severity: "error",
+    });
+  }
+  if (letter.signature !== canonicalLetter.signature) {
+    issues.push({
+      field: "signature",
+      message: "Signature must match the verified master CV identity.",
+      severity: "error",
+    });
+  }
+
+  const evidenceText = letter.paragraphs.slice(1).join(" ");
+  const verifiedTerms = [...master.skills, ...master.tools];
+  const verifiedClaimText = [
+    ...Object.values(master.professionalSummary),
+    ...master.experience.flatMap((entry) => [
+      entry.title,
+      entry.company,
+      ...entry.bullets,
+    ]),
+    ...(master.projects ?? []).flatMap((project) => [
+      project.name,
+      project.description,
+    ]),
+  ].join(" ");
+  const claimCandidates = Array.from(
+    new Set([...KNOWN_SKILLS, ...KNOWN_TOOLS, ...job.skills, ...job.tools, ...job.atsKeywords])
+  );
+  for (const term of claimCandidates) {
+    const verified =
+      verifiedTerms.some((candidate) => termsAreEquivalent(candidate, term)) ||
+      termAppearsInText(term, verifiedClaimText);
+    if (!verified && termAppearsInText(term, evidenceText)) {
+      issues.push({
+        field: "evidence.skill",
+        message: `Cover letter evidence mentions unsupported skill or tool "${term}". Remove it or verify it in the master CV.`,
+        severity: "error",
+      });
+    }
+  }
+
+  const verifiedCompanies = new Set(
+    master.experience.map((entry) => normalizeTerm(entry.company))
+  );
+  const organizationPattern =
+    /\b(?:At|at|Hos|hos)\s+([\p{Lu}][\p{L}\d&.-]*(?:\s+[\p{Lu}][\p{L}\d&.-]*){0,3})(?=\s*(?:,|\.|var\b|arbejdede\b))/gu;
+  for (const match of evidenceText.matchAll(organizationPattern)) {
+    const company = match[1];
+    if (!verifiedCompanies.has(normalizeTerm(company))) {
+      issues.push({
+        field: "evidence.company",
+        message: `Cover letter evidence mentions unverified employer "${company}".`,
+        severity: "error",
+      });
+    }
   }
 
   if (
-    jobCompany !== "Not detected" &&
-    !fullText.toLowerCase().includes(jobCompany.toLowerCase())
+    job.company !== "Not detected" &&
+    !fullText.toLowerCase().includes(job.company.toLowerCase())
   ) {
     issues.push({
       field: "company",
-      message: `Cover letter does not mention "${jobCompany}". Consider adding a company reference.`,
+      message: `Cover letter does not mention "${job.company}". Consider adding a company reference.`,
       severity: "warning",
     });
   }

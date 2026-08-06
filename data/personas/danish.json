@@ -8,6 +8,12 @@
     "portfolio": "https://readibrahim.netlify.app",
     "summary": "Jeg er full-stack udvikler med særlig interesse for React, Next.js og TypeScript. Hos BS Technologies forbedrede jeg checkout-flows, reducerede frafaldet med 15 % og byggede 12+ REST-endpoints med 99,9 % oppetid. Erfaringen fra BS Technologies og Novo Nordisk har givet mig et skarpt blik for sammenhængen mellem frontend, backend og UX."
   },
+  "professionalSummary": {
+    "professionalBackground": "Diplomingeniørstuderende i IT-økonomi på DTU med erfaring inden for softwareudvikling, UX/UI, digitalisering og data fra BS Technologies, Novo Nordisk og DHL Express.",
+    "professionalMotivation": "Jeg har særlig faglig interesse for at udvikle sammenhængende full-stack-løsninger med React, Next.js og TypeScript og for samspillet mellem frontend, backend og UX.",
+    "coreCompetencies": "Mine faglige kernekompetencer omfatter React, Next.js, TypeScript, Java, Spring Boot, REST API-design, Power BI og UI/UX-design.",
+    "personalStrengths": "Jeg kommunikerer med tekniske og ikke-tekniske interessenter og har gennemført brugerinterviews, faciliteret tværfaglige workshops samt arbejdet systematisk med test og kvalitetssikring."
+  },
   "skills": [
     "Go",
     "Golang",

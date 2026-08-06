@@ -1,4 +1,7 @@
 import { ParsedJobSchema } from "@/lib/ai/schemas";
+import { buildProfessionalSummary } from "@/lib/generateCV";
+import { generateCoverLetter } from "@/lib/generateCoverLetter";
+import type { CvLanguage } from "@/lib/cvLanguage";
 import { validateGeneratedCV } from "@/lib/cv/validateCV";
 import { tailorExperienceForJob } from "@/lib/cv/tailorExperience";
 import { matchCV } from "@/lib/matchCV";
@@ -92,7 +95,7 @@ export function mergeMatchResult(
 
 export function mergeGeneratedCV(
   heuristic: GeneratedCV,
-  cvSummary: string,
+  _cvSummary: string,
   skillOrder: string[],
   master: MasterCV,
   job: ParsedJob,
@@ -108,7 +111,7 @@ export function mergeGeneratedCV(
   return {
     sections: {
       header: master.personalInfo,
-      summary: cvSummary.trim() || heuristic.sections.summary,
+      summary: buildProfessionalSummary(master),
       skills,
       experience,
       education: master.education,
@@ -118,7 +121,7 @@ export function mergeGeneratedCV(
     },
     atsNotes: [
       ...heuristic.atsNotes,
-      "AI-tailored summary and skill order — verified bullets reordered for the role.",
+      "AI-tailored skill order with canonical verified four-part summary — verified bullets reordered for the role.",
     ],
   };
 }
@@ -128,7 +131,8 @@ export function mergeAIEnhancement(
   enhancement: AIJobEnhancement,
   cv: MasterCV,
   rawText: string,
-  sourceUrl?: string
+  sourceUrl?: string,
+  language: CvLanguage = "english"
 ): AnalyzeJobResult {
   const job = mergeParsedJob(baseline.job, enhancement.parsedJob, rawText, sourceUrl);
   const matchFromHeuristic = rescoredMatch(job, baseline, cv);
@@ -147,16 +151,11 @@ export function mergeAIEnhancement(
     match
   );
 
-  const generatedCoverLetter: GeneratedCoverLetter = {
-    greeting: enhancement.coverLetter.greeting.trim() || baseline.generatedCoverLetter.greeting,
-    paragraphs:
-      enhancement.coverLetter.paragraphs.length > 0
-        ? enhancement.coverLetter.paragraphs
-        : baseline.generatedCoverLetter.paragraphs,
-    closing:
-      enhancement.coverLetter.closing.trim() || baseline.generatedCoverLetter.closing,
-    signature: cv.personalInfo.fullName,
-  };
+  const generatedCoverLetter: GeneratedCoverLetter = generateCoverLetter(
+    cv,
+    job,
+    language
+  );
 
   const validation = validateGeneratedCV(generatedCV, cv);
 

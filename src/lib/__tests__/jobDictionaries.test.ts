@@ -27,6 +27,11 @@ describe("jobDictionaries aliases", () => {
     );
   });
 
+  it("does not match short skills inside unrelated words", () => {
+    expect(termAppearsInText("Go", "Negotiate vendor contracts.")).toBe(false);
+    expect(termAppearsInText("Go", "Build services in Go.")).toBe(true);
+  });
+
   it("identifies language terms", () => {
     expect(isLanguageTerm("Danish")).toBe(true);
     expect(isLanguageTerm("React")).toBe(false);
@@ -41,6 +46,12 @@ describe("matchCV language aliases", () => {
       phone: "+45 00 00 00 00",
       location: "Copenhagen",
       summary: "Developer.",
+    },
+    professionalSummary: {
+      professionalBackground: "Verified professional background.",
+      professionalMotivation: "Verified professional motivation.",
+      coreCompetencies: "Verified core competencies.",
+      personalStrengths: "Verified personal strengths.",
     },
     skills: ["JavaScript", "React"],
     tools: ["Git"],
