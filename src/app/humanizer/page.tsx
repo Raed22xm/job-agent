@@ -27,9 +27,9 @@ export default function HumanizerPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
     humanizedText: string;
+    detectedIssues: string[];
     changesMade: string[];
     mode: "local" | "ai";
-    referenceTools: string[];
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -49,11 +49,14 @@ export default function HumanizerPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Humanize request failed");
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Humanize request failed");
+      }
       const data = await res.json();
       setResult(data);
-    } catch {
-      alert("Failed to humanize text.");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to rewrite text.");
     } finally {
       setLoading(false);
     }
@@ -73,14 +76,14 @@ export default function HumanizerPage() {
         <div className="flex items-center gap-3">
           <span className="text-3xl">✍️</span>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            AI Text Humanizer
+            Text Humanizer
           </h1>
           <span className="rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-            5 Open-Source Engines
+            Rewrite only
           </span>
         </div>
         <p className="text-sm text-foreground-secondary leading-relaxed">
-          Strip robotic AI patterns, remove overused buzzwords (leverage, utilize, delve), fix sentence rhythm, and pass AI/recruiter filters using techniques from top open-source projects.
+          Generate a complete, natural alternative while preserving names, facts, numbers, technologies, and links.
         </p>
       </div>
 
@@ -148,7 +151,7 @@ export default function HumanizerPage() {
               disabled={loading || !inputText.trim()}
               className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-all shadow-md"
             >
-              {loading ? "Humanizing…" : "✨ Humanize Text"}
+              {loading ? "Rewriting…" : "✨ Generate Alternative"}
             </button>
           </div>
         </div>
@@ -173,11 +176,22 @@ export default function HumanizerPage() {
 
             {result ? (
               <div className="space-y-4">
-                <div className="rounded-xl border border-success/30 bg-success/5 p-4">
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-sans">
-                    {result.humanizedText}
-                  </p>
-                </div>
+                <textarea
+                  value={result.humanizedText}
+                  onChange={(event) => setResult({ ...result, humanizedText: event.target.value })}
+                  rows={10}
+                  aria-label="Editable rewritten text"
+                  className="w-full rounded-xl border border-success/30 bg-success/5 p-4 text-sm text-foreground leading-relaxed font-sans outline-none focus:ring-2 focus:ring-primary"
+                />
+
+                {result.detectedIssues.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-bold uppercase tracking-wide text-foreground-secondary">Issues detected</p>
+                    <ul className="space-y-1">
+                      {result.detectedIssues.map((issue) => <li key={issue} className="text-xs text-foreground-secondary">• {issue}</li>)}
+                    </ul>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <p className="text-xs font-bold uppercase tracking-wide text-foreground-secondary">
@@ -196,37 +210,15 @@ export default function HumanizerPage() {
               <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-border rounded-xl">
                 <span className="text-3xl mb-2 opacity-50">✨</span>
                 <p className="text-sm font-medium text-foreground-secondary">
-                  Humanized output will appear here
+                  Your rewritten alternative will appear here
                 </p>
                 <p className="text-xs text-foreground-tertiary mt-1">
-                  Paste a draft on the left and click Humanize
+                  Paste a draft on the left and generate a replacement
                 </p>
               </div>
             )}
           </div>
 
-          {/* Engine Credits Badges */}
-          <div className="border-t border-border pt-4">
-            <p className="text-[11px] font-semibold text-foreground-tertiary uppercase tracking-wide mb-2">
-              Powered by Open-Source Engines
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                "blader/humanizer",
-                "llmstrip",
-                "DadaNanjesha/AI-Text-Humanizer",
-                "lynote-ai/humanize-text",
-                "Firdavs-coder/ai_humanizer",
-              ].map((tool) => (
-                <span
-                  key={tool}
-                  className="rounded-full bg-background-secondary border border-border px-2.5 py-0.5 text-[10px] font-medium text-foreground-secondary"
-                >
-                  {tool}
-                </span>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
