@@ -28,6 +28,14 @@ const INTENSITY_TIPS: Record<HumanizeIntensity, string> = {
   aggressive: "Full conversational voice. Maximum restructuring.",
 };
 
+const QUICK_CHIPS = [
+  "✨ Make text more human",
+  "💬 More casual & direct",
+  "💼 More professional",
+  "⚡ Shorten & punchy",
+  "🎯 Highlight React & TypeScript",
+];
+
 interface CoverLetterEditorProps {
   letter: GeneratedCoverLetter;
   onChange: (letter: GeneratedCoverLetter) => void;
@@ -43,6 +51,7 @@ export default function CoverLetterEditor({
 }: CoverLetterEditorProps) {
   const [isHumanizing, setIsHumanizing] = useState(false);
   const [intensity, setIntensity] = useState<HumanizeIntensity>("balanced");
+  const [customInstruction, setCustomInstruction] = useState("");
   const [humanizeError, setHumanizeError] = useState<string | null>(null);
   const [humanizeMessage, setHumanizeMessage] = useState<string | null>(null);
   const [letterBeforeHumanize, setLetterBeforeHumanize] =
@@ -73,6 +82,7 @@ export default function CoverLetterEditor({
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
     setHumanizeMessage(null);
+    setCustomInstruction("");
   }, [language]);
 
   const updateField = <K extends keyof GeneratedCoverLetter>(
@@ -84,9 +94,11 @@ export default function CoverLetterEditor({
     onChange(nextLetter);
   };
 
-  const handleHumanize = async () => {
+  const handleHumanize = async (promptOverride?: string) => {
     const sourceText = paragraphsToText(letter.paragraphs).trim();
     if (!sourceText) return;
+
+    const activeInstruction = (promptOverride ?? customInstruction).trim();
 
     humanizeControllerRef.current?.abort();
     const controller = new AbortController();
@@ -104,7 +116,12 @@ export default function CoverLetterEditor({
       const response = await fetch("/api/humanize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: sourceText, context: "cover-letter", depth }),
+        body: JSON.stringify({
+          text: sourceText,
+          context: "cover-letter",
+          depth,
+          ...(activeInstruction ? { instruction: activeInstruction } : {}),
+        }),
         signal: controller.signal,
       });
       const result = (await response.json()) as {
@@ -150,9 +167,10 @@ export default function CoverLetterEditor({
       const nextLetter = { ...currentLetter, paragraphs };
       latestLetterRef.current = nextLetter;
       onChange(nextLetter);
+      const instructionTag = activeInstruction ? ` ("${activeInstruction}")` : "";
       setHumanizeMessage(
         result.mode === "ai"
-          ? `Draft humanized (${INTENSITY_LABELS[intensity]}) with AI. Review before exporting.`
+          ? `Draft humanized (${INTENSITY_LABELS[intensity]}${instructionTag}) with AI. Review before exporting.`
           : `Draft polished locally (${INTENSITY_LABELS[intensity]}). Review before exporting.`
       );
     } catch (error) {
@@ -194,7 +212,14 @@ export default function CoverLetterEditor({
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
     setHumanizeMessage(null);
+    setCustomInstruction("");
     onReset?.();
+  };
+
+  const handleChipClick = (chip: string) => {
+    const textWithoutEmoji = chip.replace(/^[^\w\s]+\s*/, "");
+    setCustomInstruction(textWithoutEmoji);
+    void handleHumanize(textWithoutEmoji);
   };
 
   return (
@@ -231,51 +256,105 @@ export default function CoverLetterEditor({
         </div>
       </div>
 
-      {/* Humanize controls row */}
-      <div className="flex flex-wrap items-center gap-3 border-b border-border px-6 py-3">
-        {/* Intensity segmented control */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-foreground-secondary whitespace-nowrap">
-            Intensity:
-          </span>
-          <div className="flex rounded-lg border border-border overflow-hidden" role="group" aria-label="Humanize intensity">
-            {(["conservative", "balanced", "aggressive"] as HumanizeIntensity[]).map((level) => (
-              <button
-                key={level}
-                type="button"
-                title={INTENSITY_TIPS[level]}
-                onClick={() => setIntensity(level)}
+      {/* Controls & AI Refine Chat Bar */}
+      <div className="border-b border-border px-6 py-4 space-y-3">
+        {/* Intensity Row */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-medium text-foreground-secondary whitespace-nowrap">
+              Intensity:
+            </span>
+            <div className="flex rounded-lg border border-border overflow-hidden" role="group" aria-label="Humanize intensity">
+              {(["conservative", "balanced", "aggressive"] as HumanizeIntensity[]).map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  title={INTENSITY_TIPS[level]}
+                  onClick={() => setIntensity(level)}
+                  disabled={isHumanizing}
+                  aria-pressed={intensity === level}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    intensity === level
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-foreground-secondary hover:bg-background-secondary hover:text-foreground"
+                  }`}
+                >
+                  {INTENSITY_LABELS[level]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <p className="text-xs text-foreground-secondary dark:text-foreground-tertiary hidden sm:block flex-1 min-w-0 truncate">
+            {INTENSITY_TIPS[intensity]}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => void handleHumanize()}
+            disabled={
+              isHumanizing ||
+              !letter.paragraphs.some((paragraph) => paragraph.trim())
+            }
+            className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+          >
+            {isHumanizing ? "Humanizing…" : "✨ Humanize draft"}
+          </button>
+        </div>
+
+        {/* AI Prompt / Instruction Chat Input */}
+        <div className="pt-2 border-t border-border/50">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleHumanize();
+            }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={customInstruction}
+                onChange={(e) => setCustomInstruction(e.target.value)}
+                placeholder="Ask AI to adjust style e.g. 'Make text more human', 'Add emphasis on TypeScript'..."
                 disabled={isHumanizing}
-                aria-pressed={intensity === level}
-                className={`px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  intensity === level
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background text-foreground-secondary hover:bg-background-secondary hover:text-foreground"
-                }`}
+                className="w-full rounded-lg border border-border bg-background px-3.5 py-2 text-xs text-foreground placeholder:text-foreground-tertiary focus:border-primary focus:outline-none disabled:opacity-50 pr-8"
+              />
+              {customInstruction && (
+                <button
+                  type="button"
+                  onClick={() => setCustomInstruction("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-foreground-tertiary hover:text-foreground"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={isHumanizing || !customInstruction.trim()}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-background-secondary disabled:cursor-not-allowed disabled:opacity-40 whitespace-nowrap"
+            >
+              {isHumanizing ? "Refining…" : "💬 Refine with AI"}
+            </button>
+          </form>
+
+          {/* Quick Prompt Chips */}
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] text-foreground-tertiary mr-1">Quick prompts:</span>
+            {QUICK_CHIPS.map((chip) => (
+              <button
+                key={chip}
+                type="button"
+                onClick={() => handleChipClick(chip)}
+                disabled={isHumanizing}
+                className="rounded-full border border-border/70 bg-background/50 px-2.5 py-1 text-[11px] font-medium text-foreground-secondary transition hover:bg-primary/10 hover:border-primary/50 hover:text-primary disabled:opacity-50"
               >
-                {INTENSITY_LABELS[level]}
+                {chip}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Tip text */}
-        <p className="text-xs text-foreground-secondary dark:text-foreground-tertiary hidden sm:block flex-1 min-w-0 truncate">
-          {INTENSITY_TIPS[intensity]}
-        </p>
-
-        {/* Humanize button */}
-        <button
-          type="button"
-          onClick={() => void handleHumanize()}
-          disabled={
-            isHumanizing ||
-            !letter.paragraphs.some((paragraph) => paragraph.trim())
-          }
-          className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
-        >
-          {isHumanizing ? "Humanizing…" : "✨ Humanize draft"}
-        </button>
       </div>
 
       {(humanizeError || humanizeMessage) && (

@@ -7,6 +7,7 @@ const HumanizeRequestSchema = z.object({
   context: z.enum(["cv", "cover-letter", "email", "general"]).default("general"),
   voiceSample: z.string().trim().max(4_000).optional(),
   depth: z.number().int().min(1).max(10).default(1),
+  instruction: z.string().trim().max(1_000).optional(),
 }).strict();
 
 export async function POST(req: NextRequest) {
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
       context: parsed.data.context,
       voiceSample: parsed.data.voiceSample,
       depth: parsed.data.depth,
+      instruction: parsed.data.instruction,
     });
 
     return NextResponse.json(result);
