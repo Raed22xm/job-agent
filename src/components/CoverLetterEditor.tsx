@@ -8,6 +8,26 @@ import {
   textToParagraphs,
 } from "@/lib/cv/editHelpers";
 
+type HumanizeIntensity = "conservative" | "balanced" | "aggressive";
+
+const INTENSITY_DEPTH: Record<HumanizeIntensity, number> = {
+  conservative: 1,
+  balanced: 2,
+  aggressive: 3,
+};
+
+const INTENSITY_LABELS: Record<HumanizeIntensity, string> = {
+  conservative: "Conservative",
+  balanced: "Balanced",
+  aggressive: "Aggressive",
+};
+
+const INTENSITY_TIPS: Record<HumanizeIntensity, string> = {
+  conservative: "Fix AI buzzwords and passive voice. Keeps original structure.",
+  balanced: "Rewrite sentences freely, vary rhythm. Recommended.",
+  aggressive: "Full conversational voice. Maximum restructuring.",
+};
+
 interface CoverLetterEditorProps {
   letter: GeneratedCoverLetter;
   onChange: (letter: GeneratedCoverLetter) => void;
@@ -22,7 +42,7 @@ export default function CoverLetterEditor({
   language = "english",
 }: CoverLetterEditorProps) {
   const [isHumanizing, setIsHumanizing] = useState(false);
-  const [humanizeDepth, setHumanizeDepth] = useState(0);
+  const [intensity, setIntensity] = useState<HumanizeIntensity>("balanced");
   const [humanizeError, setHumanizeError] = useState<string | null>(null);
   const [humanizeMessage, setHumanizeMessage] = useState<string | null>(null);
   const [letterBeforeHumanize, setLetterBeforeHumanize] =
@@ -32,7 +52,6 @@ export default function CoverLetterEditor({
   const humanizeControllerRef = useRef<AbortController | null>(null);
   const humanizeRequestRef = useRef(0);
   const mountedRef = useRef(true);
-  const humanizeDepthRef = useRef(0);
 
   latestLetterRef.current = letter;
   latestLanguageRef.current = language;
@@ -54,8 +73,6 @@ export default function CoverLetterEditor({
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
     setHumanizeMessage(null);
-    setHumanizeDepth(0);
-    humanizeDepthRef.current = 0;
   }, [language]);
 
   const updateField = <K extends keyof GeneratedCoverLetter>(
@@ -76,7 +93,7 @@ export default function CoverLetterEditor({
     const requestId = humanizeRequestRef.current + 1;
     const requestLanguage = language;
     const sourceParagraphCount = letter.paragraphs.length;
-    const nextDepth = humanizeDepthRef.current + 1;
+    const depth = INTENSITY_DEPTH[intensity];
     humanizeRequestRef.current = requestId;
     humanizeControllerRef.current = controller;
     setIsHumanizing(true);
@@ -87,7 +104,7 @@ export default function CoverLetterEditor({
       const response = await fetch("/api/humanize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: sourceText, context: "cover-letter", depth: nextDepth }),
+        body: JSON.stringify({ text: sourceText, context: "cover-letter", depth }),
         signal: controller.signal,
       });
       const result = (await response.json()) as {
@@ -133,13 +150,10 @@ export default function CoverLetterEditor({
       const nextLetter = { ...currentLetter, paragraphs };
       latestLetterRef.current = nextLetter;
       onChange(nextLetter);
-      humanizeDepthRef.current = nextDepth;
-      setHumanizeDepth(nextDepth);
-      const passLabel = nextDepth === 1 ? "" : ` (Pass ${nextDepth})`;
       setHumanizeMessage(
         result.mode === "ai"
-          ? `Draft humanized${passLabel} with AI. Review it before exporting.`
-          : `Draft polished locally${passLabel}. Review it before exporting.`
+          ? `Draft humanized (${INTENSITY_LABELS[intensity]}) with AI. Review before exporting.`
+          : `Draft polished locally (${INTENSITY_LABELS[intensity]}). Review before exporting.`
       );
     } catch (error) {
       if (
@@ -169,10 +183,6 @@ export default function CoverLetterEditor({
     onChange(letterBeforeHumanize);
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
-    // Step the depth back by 1 (not all the way to 0 in case they did multiple passes)
-    const prevDepth = Math.max(0, humanizeDepthRef.current - 1);
-    humanizeDepthRef.current = prevDepth;
-    setHumanizeDepth(prevDepth);
     setHumanizeMessage("Humanization undone.");
   };
 
@@ -184,16 +194,15 @@ export default function CoverLetterEditor({
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
     setHumanizeMessage(null);
-    humanizeDepthRef.current = 0;
-    setHumanizeDepth(0);
     onReset?.();
   };
 
   return (
-    <div className="glass-panel rounded-xl  ">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-6 py-4 ">
+    <div className="glass-panel rounded-xl">
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-6 py-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground ">Edit Cover Letter</h2>
+          <h2 className="text-lg font-semibold text-foreground">Edit Cover Letter</h2>
           <p className="mt-1 text-sm text-foreground-secondary dark:text-foreground-tertiary">
             Refine the draft before export. Use only verified facts from your CV.
           </p>
@@ -219,22 +228,54 @@ export default function CoverLetterEditor({
               Reset to generated
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => void handleHumanize()}
-            disabled={
-              isHumanizing ||
-              !letter.paragraphs.some((paragraph) => paragraph.trim())
-            }
-            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isHumanizing
-              ? "Humanizing…"
-              : humanizeDepth === 0
-              ? "✨ Humanize draft"
-              : `✨ Humanize more (Pass ${humanizeDepth + 1})`}
-          </button>
         </div>
+      </div>
+
+      {/* Humanize controls row */}
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-6 py-3">
+        {/* Intensity segmented control */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-foreground-secondary whitespace-nowrap">
+            Intensity:
+          </span>
+          <div className="flex rounded-lg border border-border overflow-hidden" role="group" aria-label="Humanize intensity">
+            {(["conservative", "balanced", "aggressive"] as HumanizeIntensity[]).map((level) => (
+              <button
+                key={level}
+                type="button"
+                title={INTENSITY_TIPS[level]}
+                onClick={() => setIntensity(level)}
+                disabled={isHumanizing}
+                aria-pressed={intensity === level}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0 disabled:cursor-not-allowed disabled:opacity-50 ${
+                  intensity === level
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-foreground-secondary hover:bg-background-secondary hover:text-foreground"
+                }`}
+              >
+                {INTENSITY_LABELS[level]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tip text */}
+        <p className="text-xs text-foreground-secondary dark:text-foreground-tertiary hidden sm:block flex-1 min-w-0 truncate">
+          {INTENSITY_TIPS[intensity]}
+        </p>
+
+        {/* Humanize button */}
+        <button
+          type="button"
+          onClick={() => void handleHumanize()}
+          disabled={
+            isHumanizing ||
+            !letter.paragraphs.some((paragraph) => paragraph.trim())
+          }
+          className="rounded-lg bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+        >
+          {isHumanizing ? "Humanizing…" : "✨ Humanize draft"}
+        </button>
       </div>
 
       {(humanizeError || humanizeMessage) && (
