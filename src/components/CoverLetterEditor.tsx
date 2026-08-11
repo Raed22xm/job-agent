@@ -22,6 +22,7 @@ export default function CoverLetterEditor({
   language = "english",
 }: CoverLetterEditorProps) {
   const [isHumanizing, setIsHumanizing] = useState(false);
+  const [humanizeDepth, setHumanizeDepth] = useState(0);
   const [humanizeError, setHumanizeError] = useState<string | null>(null);
   const [humanizeMessage, setHumanizeMessage] = useState<string | null>(null);
   const [letterBeforeHumanize, setLetterBeforeHumanize] =
@@ -31,6 +32,7 @@ export default function CoverLetterEditor({
   const humanizeControllerRef = useRef<AbortController | null>(null);
   const humanizeRequestRef = useRef(0);
   const mountedRef = useRef(true);
+  const humanizeDepthRef = useRef(0);
 
   latestLetterRef.current = letter;
   latestLanguageRef.current = language;
@@ -52,6 +54,8 @@ export default function CoverLetterEditor({
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
     setHumanizeMessage(null);
+    setHumanizeDepth(0);
+    humanizeDepthRef.current = 0;
   }, [language]);
 
   const updateField = <K extends keyof GeneratedCoverLetter>(
@@ -72,6 +76,7 @@ export default function CoverLetterEditor({
     const requestId = humanizeRequestRef.current + 1;
     const requestLanguage = language;
     const sourceParagraphCount = letter.paragraphs.length;
+    const nextDepth = humanizeDepthRef.current + 1;
     humanizeRequestRef.current = requestId;
     humanizeControllerRef.current = controller;
     setIsHumanizing(true);
@@ -82,7 +87,7 @@ export default function CoverLetterEditor({
       const response = await fetch("/api/humanize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: sourceText, context: "cover-letter" }),
+        body: JSON.stringify({ text: sourceText, context: "cover-letter", depth: nextDepth }),
         signal: controller.signal,
       });
       const result = (await response.json()) as {
@@ -128,10 +133,13 @@ export default function CoverLetterEditor({
       const nextLetter = { ...currentLetter, paragraphs };
       latestLetterRef.current = nextLetter;
       onChange(nextLetter);
+      humanizeDepthRef.current = nextDepth;
+      setHumanizeDepth(nextDepth);
+      const passLabel = nextDepth === 1 ? "" : ` (Pass ${nextDepth})`;
       setHumanizeMessage(
         result.mode === "ai"
-          ? "Draft humanized with AI. Review it before exporting."
-          : "Draft polished locally. Review it before exporting."
+          ? `Draft humanized${passLabel} with AI. Review it before exporting.`
+          : `Draft polished locally${passLabel}. Review it before exporting.`
       );
     } catch (error) {
       if (
@@ -161,6 +169,10 @@ export default function CoverLetterEditor({
     onChange(letterBeforeHumanize);
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
+    // Step the depth back by 1 (not all the way to 0 in case they did multiple passes)
+    const prevDepth = Math.max(0, humanizeDepthRef.current - 1);
+    humanizeDepthRef.current = prevDepth;
+    setHumanizeDepth(prevDepth);
     setHumanizeMessage("Humanization undone.");
   };
 
@@ -172,6 +184,8 @@ export default function CoverLetterEditor({
     setLetterBeforeHumanize(null);
     setHumanizeError(null);
     setHumanizeMessage(null);
+    humanizeDepthRef.current = 0;
+    setHumanizeDepth(0);
     onReset?.();
   };
 
@@ -214,7 +228,11 @@ export default function CoverLetterEditor({
             }
             className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isHumanizing ? "Humanizing…" : "✨ Humanize draft"}
+            {isHumanizing
+              ? "Humanizing…"
+              : humanizeDepth === 0
+              ? "✨ Humanize draft"
+              : `✨ Humanize more (Pass ${humanizeDepth + 1})`}
           </button>
         </div>
       </div>
