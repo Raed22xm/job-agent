@@ -75,3 +75,10 @@ skills-lock.json
 
 # Tool cache/indexing
 .understand-anything/
+
+# Local Netlify folder
+.netlify
+
+# Temporary files
+/tmp/
+

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import type { GeneratedCoverLetter } from "@/types";
 import type { CvLanguage } from "@/lib/cvLanguage";
 import {
@@ -20,11 +21,158 @@ export default function CoverLetterEditor({
   onReset,
   language = "english",
 }: CoverLetterEditorProps) {
+  const [isHumanizing, setIsHumanizing] = useState(false);
+  const [humanizeError, setHumanizeError] = useState<string | null>(null);
+  const [humanizeMessage, setHumanizeMessage] = useState<string | null>(null);
+  const [letterBeforeHumanize, setLetterBeforeHumanize] =
+    useState<GeneratedCoverLetter | null>(null);
+  const latestLetterRef = useRef(letter);
+  const latestLanguageRef = useRef(language);
+  const humanizeControllerRef = useRef<AbortController | null>(null);
+  const humanizeRequestRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  latestLetterRef.current = letter;
+  latestLanguageRef.current = language;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      humanizeRequestRef.current += 1;
+      humanizeControllerRef.current?.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    humanizeRequestRef.current += 1;
+    humanizeControllerRef.current?.abort();
+    humanizeControllerRef.current = null;
+    setIsHumanizing(false);
+    setLetterBeforeHumanize(null);
+    setHumanizeError(null);
+    setHumanizeMessage(null);
+  }, [language]);
+
   const updateField = <K extends keyof GeneratedCoverLetter>(
     field: K,
     value: GeneratedCoverLetter[K]
   ) => {
-    onChange({ ...letter, [field]: value });
+    const nextLetter = { ...latestLetterRef.current, [field]: value };
+    latestLetterRef.current = nextLetter;
+    onChange(nextLetter);
+  };
+
+  const handleHumanize = async () => {
+    const sourceText = paragraphsToText(letter.paragraphs).trim();
+    if (!sourceText) return;
+
+    humanizeControllerRef.current?.abort();
+    const controller = new AbortController();
+    const requestId = humanizeRequestRef.current + 1;
+    const requestLanguage = language;
+    const sourceParagraphCount = letter.paragraphs.length;
+    humanizeRequestRef.current = requestId;
+    humanizeControllerRef.current = controller;
+    setIsHumanizing(true);
+    setHumanizeError(null);
+    setHumanizeMessage(null);
+
+    try {
+      const response = await fetch("/api/humanize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: sourceText, context: "cover-letter" }),
+        signal: controller.signal,
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        humanizedText?: string;
+        mode?: "local" | "ai";
+      };
+
+      if (
+        !mountedRef.current ||
+        controller.signal.aborted ||
+        requestId !== humanizeRequestRef.current ||
+        requestLanguage !== latestLanguageRef.current
+      ) {
+        return;
+      }
+
+      if (!response.ok || !result.humanizedText?.trim()) {
+        throw new Error(
+          result.error ?? `Could not humanize the draft (${response.status}).`
+        );
+      }
+
+      const paragraphs = textToParagraphs(result.humanizedText);
+      if (paragraphs.length !== sourceParagraphCount) {
+        throw new Error(
+          "The rewrite changed the five-section structure, so the original draft was kept."
+        );
+      }
+
+      const currentLetter = latestLetterRef.current;
+      if (paragraphsToText(currentLetter.paragraphs).trim() !== sourceText) {
+        setHumanizeMessage(
+          "The draft changed while it was being humanized, so the newer text was kept."
+        );
+        return;
+      }
+
+      setLetterBeforeHumanize({
+        ...currentLetter,
+        paragraphs: [...currentLetter.paragraphs],
+      });
+      const nextLetter = { ...currentLetter, paragraphs };
+      latestLetterRef.current = nextLetter;
+      onChange(nextLetter);
+      setHumanizeMessage(
+        result.mode === "ai"
+          ? "Draft humanized with AI. Review it before exporting."
+          : "Draft polished locally. Review it before exporting."
+      );
+    } catch (error) {
+      if (
+        controller.signal.aborted ||
+        requestId !== humanizeRequestRef.current ||
+        !mountedRef.current
+      ) {
+        return;
+      }
+      setHumanizeError(
+        error instanceof Error ? error.message : "Could not humanize the draft."
+      );
+    } finally {
+      if (
+        mountedRef.current &&
+        requestId === humanizeRequestRef.current
+      ) {
+        humanizeControllerRef.current = null;
+        setIsHumanizing(false);
+      }
+    }
+  };
+
+  const handleUndoHumanize = () => {
+    if (!letterBeforeHumanize) return;
+    latestLetterRef.current = letterBeforeHumanize;
+    onChange(letterBeforeHumanize);
+    setLetterBeforeHumanize(null);
+    setHumanizeError(null);
+    setHumanizeMessage("Humanization undone.");
+  };
+
+  const handleReset = () => {
+    humanizeRequestRef.current += 1;
+    humanizeControllerRef.current?.abort();
+    humanizeControllerRef.current = null;
+    setIsHumanizing(false);
+    setLetterBeforeHumanize(null);
+    setHumanizeError(null);
+    setHumanizeMessage(null);
+    onReset?.();
   };
 
   return (
@@ -36,16 +184,54 @@ export default function CoverLetterEditor({
             Refine the draft before export. Use only verified facts from your CV.
           </p>
         </div>
-        {onReset && (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {letterBeforeHumanize && (
+            <button
+              type="button"
+              onClick={handleUndoHumanize}
+              disabled={isHumanizing}
+              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-foreground-secondary transition hover:bg-background-secondary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Undo humanize
+            </button>
+          )}
+          {onReset && (
+            <button
+              type="button"
+              onClick={handleReset}
+              disabled={isHumanizing}
+              className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-foreground-secondary transition hover:bg-background-secondary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Reset to generated
+            </button>
+          )}
           <button
             type="button"
-            onClick={onReset}
-            className="rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-foreground-secondary transition hover:bg-background-secondary"
+            onClick={() => void handleHumanize()}
+            disabled={
+              isHumanizing ||
+              !letter.paragraphs.some((paragraph) => paragraph.trim())
+            }
+            className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Reset to generated
+            {isHumanizing ? "Humanizing…" : "✨ Humanize draft"}
           </button>
-        )}
+        </div>
       </div>
+
+      {(humanizeError || humanizeMessage) && (
+        <p
+          role={humanizeError ? "alert" : "status"}
+          aria-live="polite"
+          className={`mx-6 mt-4 rounded-lg border px-3 py-2 text-sm ${
+            humanizeError
+              ? "border-danger/30 bg-danger/5 text-danger"
+              : "border-success/30 bg-success/5 text-success"
+          }`}
+        >
+          {humanizeError ?? humanizeMessage}
+        </p>
+      )}
 
       <div className="space-y-5 px-6 py-5">
         <div>

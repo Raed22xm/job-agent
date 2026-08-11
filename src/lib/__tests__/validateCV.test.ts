@@ -5,6 +5,7 @@ import {
   buildCoverLetterMotivation,
   generateCoverLetter,
 } from "@/lib/generateCoverLetter";
+import { humanizeTextLocally } from "@/lib/humanizeText";
 import { matchCV } from "@/lib/matchCV";
 import { parseJob } from "@/lib/parseJob";
 import type { MasterCV, ParsedJob } from "@/types";
@@ -298,6 +299,28 @@ describe("validateCoverLetter", () => {
       );
     }
   );
+
+  it("accepts a fact-preserving humanized paragraph", () => {
+    const humanizableCv: MasterCV = {
+      ...TEST_CV,
+      professionalSummary: {
+        ...TEST_CV.professionalSummary,
+        professionalMotivation:
+          "I leverage modern tools to build reliable customer applications.",
+      },
+    };
+    const letter = generateCoverLetter(humanizableCv, job, "english");
+    letter.paragraphs[0] = humanizeTextLocally(letter.paragraphs[0]);
+
+    const result = validateCoverLetter(
+      letter,
+      humanizableCv,
+      job,
+      "english"
+    );
+
+    expect(result.valid).toBe(true);
+  });
 
   it("rejects letters with fewer than five paragraphs", () => {
     const letter = generateCoverLetter(TEST_CV, job, "english");

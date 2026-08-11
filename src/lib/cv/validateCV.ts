@@ -11,6 +11,7 @@ import {
   generateCoverLetter,
   MAX_COVER_LETTER_WORDS,
 } from "@/lib/generateCoverLetter";
+import { validateHumanizedCandidate } from "@/lib/humanizeText";
 import type { CvLanguage } from "@/lib/cvLanguage";
 import type {
   CVValidationIssue,
@@ -46,6 +47,21 @@ function masterExperienceBullets(cv: MasterCV): Map<string, Set<string>> {
       new Set(entry.bullets.map((bullet) => normalizeTerm(bullet))),
     ])
   );
+}
+
+function coverLetterRewriteViolations(
+  source: string,
+  candidate: string
+): string[] {
+  return validateHumanizedCandidate(source, candidate).filter((violation) => {
+    const prefix = "Unsupported proper noun added: ";
+    if (!violation.startsWith(prefix)) return true;
+
+    // Sentence-start capitalization can make an existing source word look like
+    // a newly introduced name. It is safe when that same text already exists.
+    const possibleName = violation.slice(prefix.length).toLocaleLowerCase();
+    return !source.toLocaleLowerCase().includes(possibleName);
+  });
 }
 
 /**
@@ -236,10 +252,19 @@ export function validateCoverLetter(
     "interviewClosing",
   ];
   for (const [index, field] of paragraphFields.entries()) {
-    if (letter.paragraphs[index] !== canonicalLetter.paragraphs[index]) {
+    const paragraph = letter.paragraphs[index];
+    const canonicalParagraph = canonicalLetter.paragraphs[index];
+    const rewriteViolations =
+      paragraph === canonicalParagraph
+        ? []
+        : coverLetterRewriteViolations(
+            canonicalParagraph ?? "",
+            paragraph ?? ""
+          );
+    if (rewriteViolations.length > 0) {
       issues.push({
         field,
-        message: `Cover letter section ${index + 1} must preserve its verified canonical wording.`,
+        message: `Cover letter section ${index + 1} must preserve its verified facts: ${rewriteViolations.join("; ")}.`,
         severity: "error",
       });
     }
